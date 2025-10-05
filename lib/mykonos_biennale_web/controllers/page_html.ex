@@ -1,4 +1,4 @@
-defmodule MykonosBiennaleWeb.PageHTML2 do
+defmodule MykonosBiennaleWeb.PageHTML do
   @moduledoc """
   This module contains pages rendered by PageController.
 

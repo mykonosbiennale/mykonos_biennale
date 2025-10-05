@@ -38,7 +38,7 @@ defmodule MykonosBiennaleWeb.Router do
   scope "/", MykonosBiennaleWeb do
     pipe_through :browser
 
-    get "/", PageController2, :home
+    get "/", PageController, :home
   end
 
   # Other scopes may use custom stacks.

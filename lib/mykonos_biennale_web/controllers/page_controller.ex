@@ -1,4 +1,4 @@
-defmodule MykonosBiennaleWeb.PageController2 do
+defmodule MykonosBiennaleWeb.PageController do
   use MykonosBiennaleWeb, :controller
 
   def home(conn, _params) do
