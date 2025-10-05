@@ -85,8 +85,12 @@ defmodule MykonosBiennaleWeb do
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components
+      # , except: [input: 2, input: 1]
       import MykonosBiennaleWeb.CoreComponents
-
+      # import MykonosBiennaleWeb.Components.TextareaField
+      # import MykonosBiennaleWeb.Components.FormWrapper
+      # import MykonosBiennaleWeb.Components.InputField
+      # import MykonosBiennaleWeb.Components.Button
       # Common modules used in templates
       alias Phoenix.LiveView.JS
       alias MykonosBiennaleWeb.Layouts

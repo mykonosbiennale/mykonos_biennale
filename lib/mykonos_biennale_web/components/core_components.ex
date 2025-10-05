@@ -466,7 +466,24 @@ defmodule MykonosBiennaleWeb.CoreComponents do
   @doc """
   Translates the errors for a field from a keyword list of errors.
   """
-  def translate_errors(errors, field) when is_list(errors) do
-    for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
+
+  # def translate_errors(errors, field) when is_list(errors) do
+  #   for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
+  # end
+
+  def translate_backpex({msg, opts}) do
+    if count = opts[:count] do
+      Gettext.dngettext(MykonosBiennaleWeb.Gettext, "backpex", msg, msg, count, opts)
+    else
+      Gettext.dgettext(MykonosBiennaleWeb.Gettext, "backpex", msg, opts)
+    end
+  end
+
+  def translate_error({msg, opts}) do
+    if count = opts[:count] do
+      Gettext.dngettext(MykonosBiennaleWeb.Gettext, "errors", msg, msg, count, opts)
+    else
+      Gettext.dgettext(MykonosBiennaleWeb.Gettext, "errors", msg, opts)
+    end
   end
 end
