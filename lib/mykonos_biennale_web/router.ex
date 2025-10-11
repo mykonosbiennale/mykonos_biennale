@@ -32,6 +32,11 @@ defmodule MykonosBiennaleWeb.Router do
     live_session :default, on_mount: Backpex.InitAssigns do
       live_resources "/pages", Admin.PageLive
       live_resources "/sections", Admin.SectionLive
+
+      live_resources "/entities", Admin.EntityLive
+      live_resources "/relationships", Admin.RelationshipLive
+
+      live_resources "/participants", Admin.ParticipantLive
     end
   end
 
@@ -39,6 +44,8 @@ defmodule MykonosBiennaleWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    resources "/entities", EntityController, except: [:new, :edit]
   end
 
   # Other scopes may use custom stacks.

@@ -3,6 +3,7 @@ defmodule MykonosBiennale.Repo.Migrations.CreatePages do
 
   def change do
     create table(:pages) do
+      add :position, :integer
       add :title, :string
       add :slug, :string
       add :description, :text

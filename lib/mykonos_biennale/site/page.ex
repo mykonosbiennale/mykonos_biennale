@@ -3,6 +3,7 @@ defmodule MykonosBiennale.Site.Page do
   import Ecto.Changeset
 
   schema "pages" do
+    field :position, :integer
     field :title, :string
     field :slug, :string
     field :description, :string
@@ -16,9 +17,35 @@ defmodule MykonosBiennale.Site.Page do
   end
 
   @doc false
-  def changeset(page, attrs, meta \\ []) do
+  def changeset(page, attrs, _meta \\ []) do
     page
-    |> cast(attrs, [:title, :slug, :description, :template, :content, :visible, :metadata])
-    |> validate_required([:title, :slug, :template, :content, :visible])
+    |> cast(attrs, [
+      :position,
+      :title,
+      :slug,
+      :description,
+      :template,
+      :content,
+      :visible,
+      :metadata
+    ])
+    |> maybe_generate_position()
+    |> validate_required([:position, :title, :slug, :template, :content, :visible])
+  end
+
+  def maybe_generate_position(changeset) do
+    changeset
+    |> Ecto.Changeset.get_field(:position)
+    |> case do
+      nil ->
+        Ecto.Changeset.put_change(
+          changeset,
+          :position,
+          MykonosBiennale.Repo.aggregate(__MODULE__, :count, :id) + 1
+        )
+
+      _otherwise ->
+        changeset
+    end
   end
 end

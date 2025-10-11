@@ -8,7 +8,8 @@ defmodule MykonosBiennaleWeb.Admin.PageLive do
     ],
     layout: {MykonosBiennaleWeb.Layouts, :admin},
     fluid?: true,
-    save_and_continue_button?: true
+    save_and_continue_button?: true,
+    init_order: %{by: :position, direction: :asc}
 
   import Ecto.Query, warn: false
 
@@ -24,14 +25,22 @@ defmodule MykonosBiennaleWeb.Admin.PageLive do
   @impl Backpex.LiveResource
   def fields do
     [
+      position: %{
+        module: Backpex.Fields.Number,
+        label: "Position",
+        searchable: true,
+        index_editable: true
+      },
       title: %{
         module: Backpex.Fields.Text,
         label: "Title",
-        searchable: true
+        searchable: true,
+        index_editable: true
       },
       visible: %{
         module: Backpex.Fields.Boolean,
-        label: "Visible"
+        label: "Visible",
+        index_editable: true
       },
       slug: %{
         module: Backpex.Fields.Text,

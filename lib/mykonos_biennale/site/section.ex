@@ -3,6 +3,7 @@ defmodule MykonosBiennale.Site.Section do
   import Ecto.Changeset
 
   schema "sections" do
+    field :position, :integer
     field :title, :string
     field :slug, :string
     field :description, :string
@@ -16,9 +17,10 @@ defmodule MykonosBiennale.Site.Section do
   end
 
   @doc false
-  def changeset(section, attrs, meta \\ []) do
+  def changeset(section, attrs, _meta \\ []) do
     section
     |> cast(attrs, [
+      :position,
       :title,
       :slug,
       :description,
@@ -28,6 +30,23 @@ defmodule MykonosBiennale.Site.Section do
       :metadata,
       :page_id
     ])
-    |> validate_required([:title, :slug, :template, :content, :visible, :page_id])
+    |> maybe_generate_position()
+    |> validate_required([:position, :title, :slug, :template, :content, :visible, :page_id])
+  end
+
+  def maybe_generate_position(changeset) do
+    changeset
+    |> Ecto.Changeset.get_field(:position)
+    |> case do
+      nil ->
+        Ecto.Changeset.put_change(
+          changeset,
+          :position,
+          MykonosBiennale.Repo.aggregate(__MODULE__, :count, :id) + 1
+        )
+
+      _otherwise ->
+        changeset
+    end
   end
 end

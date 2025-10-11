@@ -64,6 +64,18 @@
     <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate="/admin/sections">
       <Backpex.HTML.CoreComponents.icon name="hero-user" class="size-5" /> Sections
     </Backpex.HTML.Layout.sidebar_item>
+
+    <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate="/admin/participants">
+      <Backpex.HTML.CoreComponents.icon name="hero-user" class="size-5" /> Participants
+    </Backpex.HTML.Layout.sidebar_item>
+
+    <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate="/admin/entities">
+      <Backpex.HTML.CoreComponents.icon name="hero-user" class="size-5" /> Entities
+    </Backpex.HTML.Layout.sidebar_item>
+
+    <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate="/admin/relationships">
+      <Backpex.HTML.CoreComponents.icon name="hero-user" class="size-5" /> Relationships
+    </Backpex.HTML.Layout.sidebar_item>
   </:sidebar>
   <Backpex.HTML.Layout.flash_messages flash={@flash} />
   {render_slot(@inner_block)}

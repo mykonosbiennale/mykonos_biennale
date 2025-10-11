@@ -3,11 +3,12 @@ defmodule MykonosBiennale.Repo.Migrations.CreateSections do
 
   def change do
     create table(:sections) do
+      add :position, :integer
       add :title, :string
       add :slug, :string
-      add :description, :string
+      add :description, :text
       add :template, :string
-      add :content, :string
+      add :content, :text
       add :visible, :boolean, default: false, null: false
       add :metadata, :map
       add :page_id, references(:pages, on_delete: :nothing)
