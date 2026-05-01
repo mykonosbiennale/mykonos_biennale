@@ -1,316 +1,75 @@
 defmodule MykonosBiennale.Content do
   @moduledoc """
-  The Content context handles all Biennale and Event operations.
+  The Content context handles common entity, relationship, and media operations.
+
+  Domain-specific operations are in:
+  - `MykonosBiennale.Content.Biennale`
+  - `MykonosBiennale.Content.Event`
+  - `MykonosBiennale.Content.Festival`
   """
 
   import Ecto.Query, warn: false
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, Relationship, Media}
+  alias MykonosBiennale.Content.{Entity, Relationship, Media, EntityMedia}
 
-  ## Backward-compatible helper functions for Biennales/Events
+  ## Delegates - Biennale
 
-  @doc """
-  Returns the list of biennales (entities with type "biennale") ordered by year descending.
-  """
-  def list_biennales do
-    Repo.all(
-      from e in Entity,
-        where: e.type == "biennale",
-        order_by: [desc: fragment("CAST(? ->> ? AS INTEGER)", e.fields, "year")]
-    )
-  end
+  defdelegate list_biennales, to: MykonosBiennale.Content.Biennale, as: :list
+  defdelegate get_biennale!(id), to: MykonosBiennale.Content.Biennale, as: :get!
+  defdelegate get_biennale_by_year(year), to: MykonosBiennale.Content.Biennale, as: :get_by_year
+  defdelegate create_biennale(attrs \\ %{}), to: MykonosBiennale.Content.Biennale, as: :create
+  defdelegate update_biennale(entity, attrs), to: MykonosBiennale.Content.Biennale, as: :update
+  defdelegate delete_biennale(entity), to: MykonosBiennale.Content.Biennale, as: :delete
 
-  @doc """
-  Gets a single biennale entity by ID.
+  defdelegate change_biennale(entity, attrs \\ %{}),
+    to: MykonosBiennale.Content.Biennale,
+    as: :change
 
-  Raises `Ecto.NoResultsError` if the Entity does not exist.
-  """
-  def get_biennale!(id), do: Repo.get!(Entity, id)
+  ## Delegates - Event
 
-  @doc """
-  Gets a biennale entity by year.
-  Returns `nil` if not found.
-  """
-  def get_biennale_by_year(year) do
-    Repo.one(
-      from e in Entity,
-        where:
-          e.type == "biennale" and fragment("CAST(? ->> ? AS INTEGER)", e.fields, "year") == ^year
-    )
-  end
+  defdelegate list_events_for_biennale(year),
+    to: MykonosBiennale.Content.Event,
+    as: :list_for_biennale
 
-  @doc """
-  Creates a biennale entity.
-  """
-  def create_biennale(attrs \\ %{}) do
-    fields = %{
-      "year" => Map.get(attrs, :year) || Map.get(attrs, "year"),
-      "theme" => Map.get(attrs, :theme) || Map.get(attrs, "theme"),
-      "statement" => Map.get(attrs, :statement) || Map.get(attrs, "statement"),
-      "description" => Map.get(attrs, :description) || Map.get(attrs, "description"),
-      "start_date" => Map.get(attrs, :start_date) || Map.get(attrs, "start_date"),
-      "end_date" => Map.get(attrs, :end_date) || Map.get(attrs, "end_date")
-    }
+  defdelegate list_events, to: MykonosBiennale.Content.Event, as: :list
+  defdelegate list_events_for_admin, to: MykonosBiennale.Content.Event, as: :list_for_admin
+  defdelegate get_event!(id), to: MykonosBiennale.Content.Event, as: :get!
+  defdelegate get_event_for_admin!(id), to: MykonosBiennale.Content.Event, as: :get_for_admin!
+  defdelegate create_event(attrs \\ %{}), to: MykonosBiennale.Content.Event, as: :create
+  defdelegate update_event(entity, attrs), to: MykonosBiennale.Content.Event, as: :update
+  defdelegate delete_event(entity), to: MykonosBiennale.Content.Event, as: :delete
+  defdelegate change_event(entity, attrs \\ %{}), to: MykonosBiennale.Content.Event, as: :change
 
-    year = fields["year"]
+  ## Delegates - Festival
 
-    create_entity(%{
-      identity: to_string(year),
-      type: "biennale",
-      slug: to_string(year),
-      # Default to true, allow override
-      visible: Map.get(attrs, :visible, true),
-      fields: fields
-    })
-  end
+  defdelegate list_festivals, to: MykonosBiennale.Content.Festival, as: :list
+  defdelegate get_festival!(id), to: MykonosBiennale.Content.Festival, as: :get!
+  defdelegate create_festival(attrs \\ %{}), to: MykonosBiennale.Content.Festival, as: :create
+  defdelegate update_festival(entity, attrs), to: MykonosBiennale.Content.Festival, as: :update
+  defdelegate delete_festival(entity), to: MykonosBiennale.Content.Festival, as: :delete
 
-  @doc """
-  Updates a biennale entity.
-  """
-  def update_biennale(%Entity{} = biennale_entity, attrs) do
-    current_fields = biennale_entity.fields
+  defdelegate change_festival(entity, attrs \\ %{}),
+    to: MykonosBiennale.Content.Festival,
+    as: :change
 
-    new_fields =
-      Enum.reduce(
-        [:year, :theme, :statement, :description, :start_date, :end_date],
-        current_fields,
-        fn key, acc ->
-          case Map.get(attrs, key) do
-            nil -> acc
-            value -> Map.put(acc, to_string(key), value)
-          end
-        end
-      )
+  ## Delegates - Participant
 
-    update_entity(biennale_entity, %{
-      identity: to_string(new_fields["year"]),
-      slug: to_string(new_fields["year"]),
-      visible: Map.get(attrs, :visible, biennale_entity.visible),
-      fields: new_fields
-    })
-  end
+  defdelegate list_participants, to: MykonosBiennale.Content.Participant, as: :list
+  defdelegate get_participant!(id), to: MykonosBiennale.Content.Participant, as: :get!
 
-  @doc """
-  Deletes a biennale entity and its associated relationships.
-  """
-  def delete_biennale(%Entity{} = biennale_entity) do
-    # Delete associated relationships first where this biennale is the object
-    Repo.delete_all(from r in Relationship, where: r.object_id == ^biennale_entity.id)
-    # Then delete the biennale entity
-    delete_entity(biennale_entity)
-  end
+  defdelegate create_participant(attrs \\ %{}),
+    to: MykonosBiennale.Content.Participant,
+    as: :create
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking biennale entity changes.
-  """
-  def change_biennale(%Entity{} = biennale_entity, attrs \\ %{}) do
-    # Map attrs to entity fields for the changeset
-    entity_attrs = %{
-      identity: Map.get(attrs, :year) && to_string(Map.get(attrs, :year)),
-      slug: Map.get(attrs, :year) && to_string(Map.get(attrs, :year)),
-      visible: Map.get(attrs, :visible),
-      fields:
-        Map.take(attrs, [:year, :theme, :statement, :description, :start_date, :end_date])
-        |> Enum.into(%{}, fn {k, v} -> {to_string(k), v} end)
-    }
+  defdelegate update_participant(entity, attrs),
+    to: MykonosBiennale.Content.Participant,
+    as: :update
 
-    Entity.changeset(biennale_entity, entity_attrs)
-  end
+  defdelegate delete_participant(entity), to: MykonosBiennale.Content.Participant, as: :delete
 
-  @doc """
-  Returns the list of events (entities with type "event") for a given biennale year.
-  Uses relationships to find events linked to the biennale.
-  """
-  def list_events_for_biennale(biennale_year) do
-    biennale_entity = get_biennale_by_year(biennale_year)
-
-    if biennale_entity do
-      Repo.all(
-        from e in Entity,
-          join: r in assoc(e, :as_subject),
-          where:
-            e.type == "event" and r.object_id == ^biennale_entity.id and
-              r.slug == "biennale_event",
-          order_by: [asc: fragment("? ->> ?", e.fields, "date")]
-      )
-    else
-      []
-    end
-  end
-
-  @doc """
-  Returns the list of all events (entities with type "event").
-  """
-  def list_events do
-    Repo.all(
-      from e in Entity,
-        where: e.type == "event",
-        order_by: [asc: fragment("? ->> ?", e.fields, "date")]
-    )
-  end
-
-  @doc """
-  Gets a single event entity by ID.
-
-  Raises `Ecto.NoResultsError` if the Entity does not exist.
-  """
-  def get_event!(id), do: Repo.get!(Entity, id)
-
-  @doc """
-  Creates an event entity and links it to a biennale via relationship.
-  """
-  def create_event(attrs \\ %{}) do
-    title = Map.get(attrs, :title) || Map.get(attrs, "title")
-    # This is the entity ID of the biennale
-    biennale_entity_id = Map.get(attrs, :biennale_id) || Map.get(attrs, "biennale_id")
-
-    fields = %{
-      "title" => title,
-      "description" => Map.get(attrs, :description) || Map.get(attrs, "description"),
-      "type" => Map.get(attrs, :type) || Map.get(attrs, "type"),
-      "date" => Map.get(attrs, :date) || Map.get(attrs, "date"),
-      "time" => Map.get(attrs, :time) || Map.get(attrs, "time"),
-      "location" => Map.get(attrs, :location) || Map.get(attrs, "location"),
-      "tickets" => Map.get(attrs, :tickets) || Map.get(attrs, "tickets")
-    }
-
-    # Ensure slug is unique for events, can use UUID or title + current timestamp
-    slug = "#{slugify(title || "event")}-#{System.monotonic_time()}"
-
-    case create_entity(%{
-           identity: title,
-           type: "event",
-           slug: slug,
-           visible: Map.get(attrs, :visible, true),
-           fields: fields
-         }) do
-      {:ok, event_entity} ->
-        if biennale_entity_id do
-          case get_entity!(biennale_entity_id) do
-            %Entity{} = biennale_entity ->
-              create_relationship(%{
-                name: "belongs_to_biennale",
-                slug: "biennale_event",
-                fields: %{},
-                subject_id: event_entity.id,
-                object_id: biennale_entity.id
-              })
-
-              {:ok, event_entity}
-
-            _ ->
-              # If biennale entity not found, return event creation success
-              {:ok, event_entity}
-          end
-        else
-          {:ok, event_entity}
-        end
-
-      error ->
-        error
-    end
-  end
-
-  @doc """
-  Updates an event entity and its relationship to a biennale.
-  """
-  def update_event(%Entity{} = event_entity, attrs) do
-    current_fields = event_entity.fields
-
-    new_fields =
-      Enum.reduce(
-        [:title, :description, :type, :date, :time, :location, :tickets],
-        current_fields,
-        fn key, acc ->
-          case Map.get(attrs, key) do
-            nil -> acc
-            value -> Map.put(acc, to_string(key), value)
-          end
-        end
-      )
-
-    title = Map.get(attrs, :title) || new_fields["title"]
-    biennale_entity_id = Map.get(attrs, :biennale_id) || Map.get(attrs, "biennale_id")
-
-    updated_entity_changeset =
-      update_entity(event_entity, %{
-        identity: title,
-        visible: Map.get(attrs, :visible, event_entity.visible),
-        fields: new_fields
-      })
-
-    case updated_entity_changeset do
-      {:ok, updated_event_entity} ->
-        # Handle relationship update
-        if biennale_entity_id do
-          biennale_entity = get_entity!(biennale_entity_id)
-
-          case Repo.get_by(Relationship,
-                 subject_id: updated_event_entity.id,
-                 slug: "biennale_event"
-               ) do
-            %Relationship{} = relationship ->
-              # Update existing relationship if object_id is different
-              if relationship.object_id != biennale_entity.id do
-                update_relationship(relationship, %{object_id: biennale_entity.id})
-              else
-                {:ok, relationship}
-              end
-
-            _ ->
-              # Create new relationship if none exists
-              create_relationship(%{
-                name: "belongs_to_biennale",
-                slug: "biennale_event",
-                fields: %{},
-                subject_id: updated_event_entity.id,
-                object_id: biennale_entity.id
-              })
-          end
-        else
-          # If biennale_id is explicitly nil, remove any existing relationship
-          Repo.delete_all(
-            from r in Relationship,
-              where: r.subject_id == ^updated_event_entity.id and r.slug == "biennale_event"
-          )
-        end
-
-        {:ok, updated_event_entity}
-
-      error ->
-        error
-    end
-  end
-
-  @doc """
-  Deletes an event entity and its associated relationships.
-  """
-  def delete_event(%Entity{} = event_entity) do
-    # Delete associated relationships first
-    Repo.delete_all(from r in Relationship, where: r.subject_id == ^event_entity.id)
-    # Then delete the event entity
-    delete_entity(event_entity)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking event entity changes.
-  """
-  def change_event(%Entity{} = event_entity, attrs \\ %{}) do
-    # Map attrs to entity fields for the changeset
-    event_fields_to_map = [:title, :description, :type, :date, :time, :location, :tickets]
-
-    fields_map =
-      Map.take(attrs, event_fields_to_map)
-      |> Enum.into(%{}, fn {k, v} -> {to_string(k), v} end)
-
-    entity_attrs = %{
-      identity: Map.get(attrs, :title),
-      visible: Map.get(attrs, :visible),
-      fields: fields_map
-    }
-
-    Entity.changeset(event_entity, entity_attrs)
-  end
+  defdelegate change_participant(entity, attrs \\ %{}),
+    to: MykonosBiennale.Content.Participant,
+    as: :change
 
   ## Entities
 
@@ -474,33 +233,36 @@ defmodule MykonosBiennale.Content do
   Attaches media to an entity with optional position and metadata.
   """
   def attach_media_to_entity(%Entity{} = entity, %Media{} = media, opts \\ []) do
-    position = Keyword.get(opts, :position, 0)
     metadata = Keyword.get(opts, :metadata, %{})
 
-    # Check if association already exists
-    existing =
-      Repo.one(
-        from em in "entity_media",
-          where: em.entity_id == ^entity.id and em.media_id == ^media.id,
-          select: em
-      )
-
-    if existing do
+    if Repo.get_by(EntityMedia, entity_id: entity.id, media_id: media.id) do
       {:error, "Media already attached to this entity"}
     else
-      Repo.query!(
-        "INSERT INTO entity_media (entity_id, media_id, position, metadata, inserted_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)",
-        [
-          entity.id,
-          media.id,
-          position,
-          Jason.encode!(metadata),
-          NaiveDateTime.utc_now(),
-          NaiveDateTime.utc_now()
-        ]
-      )
+      position =
+        case Keyword.fetch(opts, :position) do
+          {:ok, pos} ->
+            pos
 
-      {:ok, :attached}
+          :error ->
+            Repo.one(
+              from em in EntityMedia,
+                where: em.entity_id == ^entity.id,
+                select: coalesce(max(em.position), -1)
+            ) + 1
+        end
+
+      %EntityMedia{}
+      |> EntityMedia.changeset(%{
+        entity_id: entity.id,
+        media_id: media.id,
+        position: position,
+        metadata: metadata
+      })
+      |> Repo.insert()
+      |> case do
+        {:ok, _} -> {:ok, :attached}
+        {:error, cs} -> {:error, cs}
+      end
     end
   end
 
@@ -509,8 +271,7 @@ defmodule MykonosBiennale.Content do
   """
   def detach_media_from_entity(%Entity{} = entity, %Media{} = media) do
     Repo.delete_all(
-      from em in "entity_media",
-        where: em.entity_id == ^entity.id and em.media_id == ^media.id
+      from em in EntityMedia, where: em.entity_id == ^entity.id and em.media_id == ^media.id
     )
 
     {:ok, :detached}
@@ -531,6 +292,31 @@ defmodule MykonosBiennale.Content do
   end
 
   @doc """
+  Lists entity-media links for an entity, including join metadata (position + metadata) and media.
+  """
+  def list_entity_media_links_for_entity(%Entity{id: entity_id}) do
+    Repo.all(
+      from em in EntityMedia,
+        where: em.entity_id == ^entity_id,
+        order_by: em.position,
+        preload: [:media]
+    )
+  end
+
+  @doc """
+  Updates link metadata for a single media item attached to an entity.
+  """
+  def update_entity_media_link(%Entity{id: entity_id}, %Media{id: media_id}, metadata)
+      when is_map(metadata) do
+    Repo.update_all(
+      from(em in EntityMedia, where: em.entity_id == ^entity_id and em.media_id == ^media_id),
+      set: [metadata: metadata, updated_at: NaiveDateTime.utc_now()]
+    )
+
+    {:ok, :updated}
+  end
+
+  @doc """
   Reorders media for an entity based on a list of media IDs.
   """
   def reorder_entity_media(%Entity{id: entity_id}, media_ids) when is_list(media_ids) do
@@ -548,8 +334,10 @@ defmodule MykonosBiennale.Content do
     {:ok, :reordered}
   end
 
-  # Helper function for slugification
-  defp slugify(text) when is_binary(text) do
+  @doc """
+  Slugifies a string for use in URLs/slugs.
+  """
+  def slugify(text) when is_binary(text) do
     text
     |> String.downcase()
     |> String.replace(~r/[^\w\s-]/, "")

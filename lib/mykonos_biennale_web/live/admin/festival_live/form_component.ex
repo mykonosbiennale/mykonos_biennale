@@ -1,11 +1,11 @@
-defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
+defmodule MykonosBiennaleWeb.Admin.FestivalLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Media
   alias Ecto.Changeset
 
-  defmodule BiennaleForm do
+  defmodule FestivalForm do
     @moduledoc false
     use Ecto.Schema
 
@@ -14,18 +14,17 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     @primary_key false
     embedded_schema do
       field :year, :integer
-      field :theme, :string
+      field :title, :string
       field :statement, :string
-      field :description, :string
-      field :start_date, :date
-      field :end_date, :date
+      field :template, :string
+      field :css, :string
       field :visible, :boolean, default: true
     end
 
     def changeset(%__MODULE__{} = form, attrs) when is_map(attrs) do
       form
-      |> cast(attrs, [:year, :theme, :statement, :description, :start_date, :end_date, :visible])
-      |> validate_required([:year, :theme])
+      |> cast(attrs, [:year, :title, :statement, :template, :css, :visible])
+      |> validate_required([:year, :title])
     end
   end
 
@@ -39,18 +38,17 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
 
       <.form
         for={@form}
-        id="biennale-form"
+        id="festival-form"
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
       >
         <div class="space-y-4">
           <.input field={@form[:year]} type="number" label="Year" required />
-          <.input field={@form[:theme]} type="text" label="Theme" required />
+          <.input field={@form[:title]} type="text" label="Title" required />
           <.input field={@form[:statement]} type="textarea" label="Statement" rows="3" />
-          <.input field={@form[:description]} type="textarea" label="Description" rows="5" />
-          <.input field={@form[:start_date]} type="date" label="Start Date" />
-          <.input field={@form[:end_date]} type="date" label="End Date" />
+          <.input field={@form[:template]} type="textarea" label="Template" rows="5" />
+          <.input field={@form[:css]} type="textarea" label="CSS" rows="5" />
         </div>
 
         <div class="mt-6">
@@ -68,7 +66,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
             </p>
 
             <div
-              id="biennale-media-links"
+              id="festival-media-links"
               phx-hook="SortableMediaLinks"
               phx-target={@myself}
               class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4"
@@ -168,7 +166,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
             Cancel
           </.link>
           <button type="submit" phx-disable-with="Saving..." class="btn btn-primary">
-            Save Biennale
+            Save Festival
           </button>
         </div>
       </.form>
@@ -177,10 +175,10 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
   end
 
   @impl true
-  def update(%{biennale: biennale} = assigns, socket) do
+  def update(%{festival: festival} = assigns, socket) do
     current_media_links =
-      if biennale.id do
-        Content.list_entity_media_links_for_entity(biennale)
+      if festival.id do
+        Content.list_entity_media_links_for_entity(festival)
       else
         []
       end
@@ -195,21 +193,21 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
      |> assign(:current_media_links, current_media_links)
      |> assign(:available_media, available_media)
      |> assign_new(:form, fn ->
-       changeset = BiennaleForm.changeset(%BiennaleForm{}, biennale_form_attrs(biennale))
-       to_form(changeset, as: :biennale)
+       changeset = FestivalForm.changeset(%FestivalForm{}, festival_form_attrs(festival))
+       to_form(changeset, as: :festival)
      end)}
   end
 
   @impl true
   def handle_event("validate", params, socket) do
-    biennale_params = extract_biennale_params(params)
+    festival_params = extract_festival_params(params)
 
     changeset =
       socket.assigns.form.source.data
-      |> BiennaleForm.changeset(biennale_params)
+      |> FestivalForm.changeset(festival_params)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign(socket, form: to_form(changeset, as: :biennale))}
+    {:noreply, assign(socket, form: to_form(changeset, as: :festival))}
   end
 
   def handle_event("attach_media", %{"media_id" => ""}, socket) do
@@ -217,14 +215,14 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
   end
 
   def handle_event("attach_media", %{"media_id" => media_id}, socket) do
-    biennale = socket.assigns.biennale
+    festival = socket.assigns.festival
 
-    if biennale.id do
+    if festival.id do
       media = Content.get_media!(media_id)
 
-      case Content.attach_media_to_entity(biennale, media) do
-        {:ok, :attached} ->
-          current_media_links = Content.list_entity_media_links_for_entity(biennale)
+      case Content.attach_media_to_entity(festival, media) do
+        {:ok, _} ->
+          current_media_links = Content.list_entity_media_links_for_entity(festival)
           all_media = Content.list_media()
           attached_ids = Enum.map(current_media_links, & &1.media_id)
           available_media = Enum.reject(all_media, fn m -> m.id in attached_ids end)
@@ -239,17 +237,17 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
           {:noreply, put_flash(socket, :error, reason)}
       end
     else
-      {:noreply, put_flash(socket, :error, "Save the biennale first before attaching media")}
+      {:noreply, put_flash(socket, :error, "Save the festival first before attaching media")}
     end
   end
 
   def handle_event("detach_media", %{"media-id" => media_id}, socket) do
-    biennale = socket.assigns.biennale
+    festival = socket.assigns.festival
     media = Content.get_media!(media_id)
 
-    {:ok, :detached} = Content.detach_media_from_entity(biennale, media)
+    {:ok, :detached} = Content.detach_media_from_entity(festival, media)
 
-    current_media_links = Content.list_entity_media_links_for_entity(biennale)
+    current_media_links = Content.list_entity_media_links_for_entity(festival)
     all_media = Content.list_media()
     attached_ids = Enum.map(current_media_links, & &1.media_id)
     available_media = Enum.reject(all_media, fn m -> m.id in attached_ids end)
@@ -262,107 +260,106 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
   end
 
   def handle_event("reorder_media_links", %{"media_ids" => media_ids}, socket) do
-    biennale = socket.assigns.biennale
+    festival = socket.assigns.festival
     media_ids = Enum.map(media_ids, &String.to_integer/1)
-    {:ok, :reordered} = Content.reorder_entity_media(biennale, media_ids)
+    {:ok, :reordered} = Content.reorder_entity_media(festival, media_ids)
 
-    current_media_links = Content.list_entity_media_links_for_entity(biennale)
+    current_media_links = Content.list_entity_media_links_for_entity(festival)
     {:noreply, assign(socket, :current_media_links, current_media_links)}
   end
 
   def handle_event("update_media_link", %{"media_id" => media_id, "metadata" => metadata}, socket) do
-    biennale = socket.assigns.biennale
+    festival = socket.assigns.festival
     media = %Media{id: String.to_integer(media_id)}
-    {:ok, :updated} = Content.update_entity_media_link(biennale, media, metadata)
+    {:ok, :updated} = Content.update_entity_media_link(festival, media, metadata)
 
-    current_media_links = Content.list_entity_media_links_for_entity(biennale)
+    current_media_links = Content.list_entity_media_links_for_entity(festival)
     {:noreply, assign(socket, :current_media_links, current_media_links)}
   end
 
   def handle_event("save", params, socket) do
-    biennale_params = extract_biennale_params(params)
-    save_biennale(socket, socket.assigns.action, biennale_params)
+    festival_params = extract_festival_params(params)
+    save_festival(socket, socket.assigns.action, festival_params)
   end
 
-  defp save_biennale(socket, :edit, biennale_params) do
-    changeset = BiennaleForm.changeset(socket.assigns.form.source.data, biennale_params)
+  defp save_festival(socket, :edit, festival_params) do
+    changeset = FestivalForm.changeset(socket.assigns.form.source.data, festival_params)
 
     if changeset.valid? do
-      attrs = biennale_attrs_from_form(changeset)
+      attrs = festival_attrs_from_form(changeset)
 
-      case Content.update_biennale(socket.assigns.biennale, attrs) do
-        {:ok, biennale} ->
-          notify_parent({:saved, biennale})
+      case Content.update_festival(socket.assigns.festival, attrs) do
+        {:ok, festival} ->
+          notify_parent({:saved, festival})
 
           {:noreply,
            socket
-           |> put_flash(:info, "Biennale updated successfully")
+           |> put_flash(:info, "Festival updated successfully")
            |> push_patch(to: socket.assigns.patch)}
 
         {:error, %Ecto.Changeset{} = entity_changeset} ->
           {:noreply,
            socket
-           |> put_flash(:error, "Could not update biennale")
+           |> put_flash(:error, "Could not update festival")
            |> assign(
              :form,
-             to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :biennale)
+             to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :festival)
            )
            |> assign(:entity_changeset, entity_changeset)}
       end
     else
-      {:noreply, assign(socket, form: to_form(%{changeset | action: :validate}, as: :biennale))}
+      {:noreply, assign(socket, form: to_form(%{changeset | action: :validate}, as: :festival))}
     end
   end
 
-  defp save_biennale(socket, :new, biennale_params) do
-    changeset = BiennaleForm.changeset(socket.assigns.form.source.data, biennale_params)
+  defp save_festival(socket, :new, festival_params) do
+    changeset = FestivalForm.changeset(socket.assigns.form.source.data, festival_params)
 
     if changeset.valid? do
-      attrs = biennale_attrs_from_form(changeset)
+      attrs = festival_attrs_from_form(changeset)
 
-      case Content.create_biennale(attrs) do
-        {:ok, biennale} ->
-          notify_parent({:saved, biennale})
+      case Content.create_festival(attrs) do
+        {:ok, festival} ->
+          notify_parent({:saved, festival})
 
           {:noreply,
            socket
-           |> put_flash(:info, "Biennale created successfully")
+           |> put_flash(:info, "Festival created successfully")
            |> push_patch(to: socket.assigns.patch)}
 
         {:error, %Ecto.Changeset{} = entity_changeset} ->
           {:noreply,
            socket
-           |> put_flash(:error, "Could not create biennale")
+           |> put_flash(:error, "Could not create festival")
            |> assign(
              :form,
-             to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :biennale)
+             to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :festival)
            )
            |> assign(:entity_changeset, entity_changeset)}
       end
     else
-      {:noreply, assign(socket, form: to_form(%{changeset | action: :validate}, as: :biennale))}
+      {:noreply, assign(socket, form: to_form(%{changeset | action: :validate}, as: :festival))}
     end
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 
-  defp extract_biennale_params(%{"biennale" => p}) when is_map(p), do: p
-  defp extract_biennale_params(%{"entity" => p}) when is_map(p), do: p
-  defp extract_biennale_params(_), do: %{}
+  defp extract_festival_params(%{"festival" => p}) when is_map(p), do: p
+  defp extract_festival_params(%{"entity" => p}) when is_map(p), do: p
+  defp extract_festival_params(_), do: %{}
 
-  defp biennale_form_attrs(%Content.Entity{fields: fields}) when is_map(fields) do
+  defp festival_form_attrs(%Content.Entity{fields: fields}) when is_map(fields) do
     %{
       year: map_get_int(fields, "year"),
-      theme: Map.get(fields, "theme"),
+      title: Map.get(fields, "title"),
       statement: Map.get(fields, "statement"),
-      description: Map.get(fields, "description"),
-      start_date: map_get_date(fields, "start_date"),
-      end_date: map_get_date(fields, "end_date"),
+      template: Map.get(fields, "template"),
+      css: Map.get(fields, "css"),
       visible: true
     }
   end
 
-  defp biennale_form_attrs(%Content.Entity{}), do: %{visible: true}
+  defp festival_form_attrs(%Content.Entity{}), do: %{visible: true}
 
   defp map_get_int(map, key) do
     case Map.get(map, key) do
@@ -380,33 +377,15 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     end
   end
 
-  defp map_get_date(map, key) do
-    case Map.get(map, key) do
-      %Date{} = d ->
-        d
-
-      s when is_binary(s) ->
-        case Date.from_iso8601(s) do
-          {:ok, d} -> d
-          _ -> nil
-        end
-
-      _ ->
-        nil
-    end
-  end
-
-  defp biennale_attrs_from_form(%Changeset{} = changeset) do
+  defp festival_attrs_from_form(%Changeset{} = changeset) do
     form = Changeset.apply_changes(changeset)
 
     %{
       year: form.year,
-      theme: form.theme,
+      title: form.title,
       statement: form.statement,
-      description: form.description,
-      start_date: form.start_date,
-      end_date: form.end_date,
-      visible: form.visible
+      template: form.template,
+      css: form.css
     }
     |> Enum.reject(fn {_k, v} -> is_nil(v) end)
     |> Enum.into(%{})

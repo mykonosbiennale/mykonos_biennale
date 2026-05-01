@@ -64,6 +64,14 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/events", Admin.EventLive.Index, :index
       live "/admin/events/new", Admin.EventLive.Index, :new
       live "/admin/events/:id/edit", Admin.EventLive.Index, :edit
+      live "/admin/participants", Admin.ParticipantLive.Index, :index
+      live "/admin/participants/new", Admin.ParticipantLive.Index, :new
+      live "/admin/participants/:id/edit", Admin.ParticipantLive.Index, :edit
+      live "/admin/participants/:id", Admin.ParticipantLive.Index, :show
+      live "/admin/festivals", Admin.FestivalLive.Index, :index
+      live "/admin/festivals/new", Admin.FestivalLive.Index, :new
+      live "/admin/festivals/:id/edit", Admin.FestivalLive.Index, :edit
+      live "/admin/festivals/:id", Admin.FestivalLive.Index, :show
       live "/admin/media", Admin.MediaLive.Index, :index
       live "/admin/media/new", Admin.MediaLive.Index, :new
       live "/admin/media/:id/edit", Admin.MediaLive.Index, :edit

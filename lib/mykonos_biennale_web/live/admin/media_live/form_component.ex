@@ -57,7 +57,10 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
               <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-3 rounded">
                 <div class="flex items-center gap-3">
                   <.icon name="hero-document" class="w-5 h-5 text-gray-400" />
-                  <div>
+                  <div
+                    data-theme="light"
+                    class="bg-white rounded-xl [&_.label]:text-gray-900 [&_h1]:text-gray-900"
+                  >
                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {entry.client_name}
                     </p>
@@ -131,7 +134,7 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
        to_form(Content.change_media(media))
      end)
      |> allow_upload(:media_file,
-       accept: ~w(.jpg .jpeg .png .gif .mp4 .webm),
+       accept: ~w(.jpg .jpeg .png .gif .mp4 .webm .webp),
        max_entries: 1,
        max_file_size: 10_000_000
      )}

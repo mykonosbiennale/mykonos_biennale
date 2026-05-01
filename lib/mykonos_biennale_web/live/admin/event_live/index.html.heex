@@ -31,6 +31,12 @@
               >
                 Events
               </.link>
+              <.link
+                navigate={~p"/admin/participants"}
+                class="text-sm text-gray-400 hover:text-white uppercase tracking-wider transition-colors"
+              >
+                Participants
+              </.link>
             </nav>
           </div>
 
@@ -84,32 +90,36 @@
               class="hover:bg-gray-700/20 transition-colors"
             >
               <td class="px-6 py-4">
-                <div class="text-white font-medium">{event.title}</div>
-                <%= if event.description do %>
-                  <div class="text-sm text-gray-400 mt-1 line-clamp-1">{event.description}</div>
+                <div class="text-white font-medium">{field(event, "title")}</div>
+                <%= if field(event, "description") do %>
+                  <div class="text-sm text-gray-400 mt-1 line-clamp-1">
+                    {field(event, "description")}
+                  </div>
                 <% end %>
               </td>
               <td class="px-6 py-4">
                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-500/20 text-purple-300 uppercase">
-                  {event.type}
+                  {field(event, "type")}
                 </span>
               </td>
               <td class="px-6 py-4">
-                <div class="text-gray-300">{event.biennale.year}</div>
-                <div class="text-sm text-gray-500">{event.biennale.theme}</div>
+                <%= if event_biennale(event) do %>
+                  <div class="text-gray-300">{field(event_biennale(event), "year")}</div>
+                  <div class="text-sm text-gray-500">{field(event_biennale(event), "theme")}</div>
+                <% else %>
+                  <span class="text-gray-500 text-sm">—</span>
+                <% end %>
               </td>
               <td class="px-6 py-4">
-                <%= if event.date do %>
-                  <div class="text-gray-300 text-sm">
-                    {Calendar.strftime(event.date, "%b %d, %Y")}
-                  </div>
+                <%= if format_event_date(event) do %>
+                  <div class="text-gray-300 text-sm">{format_event_date(event)}</div>
                 <% else %>
                   <span class="text-gray-500 text-sm">No date set</span>
                 <% end %>
               </td>
               <td class="px-6 py-4">
-                <%= if event.location do %>
-                  <div class="text-gray-300 text-sm">{event.location}</div>
+                <%= if field(event, "location") do %>
+                  <div class="text-gray-300 text-sm">{field(event, "location")}</div>
                 <% else %>
                   <span class="text-gray-500 text-sm">—</span>
                 <% end %>

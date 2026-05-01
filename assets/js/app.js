@@ -25,11 +25,73 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/mykonos_biennale"
 import topbar from "../vendor/topbar"
 
+const hooks = {
+  ...colocatedHooks,
+  SortableMediaLinks: {
+    mounted() {
+      this.dragging = null
+
+      this.onDragStart = (e) => {
+        const item = e.target.closest("[data-media-id]")
+        if (!item) return
+        this.dragging = item
+        item.classList.add("opacity-60")
+        e.dataTransfer.effectAllowed = "move"
+        try { e.dataTransfer.setData("text/plain", item.dataset.mediaId) } catch (_) {}
+      }
+
+      this.onDragOver = (e) => {
+        if (!this.dragging) return
+        e.preventDefault()
+
+        const over = e.target.closest("[data-media-id]")
+        if (!over || over === this.dragging) return
+
+        const rect = over.getBoundingClientRect()
+        const insertAfter = (e.clientY - rect.top) > rect.height / 2
+        this.el.insertBefore(this.dragging, insertAfter ? over.nextSibling : over)
+      }
+
+      this.onDrop = (e) => {
+        if (!this.dragging) return
+        e.preventDefault()
+        this.pushOrder()
+      }
+
+      this.onDragEnd = (_e) => {
+        if (!this.dragging) return
+        this.dragging.classList.remove("opacity-60")
+        this.dragging = null
+        this.pushOrder()
+      }
+
+      this.el.addEventListener("dragstart", this.onDragStart)
+      this.el.addEventListener("dragover", this.onDragOver)
+      this.el.addEventListener("drop", this.onDrop)
+      this.el.addEventListener("dragend", this.onDragEnd)
+    },
+
+    destroyed() {
+      this.el.removeEventListener("dragstart", this.onDragStart)
+      this.el.removeEventListener("dragover", this.onDragOver)
+      this.el.removeEventListener("drop", this.onDrop)
+      this.el.removeEventListener("dragend", this.onDragEnd)
+    },
+
+    pushOrder() {
+      const ids = Array.from(this.el.querySelectorAll("[data-media-id]")).map((el) => el.dataset.mediaId)
+      if (ids.length === 0) return
+      // Push to the hook element so LiveView routes correctly (including to LiveComponents via phx-target).
+      this.pushEventTo(this.el, "reorder_media_links", {media_ids: ids})
+    },
+  },
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks,
 })
 
 // Show progress bar on live navigation and form submits

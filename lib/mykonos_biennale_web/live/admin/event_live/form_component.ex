@@ -2,11 +2,50 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
   alias MykonosBiennale.Content
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.Media
+  alias Ecto.Changeset
+
+  defmodule EventForm do
+    @moduledoc false
+    use Ecto.Schema
+
+    import Ecto.Changeset
+
+    @primary_key false
+    embedded_schema do
+      field :title, :string
+      field :type, :string
+      field :biennale_id, :integer
+      field :date, :date
+      field :time, :string
+      field :location, :string
+      field :tickets, :string
+      field :description, :string
+      field :visible, :boolean, default: true
+    end
+
+    def changeset(%__MODULE__{} = form, attrs) when is_map(attrs) do
+      form
+      |> cast(attrs, [
+        :title,
+        :type,
+        :biennale_id,
+        :date,
+        :time,
+        :location,
+        :tickets,
+        :description,
+        :visible
+      ])
+      |> validate_required([:title, :type, :biennale_id])
+    end
+  end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div>
+    <div data-theme="light" class="bg-white rounded-xl [&_.label]:text-gray-900 [&_h1]:text-gray-900">
       <.header>
         {@title}
       </.header>
@@ -58,33 +97,44 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
             Attached Media
           </label>
 
-          <%= if @current_media == [] do %>
+          <%= if @current_media_links == [] do %>
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
               No media attached yet
             </p>
           <% else %>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              Drag to reorder. Changes are saved immediately.
+            </p>
+
+            <div
+              id="event-media-links"
+              phx-hook="SortableMediaLinks"
+              phx-target={@myself}
+              class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4"
+            >
               <div
-                :for={media <- @current_media}
+                :for={link <- @current_media_links}
+                data-media-id={link.media_id}
+                draggable="true"
                 class="relative group bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden"
               >
                 <div class="aspect-video bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                  <%= case media.source_type do %>
+                  <%= case link.media.source_type do %>
                     <% "upload" -> %>
-                      <%= if media.source_path do %>
+                      <%= if link.media.source_path do %>
                         <img
-                          src={"/uploads/#{media.source_path}"}
-                          alt={media.alt_text || media.caption}
+                          src={"/uploads/#{link.media.source_path}"}
+                          alt={link.media.alt_text || link.media.caption}
                           class="w-full h-full object-cover"
                         />
                       <% else %>
                         <.icon name="hero-photo" class="w-8 h-8 text-gray-400" />
                       <% end %>
                     <% "url" -> %>
-                      <%= if media.source_url do %>
+                      <%= if link.media.source_url do %>
                         <img
-                          src={media.source_url}
-                          alt={media.alt_text || media.caption}
+                          src={link.media.source_url}
+                          alt={link.media.alt_text || link.media.caption}
                           class="w-full h-full object-cover"
                         />
                       <% else %>
@@ -97,17 +147,35 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
                 <button
                   type="button"
                   phx-click="detach_media"
-                  phx-value-media-id={media.id}
+                  phx-value-media-id={link.media_id}
                   phx-target={@myself}
                   class="absolute top-2 right-2 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <.icon name="hero-x-mark" class="w-4 h-4" />
                 </button>
-                <%= if media.caption do %>
-                  <p class="px-2 py-1 text-xs text-gray-600 dark:text-gray-300 truncate">
-                    {media.caption}
-                  </p>
-                <% end %>
+
+                <div class="p-2 space-y-2">
+                  <div class="text-xs text-gray-600 dark:text-gray-300 truncate">
+                    {link.media.caption || "Untitled"}
+                  </div>
+
+                  <%!-- Editable per-link metadata stored in entity_media.metadata --%>
+                  <form phx-change="update_media_link" phx-target={@myself} class="space-y-1">
+                    <input type="hidden" name="media_id" value={link.media_id} />
+                    <input
+                      name="metadata[caption_override]"
+                      value={link.metadata["caption_override"] || ""}
+                      placeholder="Caption override (optional)"
+                      class="w-full text-xs rounded border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 px-2 py-1"
+                    />
+                    <input
+                      name="metadata[alt_override]"
+                      value={link.metadata["alt_override"] || ""}
+                      placeholder="Alt override (optional)"
+                      class="w-full text-xs rounded border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 px-2 py-1"
+                    />
+                  </form>
+                </div>
               </div>
             </div>
           <% end %>
@@ -116,18 +184,21 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Add Media
             </label>
-            <select
-              phx-change="attach_media"
-              phx-target={@myself}
-              class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            >
-              <option value="">Select media to attach...</option>
-              <%= for media <- @available_media do %>
-                <option value={media.id}>
-                  {media.caption || "#{media.source_type} - #{media.id}"}
-                </option>
-              <% end %>
-            </select>
+            <%!-- Keep this separate from the main form's phx-change="validate" so the change event
+                 doesn't get swallowed by the parent form validation. --%>
+            <form phx-change="attach_media" phx-target={@myself}>
+              <select
+                name="media_id"
+                class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              >
+                <option value="">Select media to attach...</option>
+                <%= for media <- @available_media do %>
+                  <option value={media.id}>
+                    {media.caption || "#{media.source_type} - #{media.id}"}
+                  </option>
+                <% end %>
+              </select>
+            </form>
           </div>
         </div>
 
@@ -146,39 +217,46 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
   @impl true
   def update(%{event: event} = assigns, socket) do
-    current_media =
+    current_media_links =
       if event.id do
-        Content.list_media_for_entity(event)
+        Content.list_entity_media_links_for_entity(event)
       else
         []
       end
 
     all_media = Content.list_media()
-    attached_ids = Enum.map(current_media, & &1.id)
+    attached_ids = Enum.map(current_media_links, & &1.media_id)
     available_media = Enum.reject(all_media, fn m -> m.id in attached_ids end)
 
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:biennales, Content.list_biennales())
-     |> assign(:current_media, current_media)
+     |> assign(:current_media_links, current_media_links)
      |> assign(:available_media, available_media)
      |> assign_new(:form, fn ->
-       to_form(Content.change_event(event))
+       changeset = EventForm.changeset(%EventForm{}, event_form_attrs(event))
+       to_form(changeset, as: :event)
      end)}
   end
 
   @impl true
-  def handle_event("validate", %{"event" => event_params}, socket) do
-    changeset = Content.change_event(socket.assigns.event, event_params)
-    {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
+  def handle_event("validate", params, socket) do
+    event_params = extract_event_params(params)
+
+    changeset =
+      socket.assigns.form.source.data
+      |> EventForm.changeset(event_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, form: to_form(changeset, as: :event))}
   end
 
-  def handle_event("attach_media", %{"value" => ""}, socket) do
+  def handle_event("attach_media", %{"media_id" => ""}, socket) do
     {:noreply, socket}
   end
 
-  def handle_event("attach_media", %{"value" => media_id}, socket) do
+  def handle_event("attach_media", %{"media_id" => media_id}, socket) do
     event = socket.assigns.event
 
     if event.id do
@@ -186,14 +264,14 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
       case Content.attach_media_to_entity(event, media) do
         {:ok, :attached} ->
-          current_media = Content.list_media_for_entity(event)
+          current_media_links = Content.list_entity_media_links_for_entity(event)
           all_media = Content.list_media()
-          attached_ids = Enum.map(current_media, & &1.id)
+          attached_ids = Enum.map(current_media_links, & &1.media_id)
           available_media = Enum.reject(all_media, fn m -> m.id in attached_ids end)
 
           {:noreply,
            socket
-           |> assign(:current_media, current_media)
+           |> assign(:current_media_links, current_media_links)
            |> assign(:available_media, available_media)
            |> put_flash(:info, "Media attached successfully")}
 
@@ -211,51 +289,175 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
     {:ok, :detached} = Content.detach_media_from_entity(event, media)
 
-    current_media = Content.list_media_for_entity(event)
+    current_media_links = Content.list_entity_media_links_for_entity(event)
     all_media = Content.list_media()
-    attached_ids = Enum.map(current_media, & &1.id)
+    attached_ids = Enum.map(current_media_links, & &1.media_id)
     available_media = Enum.reject(all_media, fn m -> m.id in attached_ids end)
 
     {:noreply,
      socket
-     |> assign(:current_media, current_media)
+     |> assign(:current_media_links, current_media_links)
      |> assign(:available_media, available_media)
      |> put_flash(:info, "Media detached successfully")}
   end
 
-  def handle_event("save", %{"event" => event_params}, socket) do
+  def handle_event("reorder_media_links", %{"media_ids" => media_ids}, socket) do
+    event = socket.assigns.event
+    media_ids = Enum.map(media_ids, &String.to_integer/1)
+    {:ok, :reordered} = Content.reorder_entity_media(event, media_ids)
+
+    current_media_links = Content.list_entity_media_links_for_entity(event)
+    {:noreply, assign(socket, :current_media_links, current_media_links)}
+  end
+
+  def handle_event("update_media_link", %{"media_id" => media_id, "metadata" => metadata}, socket) do
+    event = socket.assigns.event
+    media = %Media{id: String.to_integer(media_id)}
+    {:ok, :updated} = Content.update_entity_media_link(event, media, metadata)
+
+    current_media_links = Content.list_entity_media_links_for_entity(event)
+    {:noreply, assign(socket, :current_media_links, current_media_links)}
+  end
+
+  def handle_event("save", params, socket) do
+    event_params = extract_event_params(params)
     save_event(socket, socket.assigns.action, event_params)
   end
 
   defp save_event(socket, :edit, event_params) do
-    case Content.update_event(socket.assigns.event, event_params) do
-      {:ok, event} ->
-        notify_parent({:saved, event})
+    changeset = EventForm.changeset(socket.assigns.form.source.data, event_params)
 
-        {:noreply,
-         socket
-         |> put_flash(:info, "Event updated successfully")
-         |> push_patch(to: socket.assigns.patch)}
+    if changeset.valid? do
+      attrs = event_attrs_from_form(changeset)
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+      case Content.update_event(socket.assigns.event, attrs) do
+        {:ok, event} ->
+          notify_parent({:saved, event})
+
+          {:noreply,
+           socket
+           |> put_flash(:info, "Event updated successfully")
+           |> push_patch(to: socket.assigns.patch)}
+
+        {:error, %Ecto.Changeset{} = entity_changeset} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Could not update event")
+           |> assign(
+             :form,
+             to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :event)
+           )
+           |> assign(:entity_changeset, entity_changeset)}
+      end
+    else
+      {:noreply, assign(socket, form: to_form(%{changeset | action: :validate}, as: :event))}
     end
   end
 
   defp save_event(socket, :new, event_params) do
-    case Content.create_event(event_params) do
-      {:ok, event} ->
-        notify_parent({:saved, event})
+    changeset = EventForm.changeset(socket.assigns.form.source.data, event_params)
 
-        {:noreply,
-         socket
-         |> put_flash(:info, "Event created successfully")
-         |> push_patch(to: socket.assigns.patch)}
+    if changeset.valid? do
+      attrs = event_attrs_from_form(changeset)
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+      case Content.create_event(attrs) do
+        {:ok, event} ->
+          notify_parent({:saved, event})
+
+          {:noreply,
+           socket
+           |> put_flash(:info, "Event created successfully")
+           |> push_patch(to: socket.assigns.patch)}
+
+        {:error, %Ecto.Changeset{} = entity_changeset} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Could not create event")
+           |> assign(
+             :form,
+             to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :event)
+           )
+           |> assign(:entity_changeset, entity_changeset)}
+      end
+    else
+      {:noreply, assign(socket, form: to_form(%{changeset | action: :validate}, as: :event))}
     end
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  defp extract_event_params(%{"event" => p}) when is_map(p), do: p
+  defp extract_event_params(%{"entity" => p}) when is_map(p), do: p
+  defp extract_event_params(_), do: %{}
+
+  defp event_form_attrs(%Content.Entity{fields: fields, as_subject: rels})
+       when is_map(fields) and is_list(rels) do
+    %{
+      title: Map.get(fields, "title"),
+      type: Map.get(fields, "type"),
+      biennale_id: biennale_id_from_relationships(rels),
+      date: map_get_date(fields, "date"),
+      time: Map.get(fields, "time"),
+      location: Map.get(fields, "location"),
+      tickets: Map.get(fields, "tickets"),
+      description: Map.get(fields, "description"),
+      visible: true
+    }
+  end
+
+  defp event_form_attrs(%Content.Entity{fields: fields}) when is_map(fields) do
+    %{
+      title: Map.get(fields, "title"),
+      type: Map.get(fields, "type"),
+      date: map_get_date(fields, "date"),
+      time: Map.get(fields, "time"),
+      location: Map.get(fields, "location"),
+      tickets: Map.get(fields, "tickets"),
+      description: Map.get(fields, "description"),
+      visible: true
+    }
+  end
+
+  defp event_form_attrs(%Content.Entity{}), do: %{visible: true}
+
+  defp biennale_id_from_relationships(rels) when is_list(rels) do
+    case Enum.find(rels, &match?(%Relationship{slug: "biennale_event"}, &1)) do
+      %Relationship{object_id: id} when is_integer(id) -> id
+      _ -> nil
+    end
+  end
+
+  defp map_get_date(map, key) do
+    case Map.get(map, key) do
+      %Date{} = d ->
+        d
+
+      s when is_binary(s) ->
+        case Date.from_iso8601(s) do
+          {:ok, d} -> d
+          _ -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp event_attrs_from_form(%Changeset{} = changeset) do
+    form = Changeset.apply_changes(changeset)
+
+    %{
+      title: form.title,
+      type: form.type,
+      biennale_id: form.biennale_id,
+      date: form.date,
+      time: form.time,
+      location: form.location,
+      tickets: form.tickets,
+      description: form.description,
+      visible: form.visible
+    }
+    |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+    |> Enum.into(%{})
+  end
 end

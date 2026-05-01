@@ -107,7 +107,8 @@
       </div>
     </div>
 
-    <%= if Enum.empty?(@streams.media_collection) do %>
+    <%!-- `@streams.media_collection` is a LiveStream; avoid Enum.empty?/1 which calls slice/1 (not implemented). --%>
+    <%= if @streams.media_collection.inserts == [] do %>
       <div class="mt-8 text-center py-12">
         <.icon name="hero-photo" class="mx-auto w-16 h-16 text-gray-400 mb-4" />
         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
