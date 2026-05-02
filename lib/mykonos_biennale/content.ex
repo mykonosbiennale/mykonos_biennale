@@ -10,7 +10,7 @@ defmodule MykonosBiennale.Content do
 
   import Ecto.Query, warn: false
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, Relationship, Media, EntityMedia}
+  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
 
   ## Delegates - Biennale
 
@@ -99,9 +99,43 @@ defmodule MykonosBiennale.Content do
     to: MykonosBiennale.Content.Artwork,
     as: :detach_event
 
+  defdelegate list_artwork_linked_participants(entity),
+    to: MykonosBiennale.Content.Artwork,
+    as: :list_linked_participants
+
+  defdelegate attach_participant_to_artwork(entity, participant, role),
+    to: MykonosBiennale.Content.Artwork,
+    as: :attach_participant
+
+  defdelegate detach_participant_from_artwork(entity, participant_id),
+    to: MykonosBiennale.Content.Artwork,
+    as: :detach_participant
+
   defdelegate artwork_relationship_name_for_type(type),
     to: MykonosBiennale.Content.Artwork,
     as: :relationship_name_for_type
+
+  ## Delegates - RelationshipType
+
+  defdelegate list_relationship_types,
+    to: MykonosBiennale.Content.RelationshipType,
+    as: :list
+
+  defdelegate get_relationship_type!(id),
+    to: MykonosBiennale.Content.RelationshipType,
+    as: :get!
+
+  defdelegate create_relationship_type(attrs \\ %{}),
+    to: MykonosBiennale.Content.RelationshipType,
+    as: :create
+
+  defdelegate update_relationship_type(entity, attrs),
+    to: MykonosBiennale.Content.RelationshipType,
+    as: :update
+
+  defdelegate delete_relationship_type(entity),
+    to: MykonosBiennale.Content.RelationshipType,
+    as: :delete
 
   ## Delegates - Project
 
@@ -183,20 +217,49 @@ defmodule MykonosBiennale.Content do
   Returns the list of relationships.
   """
   def list_relationships do
-    Repo.all(from r in Relationship, preload: [:subject, :object])
+    Repo.all(from r in Relationship, preload: [:subject, :object, :relationship_type])
   end
 
   @doc """
   Gets a single relationship.
   """
   def get_relationship!(id) do
-    Repo.get!(Relationship, id) |> Repo.preload([:subject, :object])
+    Repo.get!(Relationship, id) |> Repo.preload([:subject, :object, :relationship_type])
   end
 
   @doc """
-  Creates a relationship.
+  Gets or creates a RelationshipType by slug and label.
+  """
+  def ensure_relationship_type!(slug, label) do
+    case Repo.get_by(RelationshipType, slug: slug) do
+      %RelationshipType{} = rt ->
+        rt
+
+      nil ->
+        {:ok, rt} =
+          %RelationshipType{}
+          |> RelationshipType.changeset(%{slug: slug, label: label})
+          |> Repo.insert()
+
+        rt
+    end
+  end
+
+  @doc """
+  Creates a relationship with a relationship_type identified by slug.
+  Pass `slug` and `label` (or just `slug` if the type already exists).
   """
   def create_relationship(attrs \\ %{}) do
+    {slug, rest} = Map.pop(attrs, :slug) || Map.pop(attrs, "slug")
+    {label, rest} = Map.pop(rest, :label) || Map.pop(rest, "label")
+    {name, rest} = Map.pop(rest, :name) || Map.pop(rest, "name")
+
+    label = label || name || slug
+
+    rt = ensure_relationship_type!(slug, label)
+
+    attrs = Map.put(rest, :relationship_type_id, rt.id)
+
     %Relationship{}
     |> Relationship.changeset(attrs)
     |> Repo.insert()

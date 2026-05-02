@@ -64,7 +64,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
   defp field(%Content.Entity{}, _key, default), do: default
 
   defp event_biennale(%Content.Entity{as_subject: rels}) when is_list(rels) do
-    case Enum.find(rels, &match?(%Relationship{slug: "biennale_event"}, &1)) do
+    case Enum.find(rels, &rel_type_slug?(&1, "biennale_event")) do
       %Relationship{object: %Content.Entity{} = biennale} -> biennale
       _ -> nil
     end
@@ -73,13 +73,20 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
   defp event_biennale(%Content.Entity{}), do: nil
 
   defp event_project(%Content.Entity{as_subject: rels}) when is_list(rels) do
-    case Enum.find(rels, &match?(%Relationship{slug: "event_project"}, &1)) do
+    case Enum.find(rels, &rel_type_slug?(&1, "event_project")) do
       %Relationship{object: %Content.Entity{} = project} -> project
       _ -> nil
     end
   end
 
   defp event_project(%Content.Entity{}), do: nil
+
+  defp rel_type_slug?(
+         %Relationship{relationship_type: %MykonosBiennale.Content.RelationshipType{slug: slug}},
+         slug
+       ), do: true
+
+  defp rel_type_slug?(_, _), do: false
 
   defp parse_date(%Date{} = date), do: {:ok, date}
   defp parse_date(nil), do: :error

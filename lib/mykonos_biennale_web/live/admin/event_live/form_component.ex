@@ -450,7 +450,10 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
   defp event_form_attrs(%Content.Entity{}), do: %{visible: true}
 
   defp relationship_id_by_slug(rels, slug) when is_list(rels) do
-    case Enum.find(rels, &match?(%Relationship{slug: ^slug}, &1)) do
+    case Enum.find(rels, fn
+           %Relationship{relationship_type: %Content.RelationshipType{slug: ^slug}} -> true
+           _ -> false
+         end) do
       %Relationship{object_id: id} when is_integer(id) -> id
       _ -> nil
     end

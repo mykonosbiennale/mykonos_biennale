@@ -6,7 +6,7 @@ defmodule MykonosBiennale.Content.Artwork do
   import Ecto.Query, warn: false
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship}
+  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
 
   @type_to_rel_name %{
     "film" => "screened",
@@ -30,27 +30,36 @@ defmodule MykonosBiennale.Content.Artwork do
   def get!(id), do: Repo.get!(Entity, id)
 
   def get_for_admin!(id) do
+    rt_subq =
+      from rt in RelationshipType, where: rt.slug == "artwork_event", select: rt.id, limit: 1
+
     rel_query =
       from r in Relationship,
-        where: r.slug == "artwork_event",
-        preload: [:object]
+        where: r.relationship_type_id in subquery(rt_subq),
+        preload: [:object, :relationship_type]
 
     Repo.get!(Entity, id) |> Repo.preload(as_subject: rel_query)
   end
 
   def list_linked_events(%Entity{} = artwork) do
-    Repo.all(
-      from r in Relationship,
-        where: r.subject_id == ^artwork.id and r.slug == "artwork_event",
-        preload: [:object]
-    )
+    rt = Repo.get_by(RelationshipType, slug: "artwork_event")
+
+    if rt do
+      Repo.all(
+        from r in Relationship,
+          where: r.subject_id == ^artwork.id and r.relationship_type_id == ^rt.id,
+          preload: [:object, :relationship_type]
+      )
+    else
+      []
+    end
   end
 
   def attach_event(%Entity{} = artwork, %Entity{} = event) do
-    rel_name = relationship_name_for_type(artwork.fields["type"])
+    rel_label = relationship_name_for_type(artwork.fields["type"])
 
     Content.create_relationship(%{
-      name: rel_name,
+      label: rel_label,
       slug: "artwork_event",
       fields: %{},
       subject_id: artwork.id,
@@ -59,13 +68,62 @@ defmodule MykonosBiennale.Content.Artwork do
   end
 
   def detach_event(%Entity{} = artwork, event_id) do
-    case Repo.get_by(Relationship,
-           subject_id: artwork.id,
-           slug: "artwork_event",
-           object_id: event_id
-         ) do
-      %Relationship{} = rel -> Content.delete_relationship(rel)
-      nil -> {:error, :not_found}
+    rt = Repo.get_by(RelationshipType, slug: "artwork_event")
+
+    if rt do
+      case Repo.get_by(Relationship,
+             subject_id: artwork.id,
+             relationship_type_id: rt.id,
+             object_id: event_id
+           ) do
+        %Relationship{} = rel -> Content.delete_relationship(rel)
+        nil -> {:error, :not_found}
+      end
+    else
+      {:error, :not_found}
+    end
+  end
+
+  def list_linked_participants(%Entity{} = artwork) do
+    rt = Repo.get_by(RelationshipType, slug: "artwork_participant")
+
+    if rt do
+      Repo.all(
+        from r in Relationship,
+          where: r.subject_id == ^artwork.id and r.relationship_type_id == ^rt.id,
+          preload: [:object, :relationship_type]
+      )
+    else
+      []
+    end
+  end
+
+  def attach_participant(%Entity{} = artwork, %Entity{} = participant, role) do
+    rel_label = relationship_name_for_type(artwork.fields["type"])
+
+    Content.create_relationship(%{
+      label: "involved",
+      slug: "artwork_participant",
+      fields: %{"role" => role, "label" => rel_label},
+      subject_id: artwork.id,
+      object_id: participant.id
+    })
+  end
+
+  def detach_participant(%Entity{} = artwork, participant_id) do
+    rt = Repo.get_by(RelationshipType, slug: "artwork_participant")
+
+    if rt do
+      case Repo.get_by(Relationship,
+             subject_id: artwork.id,
+             relationship_type_id: rt.id,
+             object_id: participant_id
+           ) do
+        %Relationship{} = rel -> Content.delete_relationship(rel)
+        nil -> {:error, :not_found}
+      end
+    else
+      {:error, :not_found}
     end
   end
 

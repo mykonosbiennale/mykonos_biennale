@@ -657,6 +657,16 @@ defmodule MykonosBiennaleWeb.CoreComponents do
               >
                 Media
               </.link>
+              <.link
+                navigate="/admin/relationship_types"
+                class={
+                  if @current_page == "relationship_types",
+                    do: "text-white font-semibold",
+                    else: "text-gray-400 hover:text-white transition-colors"
+                }
+              >
+                Rel Types
+              </.link>
             </nav>
           </div>
           <.link navigate="/" class="text-purple-400 hover:text-purple-300 transition-colors">

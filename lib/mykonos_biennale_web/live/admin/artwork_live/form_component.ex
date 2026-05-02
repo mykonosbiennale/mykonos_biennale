@@ -199,7 +199,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
                 </div>
                 <div class="text-xs text-gray-500">
                   <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                    {rel.name}
+                    {rel.relationship_type.label}
                   </span>
                   <%= if field(rel.object, "type") do %>
                     <span class="ml-1">{field(rel.object, "type")}</span>
@@ -237,6 +237,94 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
           <p class="text-xs text-gray-500">Save the artwork first to link events.</p>
         <% end %>
       </div>
+
+      <div class="mt-6">
+        <label class="block text-sm font-semibold text-gray-900 mb-2">
+          Participants
+        </label>
+
+        <%= if @linked_participants == [] do %>
+          <p class="text-sm text-gray-500 mb-4">
+            No participants linked yet
+          </p>
+        <% else %>
+          <div class="space-y-2 mb-4">
+            <div
+              :for={rel <- @linked_participants}
+              class="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+            >
+              <div>
+                <div class="text-sm font-medium text-gray-900">
+                  {field(rel.object, "first_name")} {field(rel.object, "last_name")}
+                </div>
+                <div class="text-xs text-gray-500">
+                  <%= if rel.fields["label"] do %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {rel.fields["label"]}
+                    </span>
+                  <% end %>
+                  <%= if rel.fields["role"] do %>
+                    <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      {rel.fields["role"]}
+                    </span>
+                  <% end %>
+                </div>
+              </div>
+              <button
+                type="button"
+                phx-click="detach_participant"
+                phx-value-participant-id={rel.object_id}
+                phx-target={@myself}
+                class="text-red-600 hover:text-red-700"
+              >
+                <.icon name="hero-x-mark" class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        <% end %>
+
+        <%= if @artwork.id do %>
+          <form phx-submit="attach_participant" phx-target={@myself}>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <select
+                name="participant_id"
+                class="w-full rounded-lg border-gray-300 bg-white text-gray-900"
+              >
+                <option value="">Select a participant...</option>
+                <%= for participant <- @available_participants do %>
+                  <option value={participant.id}>
+                    {field(participant, "first_name")} {field(participant, "last_name")}
+                  </option>
+                <% end %>
+              </select>
+
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  name="role"
+                  list="participant-roles"
+                  placeholder="Role (e.g. creator, curator)"
+                  class="flex-1 rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
+                />
+                <datalist id="participant-roles">
+                  <option value="creator" />
+                  <option value="curator" />
+                  <option value="director" />
+                  <option value="actor" />
+                </datalist>
+                <button
+                  type="submit"
+                  class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </form>
+        <% else %>
+          <p class="text-xs text-gray-500">Save the artwork first to link participants.</p>
+        <% end %>
+      </div>
     </div>
     """
   end
@@ -265,6 +353,19 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
     linked_event_ids = Enum.map(linked_events, & &1.object_id)
     available_events = Enum.reject(all_events, fn e -> e.id in linked_event_ids end)
 
+    linked_participants =
+      if artwork.id do
+        Content.list_artwork_linked_participants(artwork)
+      else
+        []
+      end
+
+    all_participants = Content.list_participants()
+    linked_participant_ids = Enum.map(linked_participants, & &1.object_id)
+
+    available_participants =
+      Enum.reject(all_participants, fn p -> p.id in linked_participant_ids end)
+
     {:ok,
      socket
      |> assign(assigns)
@@ -273,6 +374,8 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
      |> assign(:available_media, available_media)
      |> assign(:linked_events, linked_events)
      |> assign(:available_events, available_events)
+     |> assign(:linked_participants, linked_participants)
+     |> assign(:available_participants, available_participants)
      |> assign_new(:form, fn ->
        changeset = ArtworkForm.changeset(%ArtworkForm{}, artwork_form_attrs(artwork))
        to_form(changeset, as: :artwork)
@@ -374,6 +477,63 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
      |> assign(:linked_events, linked_events)
      |> assign(:available_events, available_events)
      |> put_flash(:info, "Event unlinked successfully")}
+  end
+
+  def handle_event("attach_participant", %{"participant_id" => "", "role" => _}, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "attach_participant",
+        %{"participant_id" => participant_id, "role" => role},
+        socket
+      ) do
+    artwork = socket.assigns.artwork
+
+    if artwork.id do
+      participant = Content.get_participant!(participant_id)
+
+      case Content.attach_participant_to_artwork(artwork, participant, role) do
+        {:ok, _} ->
+          linked_participants = Content.list_artwork_linked_participants(artwork)
+          all_participants = Content.list_participants()
+          linked_participant_ids = Enum.map(linked_participants, & &1.object_id)
+
+          available_participants =
+            Enum.reject(all_participants, fn p -> p.id in linked_participant_ids end)
+
+          {:noreply,
+           socket
+           |> assign(:linked_participants, linked_participants)
+           |> assign(:available_participants, available_participants)
+           |> put_flash(:info, "Participant linked successfully")}
+
+        {:error, reason} ->
+          {:noreply, put_flash(socket, :error, "Could not link participant: #{inspect(reason)}")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "Save the artwork first before linking participants")}
+    end
+  end
+
+  def handle_event("detach_participant", %{"participant-id" => participant_id}, socket) do
+    artwork = socket.assigns.artwork
+    participant_id = String.to_integer(participant_id)
+
+    {:ok, _} = Content.detach_participant_from_artwork(artwork, participant_id)
+
+    linked_participants = Content.list_artwork_linked_participants(artwork)
+    all_participants = Content.list_participants()
+    linked_participant_ids = Enum.map(linked_participants, & &1.object_id)
+
+    available_participants =
+      Enum.reject(all_participants, fn p -> p.id in linked_participant_ids end)
+
+    {:noreply,
+     socket
+     |> assign(:linked_participants, linked_participants)
+     |> assign(:available_participants, available_participants)
+     |> put_flash(:info, "Participant unlinked successfully")}
   end
 
   def handle_event("save", params, socket) do

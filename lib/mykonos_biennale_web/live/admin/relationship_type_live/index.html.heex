@@ -1,0 +1,79 @@
+<Layouts.app flash={@flash}>
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+    <.admin_nav current_page="relationship_types" />
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-4xl font-bold text-white mb-2">Relationship Types</h1>
+          <p class="text-gray-400">Define the types of relationships between entities</p>
+        </div>
+        <.link patch="/admin/relationship_types/new" class="btn btn-primary">
+          + New Relationship Type
+        </.link>
+      </div>
+
+      <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-900/50 border-b border-purple-500/20">
+            <tr>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Label</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Slug</th>
+              <th class="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="relationship_types" phx-update="stream" class="divide-y divide-gray-700/50">
+            <tr
+              :for={{id, rt} <- @streams.relationship_types}
+              id={id}
+              class="hover:bg-gray-700/20 transition-colors"
+            >
+              <td class="px-6 py-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  {rt.label}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-gray-300 text-sm font-mono">{rt.slug}</span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center justify-end space-x-2">
+                  <.link
+                    patch={"/admin/relationship_types/#{rt.id}/edit"}
+                    class="text-purple-400 hover:text-purple-300 transition-colors"
+                  >
+                    Edit
+                  </.link>
+                  <button
+                    phx-click="delete"
+                    phx-value-id={rt.id}
+                    data-confirm="Are you sure you want to delete this relationship type?"
+                    class="text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <.modal
+    :if={@live_action in [:new, :edit]}
+    id="relationship-type-modal"
+    show
+    on_cancel={JS.patch("/admin/relationship_types")}
+  >
+    <.live_component
+      module={MykonosBiennaleWeb.Admin.RelationshipTypeLive.FormComponent}
+      id={@relationship_type.id || :new}
+      title={@page_title}
+      action={@live_action}
+      relationship_type={@relationship_type}
+      patch="/admin/relationship_types"
+    />
+  </.modal>
+</Layouts.app>

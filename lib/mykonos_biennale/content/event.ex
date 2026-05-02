@@ -6,22 +6,21 @@ defmodule MykonosBiennale.Content.Event do
   import Ecto.Query, warn: false
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship}
+  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
 
-  @doc """
-  Returns the list of events (entities with type "event") for a given biennale year.
-  Uses relationships to find events linked to the biennale.
-  """
   def list_for_biennale(biennale_year) do
     biennale_entity = Content.Biennale.get_by_year(biennale_year)
 
     if biennale_entity do
+      rt_subq =
+        from rt in RelationshipType, where: rt.slug == "biennale_event", select: rt.id, limit: 1
+
       Repo.all(
         from e in Entity,
           join: r in assoc(e, :as_subject),
           where:
             e.type == "event" and r.object_id == ^biennale_entity.id and
-              r.slug == "biennale_event",
+              r.relationship_type_id in subquery(rt_subq),
           order_by: [asc: fragment("? ->> ?", e.fields, "date")]
       )
     else
@@ -29,9 +28,6 @@ defmodule MykonosBiennale.Content.Event do
     end
   end
 
-  @doc """
-  Returns the list of events (entities with type "event").
-  """
   def list do
     Repo.all(
       from e in Entity,
@@ -40,10 +36,6 @@ defmodule MykonosBiennale.Content.Event do
     )
   end
 
-  @doc """
-  Returns the list of all events with the associated biennale preloaded via the
-  `biennale_event` relationship (used by the admin UI).
-  """
   def list_for_admin do
     rel_query = admin_relationship_query()
 
@@ -55,23 +47,12 @@ defmodule MykonosBiennale.Content.Event do
     )
   end
 
-  @doc """
-  Gets a single event entity by ID.
-
-  Raises `Ecto.NoResultsError` if the Entity does not exist.
-  """
   def get!(id), do: Repo.get!(Entity, id)
 
-  @doc """
-  Gets a single event entity by ID with its associated biennale preloaded (admin UI).
-  """
   def get_for_admin!(id) do
     Repo.get!(Entity, id) |> Repo.preload(as_subject: admin_relationship_query())
   end
 
-  @doc """
-  Creates an event entity and links it to a biennale via relationship.
-  """
   def create(attrs \\ %{}) do
     title = Map.get(attrs, :title) || Map.get(attrs, "title")
     biennale_entity_id = Map.get(attrs, :biennale_id) || Map.get(attrs, "biennale_id")
@@ -114,9 +95,6 @@ defmodule MykonosBiennale.Content.Event do
     end
   end
 
-  @doc """
-  Updates an event entity and its relationship to a biennale.
-  """
   def update(%Entity{} = event_entity, attrs) do
     current_fields = event_entity.fields
 
@@ -171,17 +149,11 @@ defmodule MykonosBiennale.Content.Event do
     end
   end
 
-  @doc """
-  Deletes an event entity and its associated relationships.
-  """
   def delete(%Entity{} = event_entity) do
     Repo.delete_all(from r in Relationship, where: r.subject_id == ^event_entity.id)
     Content.delete_entity(event_entity)
   end
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking event entity changes.
-  """
   def change(%Entity{} = event_entity, attrs \\ %{}) do
     event_fields_to_map = [:title, :description, :type, :date, :time, :location, :tickets]
 
@@ -199,18 +171,23 @@ defmodule MykonosBiennale.Content.Event do
   end
 
   defp admin_relationship_query do
+    rt_ids =
+      from rt in RelationshipType,
+        where: rt.slug in ^["biennale_event", "event_festival", "event_project"],
+        select: rt.id
+
     from r in Relationship,
-      where: r.slug in ^["biennale_event", "event_festival", "event_project"],
-      preload: [:object]
+      where: r.relationship_type_id in subquery(rt_ids),
+      preload: [:object, :relationship_type]
   end
 
-  defp maybe_create_relationship(_event_entity, nil, _name, _slug), do: nil
+  defp maybe_create_relationship(_event_entity, nil, _label, _slug), do: nil
 
-  defp maybe_create_relationship(event_entity, entity_id, name, slug) do
+  defp maybe_create_relationship(event_entity, entity_id, label, slug) do
     case Content.get_entity!(entity_id) do
       %Entity{} = target ->
         Content.create_relationship(%{
-          name: name,
+          label: label,
           slug: slug,
           fields: %{},
           subject_id: event_entity.id,
@@ -222,17 +199,20 @@ defmodule MykonosBiennale.Content.Event do
     end
   end
 
-  defp maybe_upsert_relationship(event_entity, nil, _name, slug) do
+  defp maybe_upsert_relationship(event_entity, nil, _label, slug) do
+    rt = Repo.get_by!(RelationshipType, slug: slug)
+
     Repo.delete_all(
       from r in Relationship,
-        where: r.subject_id == ^event_entity.id and r.slug == ^slug
+        where: r.subject_id == ^event_entity.id and r.relationship_type_id == ^rt.id
     )
   end
 
-  defp maybe_upsert_relationship(event_entity, entity_id, name, slug) do
+  defp maybe_upsert_relationship(event_entity, entity_id, label, slug) do
     target = Content.get_entity!(entity_id)
+    rt = Repo.get_by!(RelationshipType, slug: slug)
 
-    case Repo.get_by(Relationship, subject_id: event_entity.id, slug: slug) do
+    case Repo.get_by(Relationship, subject_id: event_entity.id, relationship_type_id: rt.id) do
       %Relationship{} = relationship ->
         if relationship.object_id != target.id do
           Content.update_relationship(relationship, %{object_id: target.id})
@@ -240,7 +220,7 @@ defmodule MykonosBiennale.Content.Event do
 
       _ ->
         Content.create_relationship(%{
-          name: name,
+          label: label,
           slug: slug,
           fields: %{},
           subject_id: event_entity.id,
