@@ -1,49 +1,6 @@
 <Layouts.app flash={@flash}>
   <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-    <!-- Admin Header -->
-    <div class="bg-gray-900/50 border-b border-purple-500/20">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-8">
-            <.link
-              navigate="/admin"
-              class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400"
-            >
-              Admin
-            </.link>
-            <nav class="flex space-x-4">
-              <.link navigate="/admin" class="text-gray-400 hover:text-white transition-colors">
-                Dashboard
-              </.link>
-              <.link navigate="/admin/biennales" class="text-white font-semibold">
-                Biennales
-              </.link>
-              <.link
-                navigate="/admin/events"
-                class="text-gray-400 hover:text-white transition-colors"
-              >
-                Events
-              </.link>
-              <.link
-                navigate="/admin/festivals"
-                class="text-gray-400 hover:text-white transition-colors"
-              >
-                Festivals
-              </.link>
-              <.link
-                navigate="/admin/participants"
-                class="text-gray-400 hover:text-white transition-colors"
-              >
-                Participants
-              </.link>
-            </nav>
-          </div>
-          <.link navigate="/" class="text-purple-400 hover:text-purple-300 transition-colors">
-            ← View Site
-          </.link>
-        </div>
-      </div>
-    </div>
+    <.admin_nav current_page="biennales" />
     
 <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

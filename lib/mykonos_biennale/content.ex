@@ -71,6 +71,30 @@ defmodule MykonosBiennale.Content do
     to: MykonosBiennale.Content.Participant,
     as: :change
 
+  ## Delegates - Artwork
+
+  defdelegate list_artworks, to: MykonosBiennale.Content.Artwork, as: :list
+  defdelegate get_artwork!(id), to: MykonosBiennale.Content.Artwork, as: :get!
+  defdelegate create_artwork(attrs \\ %{}), to: MykonosBiennale.Content.Artwork, as: :create
+  defdelegate update_artwork(entity, attrs), to: MykonosBiennale.Content.Artwork, as: :update
+  defdelegate delete_artwork(entity), to: MykonosBiennale.Content.Artwork, as: :delete
+
+  defdelegate change_artwork(entity, attrs \\ %{}),
+    to: MykonosBiennale.Content.Artwork,
+    as: :change
+
+  ## Delegates - Project
+
+  defdelegate list_projects, to: MykonosBiennale.Content.Project, as: :list
+  defdelegate get_project!(id), to: MykonosBiennale.Content.Project, as: :get!
+  defdelegate create_project(attrs \\ %{}), to: MykonosBiennale.Content.Project, as: :create
+  defdelegate update_project(entity, attrs), to: MykonosBiennale.Content.Project, as: :update
+  defdelegate delete_project(entity), to: MykonosBiennale.Content.Project, as: :delete
+
+  defdelegate change_project(entity, attrs \\ %{}),
+    to: MykonosBiennale.Content.Project,
+    as: :change
+
   ## Entities
 
   @doc """

@@ -36,54 +36,11 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="min-h-screen bg-gradient-to-br from-gray-950 via-black to-gray-900">
-        <%!-- Admin Header --%>
-        <div class="border-b border-gray-800 bg-black/50 backdrop-blur-sm sticky top-0 z-10">
-          <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-8">
-                <h1 class="text-2xl font-bold uppercase tracking-tight text-white">
-                  Admin Dashboard
-                </h1>
-
-                <nav class="hidden md:flex gap-6">
-                  <.link
-                    navigate={~p"/admin"}
-                    class="text-sm text-gray-400 hover:text-white uppercase tracking-wider transition-colors"
-                  >
-                    Dashboard
-                  </.link>
-                  <.link
-                    navigate={~p"/admin/biennales"}
-                    class="text-sm text-gray-400 hover:text-white uppercase tracking-wider transition-colors"
-                  >
-                    Biennales
-                  </.link>
-                  <.link
-                    navigate={~p"/admin/events"}
-                    class="text-sm text-gray-400 hover:text-white uppercase tracking-wider transition-colors"
-                  >
-                    Events
-                  </.link>
-                </nav>
-              </div>
-
-              <div class="flex items-center gap-4">
-                <.link
-                  navigate={~p"/"}
-                  class="text-sm text-gray-400 hover:text-white uppercase tracking-wider transition-colors"
-                >
-                  View Site
-                </.link>
-                <div class="h-6 w-px bg-gray-700"></div>
-                <span class="text-sm text-gray-500">{@current_scope.user.email}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+        <.admin_nav current_page="dashboard" />
 
         <%!-- Main Content --%>
-        <div class="max-w-7xl mx-auto px-6 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <%!-- Stats Grid --%>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             <%!-- Total Biennales --%>
@@ -195,7 +152,7 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
                         </h3>
                         <%= if biennale.fields["start_date"] && biennale.fields["end_date"] do %>
                           <p class="text-sm text-gray-500 mt-1">
-                            {Calendar.strftime(biennale.fields["start_date"], "%B %d")} – {Calendar.strftime(
+                            {format_date(biennale.fields["start_date"], "%B %d")} – {format_date(
                               biennale.fields["end_date"],
                               "%B %d, %Y"
                             )}
@@ -224,4 +181,15 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
       nil -> 0
     end
   end
+
+  defp format_date(%Date{} = date, fmt), do: Calendar.strftime(date, fmt)
+
+  defp format_date(date_string, fmt) when is_binary(date_string) do
+    case Date.from_iso8601(date_string) do
+      {:ok, date} -> Calendar.strftime(date, fmt)
+      _ -> date_string
+    end
+  end
+
+  defp format_date(_, _), do: ""
 end

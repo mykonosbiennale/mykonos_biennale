@@ -45,7 +45,7 @@ defmodule MykonosBiennale.Content.Event do
   `biennale_event` relationship (used by the admin UI).
   """
   def list_for_admin do
-    rel_query = biennale_relationship_query()
+    rel_query = admin_relationship_query()
 
     Repo.all(
       from e in Entity,
@@ -66,7 +66,7 @@ defmodule MykonosBiennale.Content.Event do
   Gets a single event entity by ID with its associated biennale preloaded (admin UI).
   """
   def get_for_admin!(id) do
-    Repo.get!(Entity, id) |> Repo.preload(as_subject: biennale_relationship_query())
+    Repo.get!(Entity, id) |> Repo.preload(as_subject: admin_relationship_query())
   end
 
   @doc """
@@ -75,6 +75,8 @@ defmodule MykonosBiennale.Content.Event do
   def create(attrs \\ %{}) do
     title = Map.get(attrs, :title) || Map.get(attrs, "title")
     biennale_entity_id = Map.get(attrs, :biennale_id) || Map.get(attrs, "biennale_id")
+    festival_entity_id = Map.get(attrs, :festival_id) || Map.get(attrs, "festival_id")
+    project_entity_id = Map.get(attrs, :project_id) || Map.get(attrs, "project_id")
 
     fields = %{
       "title" => title,
@@ -96,25 +98,16 @@ defmodule MykonosBiennale.Content.Event do
            fields: fields
          }) do
       {:ok, event_entity} ->
-        if biennale_entity_id do
-          case Content.get_entity!(biennale_entity_id) do
-            %Entity{} = biennale_entity ->
-              Content.create_relationship(%{
-                name: "belongs_to_biennale",
-                slug: "biennale_event",
-                fields: %{},
-                subject_id: event_entity.id,
-                object_id: biennale_entity.id
-              })
+        maybe_create_relationship(
+          event_entity,
+          biennale_entity_id,
+          "belongs_to_biennale",
+          "biennale_event"
+        )
 
-              {:ok, event_entity}
-
-            _ ->
-              {:ok, event_entity}
-          end
-        else
-          {:ok, event_entity}
-        end
+        maybe_create_relationship(event_entity, festival_entity_id, "part_of", "event_festival")
+        maybe_create_relationship(event_entity, project_entity_id, "is_a", "event_project")
+        {:ok, event_entity}
 
       error ->
         error
@@ -141,6 +134,8 @@ defmodule MykonosBiennale.Content.Event do
 
     title = Map.get(attrs, :title) || new_fields["title"]
     biennale_entity_id = Map.get(attrs, :biennale_id) || Map.get(attrs, "biennale_id")
+    festival_entity_id = Map.get(attrs, :festival_id) || Map.get(attrs, "festival_id")
+    project_entity_id = Map.get(attrs, :project_id) || Map.get(attrs, "project_id")
 
     case Content.update_entity(event_entity, %{
            identity: title,
@@ -148,35 +143,26 @@ defmodule MykonosBiennale.Content.Event do
            fields: new_fields
          }) do
       {:ok, updated_event_entity} ->
-        if biennale_entity_id do
-          biennale_entity = Content.get_entity!(biennale_entity_id)
+        maybe_upsert_relationship(
+          updated_event_entity,
+          biennale_entity_id,
+          "belongs_to_biennale",
+          "biennale_event"
+        )
 
-          case Repo.get_by(Relationship,
-                 subject_id: updated_event_entity.id,
-                 slug: "biennale_event"
-               ) do
-            %Relationship{} = relationship ->
-              if relationship.object_id != biennale_entity.id do
-                Content.update_relationship(relationship, %{object_id: biennale_entity.id})
-              else
-                {:ok, relationship}
-              end
+        maybe_upsert_relationship(
+          updated_event_entity,
+          festival_entity_id,
+          "part_of",
+          "event_festival"
+        )
 
-            _ ->
-              Content.create_relationship(%{
-                name: "belongs_to_biennale",
-                slug: "biennale_event",
-                fields: %{},
-                subject_id: updated_event_entity.id,
-                object_id: biennale_entity.id
-              })
-          end
-        else
-          Repo.delete_all(
-            from r in Relationship,
-              where: r.subject_id == ^updated_event_entity.id and r.slug == "biennale_event"
-          )
-        end
+        maybe_upsert_relationship(
+          updated_event_entity,
+          project_entity_id,
+          "is_a",
+          "event_project"
+        )
 
         {:ok, updated_event_entity}
 
@@ -212,10 +198,55 @@ defmodule MykonosBiennale.Content.Event do
     Entity.changeset(event_entity, entity_attrs)
   end
 
-  defp biennale_relationship_query do
+  defp admin_relationship_query do
     from r in Relationship,
-      where: r.slug == "biennale_event",
+      where: r.slug in ^["biennale_event", "event_festival", "event_project"],
       preload: [:object]
+  end
+
+  defp maybe_create_relationship(_event_entity, nil, _name, _slug), do: nil
+
+  defp maybe_create_relationship(event_entity, entity_id, name, slug) do
+    case Content.get_entity!(entity_id) do
+      %Entity{} = target ->
+        Content.create_relationship(%{
+          name: name,
+          slug: slug,
+          fields: %{},
+          subject_id: event_entity.id,
+          object_id: target.id
+        })
+
+      _ ->
+        nil
+    end
+  end
+
+  defp maybe_upsert_relationship(event_entity, nil, _name, slug) do
+    Repo.delete_all(
+      from r in Relationship,
+        where: r.subject_id == ^event_entity.id and r.slug == ^slug
+    )
+  end
+
+  defp maybe_upsert_relationship(event_entity, entity_id, name, slug) do
+    target = Content.get_entity!(entity_id)
+
+    case Repo.get_by(Relationship, subject_id: event_entity.id, slug: slug) do
+      %Relationship{} = relationship ->
+        if relationship.object_id != target.id do
+          Content.update_relationship(relationship, %{object_id: target.id})
+        end
+
+      _ ->
+        Content.create_relationship(%{
+          name: name,
+          slug: slug,
+          fields: %{},
+          subject_id: event_entity.id,
+          object_id: target.id
+        })
+    end
   end
 
   defp slugify(text) when is_binary(text) do

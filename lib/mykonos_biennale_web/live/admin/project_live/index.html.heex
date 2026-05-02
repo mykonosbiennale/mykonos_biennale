@@ -1,66 +1,57 @@
 <Layouts.app flash={@flash}>
   <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-    <.admin_nav current_page="festivals" />
-    
-<!-- Main Content -->
+    <.admin_nav current_page="projects" />
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Header with Create Button -->
       <div class="flex items-center justify-between mb-8">
         <div>
-          <h1 class="text-4xl font-bold text-white mb-2">Manage Festivals</h1>
-          <p class="text-gray-400">Create and manage festival editions</p>
+          <h1 class="text-4xl font-bold text-white mb-2">Manage Projects</h1>
+          <p class="text-gray-400">Create and manage projects</p>
         </div>
-        <.link patch="/admin/festivals/new" class="btn btn-primary">
-          + New Festival
+        <.link patch="/admin/projects/new" class="btn btn-primary">
+          + New Project
         </.link>
       </div>
-      
-<!-- Festivals Table -->
+
       <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 overflow-hidden">
         <table class="w-full">
           <thead class="bg-gray-900/50 border-b border-purple-500/20">
             <tr>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Year</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Title</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Statement</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Description</th>
               <th class="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
             </tr>
           </thead>
-          <tbody id="festivals" phx-update="stream" class="divide-y divide-gray-700/50">
+          <tbody id="projects" phx-update="stream" class="divide-y divide-gray-700/50">
             <tr
-              :for={{id, festival} <- @streams.festivals}
+              :for={{id, project} <- @streams.projects}
               id={id}
               class="hover:bg-gray-700/20 transition-colors"
             >
               <td class="px-6 py-4">
-                <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                  {field(festival, "year")}
-                </span>
-              </td>
-              <td class="px-6 py-4">
-                <div class="text-white font-medium">{field(festival, "title")}</div>
+                <div class="text-white font-medium">{field(project, "title")}</div>
               </td>
               <td class="px-6 py-4">
                 <div class="text-gray-300 text-sm line-clamp-2">
-                  <%= if field(festival, "statement") do %>
-                    {field(festival, "statement")}
+                  <%= if field(project, "description") do %>
+                    {field(project, "description")}
                   <% else %>
-                    <span class="text-gray-500">No statement</span>
+                    <span class="text-gray-500">—</span>
                   <% end %>
                 </div>
               </td>
               <td class="px-6 py-4">
                 <div class="flex items-center justify-end space-x-2">
                   <.link
-                    patch={"/admin/festivals/#{festival.id}/edit"}
+                    patch={"/admin/projects/#{project.id}/edit"}
                     class="text-purple-400 hover:text-purple-300 transition-colors"
                   >
                     Edit
                   </.link>
                   <button
                     phx-click="delete"
-                    phx-value-id={festival.id}
-                    data-confirm="Are you sure you want to delete this festival?"
+                    phx-value-id={project.id}
+                    data-confirm="Are you sure you want to delete this project?"
                     class="text-red-400 hover:text-red-300 transition-colors"
                   >
                     Delete
@@ -76,17 +67,17 @@
 
   <.modal
     :if={@live_action in [:new, :edit]}
-    id="festival-modal"
+    id="project-modal"
     show
-    on_cancel={JS.patch("/admin/festivals")}
+    on_cancel={JS.patch("/admin/projects")}
   >
     <.live_component
-      module={MykonosBiennaleWeb.Admin.FestivalLive.FormComponent}
-      id={@festival.id || :new}
+      module={MykonosBiennaleWeb.Admin.ProjectLive.FormComponent}
+      id={@project.id || :new}
       title={@page_title}
       action={@live_action}
-      festival={@festival}
-      patch="/admin/festivals"
+      project={@project}
+      patch="/admin/projects"
     />
   </.modal>
 </Layouts.app>
