@@ -25,7 +25,7 @@
             <tr>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Title</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Type</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Festival</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Biennale</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Project</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Date</th>
               <th class="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
@@ -51,8 +51,8 @@
                 </span>
               </td>
               <td class="px-6 py-4">
-                <%= if event_festival(event) do %>
-                  <div class="text-gray-300">{field(event_festival(event), "title")}</div>
+                <%= if event_biennale(event) do %>
+                  <div class="text-gray-300">{field(event_biennale(event), "year")}</div>
                 <% else %>
                   <span class="text-gray-500 text-sm">—</span>
                 <% end %>

@@ -63,11 +63,12 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
       >
         <div class="space-y-4">
           <.input
-            field={@form[:festival_id]}
+            field={@form[:biennale_id]}
             type="select"
-            label="Festival"
-            prompt="Choose a festival"
-            options={Enum.map(@festivals, &{&1.fields["title"] || &1.fields["year"], &1.id})}
+            label="Biennale"
+            prompt="Choose a biennale"
+            options={Enum.map(@biennales, &{&1.fields["year"], &1.id})}
+            required
           />
 
           <.input
@@ -97,12 +98,11 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
           />
 
           <.input
-            field={@form[:biennale_id]}
+            field={@form[:festival_id]}
             type="select"
-            label="Biennale"
-            prompt="Choose a biennale"
-            options={Enum.map(@biennales, &{&1.fields["year"], &1.id})}
-            required
+            label="Festival"
+            prompt="Choose a festival"
+            options={Enum.map(@festivals, &{&1.fields["title"] || &1.fields["year"], &1.id})}
           />
 
           <.input field={@form[:date]} type="date" label="Date" />
@@ -110,116 +110,6 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
           <.input field={@form[:location]} type="text" label="Location" />
           <.input field={@form[:tickets]} type="text" label="Tickets URL" />
           <.input field={@form[:description]} type="textarea" label="Description" rows="5" />
-        </div>
-
-        <div class="mt-6">
-          <label class="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            Attached Media
-          </label>
-
-          <%= if @current_media_links == [] do %>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              No media attached yet
-            </p>
-          <% else %>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
-              Drag to reorder. Changes are saved immediately.
-            </p>
-
-            <div
-              id="event-media-links"
-              phx-hook="SortableMediaLinks"
-              phx-target={@myself}
-              class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4"
-            >
-              <div
-                :for={link <- @current_media_links}
-                data-media-id={link.media_id}
-                draggable="true"
-                class="relative group bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden"
-              >
-                <div class="aspect-video bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                  <%= case link.media.source_type do %>
-                    <% "upload" -> %>
-                      <%= if link.media.source_path do %>
-                        <img
-                          src={"/uploads/#{link.media.source_path}"}
-                          alt={link.media.alt_text || link.media.caption}
-                          class="w-full h-full object-cover"
-                        />
-                      <% else %>
-                        <.icon name="hero-photo" class="w-8 h-8 text-gray-400" />
-                      <% end %>
-                    <% "url" -> %>
-                      <%= if link.media.source_url do %>
-                        <img
-                          src={link.media.source_url}
-                          alt={link.media.alt_text || link.media.caption}
-                          class="w-full h-full object-cover"
-                        />
-                      <% else %>
-                        <.icon name="hero-link" class="w-8 h-8 text-gray-400" />
-                      <% end %>
-                    <% "embed" -> %>
-                      <.icon name="hero-video-camera" class="w-8 h-8 text-gray-400" />
-                  <% end %>
-                </div>
-                <button
-                  type="button"
-                  phx-click="detach_media"
-                  phx-value-media-id={link.media_id}
-                  phx-target={@myself}
-                  class="absolute top-2 right-2 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <.icon name="hero-x-mark" class="w-4 h-4" />
-                </button>
-
-                <div class="p-2 space-y-2">
-                  <div class="text-xs text-gray-600 dark:text-gray-300 truncate">
-                    {link.media.caption || "Untitled"}
-                  </div>
-
-                  <%!-- Editable per-link metadata stored in entity_media.metadata --%>
-                  <form phx-change="update_media_link" phx-target={@myself} class="space-y-1">
-                    <input type="hidden" name="media_id" value={link.media_id} />
-                    <input
-                      name="metadata[caption_override]"
-                      value={link.metadata["caption_override"] || ""}
-                      placeholder="Caption override (optional)"
-                      class="w-full text-xs rounded border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 px-2 py-1"
-                    />
-                    <input
-                      name="metadata[alt_override]"
-                      value={link.metadata["alt_override"] || ""}
-                      placeholder="Alt override (optional)"
-                      class="w-full text-xs rounded border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 px-2 py-1"
-                    />
-                  </form>
-                </div>
-              </div>
-            </div>
-          <% end %>
-
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Add Media
-            </label>
-            <%!-- Keep this separate from the main form's phx-change="validate" so the change event
-                 doesn't get swallowed by the parent form validation. --%>
-            <form phx-change="attach_media" phx-target={@myself}>
-              <select
-                name="media_id"
-                class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              >
-                <option value="">Select media to attach...</option>
-                <%= for media <- @available_media do %>
-                  <option value={media.id}>
-                    {media.caption || "#{media.source_type} - #{media.id}"}
-                  </option>
-                <% end %>
-              </select>
-            </form>
-          </div>
         </div>
 
         <div class="mt-6 flex items-center justify-end gap-x-6">
@@ -231,6 +121,113 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
           </button>
         </div>
       </.form>
+
+      <div class="mt-6">
+        <label class="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          Attached Media
+        </label>
+
+        <%= if @current_media_links == [] do %>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            No media attached yet
+          </p>
+        <% else %>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+            Drag to reorder. Changes are saved immediately.
+          </p>
+
+          <div
+            id="event-media-links"
+            phx-hook="SortableMediaLinks"
+            phx-target={@myself}
+            class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4"
+          >
+            <div
+              :for={link <- @current_media_links}
+              data-media-id={link.media_id}
+              draggable="true"
+              class="relative group bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden"
+            >
+              <div class="aspect-video bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                <%= case link.media.source_type do %>
+                  <% "upload" -> %>
+                    <%= if link.media.source_path do %>
+                      <img
+                        src={"/uploads/#{link.media.source_path}"}
+                        alt={link.media.alt_text || link.media.caption}
+                        class="w-full h-full object-cover"
+                      />
+                    <% else %>
+                      <.icon name="hero-photo" class="w-8 h-8 text-gray-400" />
+                    <% end %>
+                  <% "url" -> %>
+                    <%= if link.media.source_url do %>
+                      <img
+                        src={link.media.source_url}
+                        alt={link.media.alt_text || link.media.caption}
+                        class="w-full h-full object-cover"
+                      />
+                    <% else %>
+                      <.icon name="hero-link" class="w-8 h-8 text-gray-400" />
+                    <% end %>
+                  <% "embed" -> %>
+                    <.icon name="hero-video-camera" class="w-8 h-8 text-gray-400" />
+                <% end %>
+              </div>
+              <button
+                type="button"
+                phx-click="detach_media"
+                phx-value-media-id={link.media_id}
+                phx-target={@myself}
+                class="absolute top-2 right-2 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <.icon name="hero-x-mark" class="w-4 h-4" />
+              </button>
+
+              <div class="p-2 space-y-2">
+                <div class="text-xs text-gray-600 dark:text-gray-300 truncate">
+                  {link.media.caption || "Untitled"}
+                </div>
+
+                <form phx-change="update_media_link" phx-target={@myself} class="space-y-1">
+                  <input type="hidden" name="media_id" value={link.media_id} />
+                  <input
+                    name="metadata[caption_override]"
+                    value={link.metadata["caption_override"] || ""}
+                    placeholder="Caption override (optional)"
+                    class="w-full text-xs rounded border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 px-2 py-1"
+                  />
+                  <input
+                    name="metadata[alt_override]"
+                    value={link.metadata["alt_override"] || ""}
+                    placeholder="Alt override (optional)"
+                    class="w-full text-xs rounded border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 px-2 py-1"
+                  />
+                </form>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Add Media
+          </label>
+          <form phx-change="attach_media" phx-target={@myself}>
+            <select
+              name="media_id"
+              class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
+              <option value="">Select media to attach...</option>
+              <%= for media <- @available_media do %>
+                <option value={media.id}>
+                  {media.caption || "#{media.source_type} - #{media.id}"}
+                </option>
+              <% end %>
+            </select>
+          </form>
+        </div>
+      </div>
     </div>
     """
   end
@@ -408,7 +405,15 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 
-  defp extract_event_params(%{"event" => p}) when is_map(p), do: p
+  defp extract_event_params(%{"event" => p}) when is_map(p) do
+    p
+    |> Enum.map(fn
+      {key, ""} when key in ["festival_id", "project_id", "biennale_id"] -> {key, nil}
+      other -> other
+    end)
+    |> Enum.into(%{})
+  end
+
   defp extract_event_params(%{"entity" => p}) when is_map(p), do: p
   defp extract_event_params(_), do: %{}
 
