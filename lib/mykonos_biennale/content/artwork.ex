@@ -6,11 +6,19 @@ defmodule MykonosBiennale.Content.Artwork do
   import Ecto.Query, warn: false
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.{Entity, Relationship}
 
-  @doc """
-  Returns the list of artworks ordered by date descending.
-  """
+  @type_to_rel_name %{
+    "film" => "screened",
+    "video" => "screened",
+    "artwork" => "shown",
+    "performance" => "performed"
+  }
+
+  def relationship_name_for_type(type) do
+    Map.get(@type_to_rel_name, type, "shown")
+  end
+
   def list do
     Repo.all(
       from e in Entity,
@@ -19,14 +27,48 @@ defmodule MykonosBiennale.Content.Artwork do
     )
   end
 
-  @doc """
-  Gets a single artwork entity by ID.
-  """
   def get!(id), do: Repo.get!(Entity, id)
 
-  @doc """
-  Creates an artwork entity.
-  """
+  def get_for_admin!(id) do
+    rel_query =
+      from r in Relationship,
+        where: r.slug == "artwork_event",
+        preload: [:object]
+
+    Repo.get!(Entity, id) |> Repo.preload(as_subject: rel_query)
+  end
+
+  def list_linked_events(%Entity{} = artwork) do
+    Repo.all(
+      from r in Relationship,
+        where: r.subject_id == ^artwork.id and r.slug == "artwork_event",
+        preload: [:object]
+    )
+  end
+
+  def attach_event(%Entity{} = artwork, %Entity{} = event) do
+    rel_name = relationship_name_for_type(artwork.fields["type"])
+
+    Content.create_relationship(%{
+      name: rel_name,
+      slug: "artwork_event",
+      fields: %{},
+      subject_id: artwork.id,
+      object_id: event.id
+    })
+  end
+
+  def detach_event(%Entity{} = artwork, event_id) do
+    case Repo.get_by(Relationship,
+           subject_id: artwork.id,
+           slug: "artwork_event",
+           object_id: event_id
+         ) do
+      %Relationship{} = rel -> Content.delete_relationship(rel)
+      nil -> {:error, :not_found}
+    end
+  end
+
   def create(attrs \\ %{}) do
     title = Map.get(attrs, :title) || Map.get(attrs, "title") || ""
 

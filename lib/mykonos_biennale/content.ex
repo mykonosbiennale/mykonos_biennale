@@ -83,6 +83,26 @@ defmodule MykonosBiennale.Content do
     to: MykonosBiennale.Content.Artwork,
     as: :change
 
+  defdelegate get_artwork_for_admin!(id),
+    to: MykonosBiennale.Content.Artwork,
+    as: :get_for_admin!
+
+  defdelegate list_artwork_linked_events(entity),
+    to: MykonosBiennale.Content.Artwork,
+    as: :list_linked_events
+
+  defdelegate attach_event_to_artwork(entity, event),
+    to: MykonosBiennale.Content.Artwork,
+    as: :attach_event
+
+  defdelegate detach_event_from_artwork(entity, event_id),
+    to: MykonosBiennale.Content.Artwork,
+    as: :detach_event
+
+  defdelegate artwork_relationship_name_for_type(type),
+    to: MykonosBiennale.Content.Artwork,
+    as: :relationship_name_for_type
+
   ## Delegates - Project
 
   defdelegate list_projects, to: MykonosBiennale.Content.Project, as: :list

@@ -177,6 +177,66 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
           </button>
         </div>
       </.form>
+
+      <div class="mt-6">
+        <label class="block text-sm font-semibold text-gray-900 mb-2">
+          Events
+        </label>
+
+        <%= if @linked_events == [] do %>
+          <p class="text-sm text-gray-500 mb-4">
+            No events linked yet
+          </p>
+        <% else %>
+          <div class="space-y-2 mb-4">
+            <div
+              :for={rel <- @linked_events}
+              class="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+            >
+              <div>
+                <div class="text-sm font-medium text-gray-900">
+                  {field(rel.object, "title")}
+                </div>
+                <div class="text-xs text-gray-500">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    {rel.name}
+                  </span>
+                  <%= if field(rel.object, "type") do %>
+                    <span class="ml-1">{field(rel.object, "type")}</span>
+                  <% end %>
+                </div>
+              </div>
+              <button
+                type="button"
+                phx-click="detach_event"
+                phx-value-event-id={rel.object_id}
+                phx-target={@myself}
+                class="text-red-600 hover:text-red-700"
+              >
+                <.icon name="hero-x-mark" class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        <% end %>
+
+        <%= if @artwork.id do %>
+          <form phx-change="attach_event" phx-target={@myself}>
+            <select
+              name="event_id"
+              class="w-full rounded-lg border-gray-300 bg-white text-gray-900"
+            >
+              <option value="">Select an event to link...</option>
+              <%= for event <- @available_events do %>
+                <option value={event.id}>
+                  {field(event, "title")} ({field(event, "type") || "untyped"})
+                </option>
+              <% end %>
+            </select>
+          </form>
+        <% else %>
+          <p class="text-xs text-gray-500">Save the artwork first to link events.</p>
+        <% end %>
+      </div>
     </div>
     """
   end
@@ -194,12 +254,25 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
     attached_ids = Enum.map(current_media_links, & &1.media_id)
     available_media = Enum.reject(all_media, fn m -> m.id in attached_ids end)
 
+    linked_events =
+      if artwork.id do
+        Content.list_artwork_linked_events(artwork)
+      else
+        []
+      end
+
+    all_events = Content.list_events()
+    linked_event_ids = Enum.map(linked_events, & &1.object_id)
+    available_events = Enum.reject(all_events, fn e -> e.id in linked_event_ids end)
+
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:artwork_types, @artwork_types)
      |> assign(:current_media_links, current_media_links)
      |> assign(:available_media, available_media)
+     |> assign(:linked_events, linked_events)
+     |> assign(:available_events, available_events)
      |> assign_new(:form, fn ->
        changeset = ArtworkForm.changeset(%ArtworkForm{}, artwork_form_attrs(artwork))
        to_form(changeset, as: :artwork)
@@ -252,6 +325,55 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
 
     current_media_links = Content.list_entity_media_links_for_entity(artwork)
     {:noreply, assign(socket, :current_media_links, current_media_links)}
+  end
+
+  def handle_event("attach_event", %{"event_id" => ""}, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("attach_event", %{"event_id" => event_id}, socket) do
+    artwork = socket.assigns.artwork
+
+    if artwork.id do
+      event = Content.get_event!(event_id)
+
+      case Content.attach_event_to_artwork(artwork, event) do
+        {:ok, _} ->
+          linked_events = Content.list_artwork_linked_events(artwork)
+          all_events = Content.list_events()
+          linked_event_ids = Enum.map(linked_events, & &1.object_id)
+          available_events = Enum.reject(all_events, fn e -> e.id in linked_event_ids end)
+
+          {:noreply,
+           socket
+           |> assign(:linked_events, linked_events)
+           |> assign(:available_events, available_events)
+           |> put_flash(:info, "Event linked successfully")}
+
+        {:error, reason} ->
+          {:noreply, put_flash(socket, :error, "Could not link event: #{inspect(reason)}")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "Save the artwork first before linking events")}
+    end
+  end
+
+  def handle_event("detach_event", %{"event-id" => event_id}, socket) do
+    artwork = socket.assigns.artwork
+    event_id = String.to_integer(event_id)
+
+    {:ok, _} = Content.detach_event_from_artwork(artwork, event_id)
+
+    linked_events = Content.list_artwork_linked_events(artwork)
+    all_events = Content.list_events()
+    linked_event_ids = Enum.map(linked_events, & &1.object_id)
+    available_events = Enum.reject(all_events, fn e -> e.id in linked_event_ids end)
+
+    {:noreply,
+     socket
+     |> assign(:linked_events, linked_events)
+     |> assign(:available_events, available_events)
+     |> put_flash(:info, "Event unlinked successfully")}
   end
 
   def handle_event("save", params, socket) do
@@ -374,6 +496,12 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
   end
 
   defp artwork_form_attrs(%Content.Entity{}), do: %{visible: true}
+
+  defp field(%Content.Entity{fields: fields}, key) when is_map(fields) do
+    Map.get(fields, to_string(key), Map.get(fields, key))
+  end
+
+  defp field(_, _), do: nil
 
   defp artwork_attrs_from_form(%Changeset{} = changeset) do
     form = Changeset.apply_changes(changeset)
