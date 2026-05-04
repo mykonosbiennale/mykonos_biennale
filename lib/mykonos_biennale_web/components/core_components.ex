@@ -743,4 +743,86 @@ defmodule MykonosBiennaleWeb.CoreComponents do
   defp format_field(key, value) do
     "#{key}: #{inspect(value)}"
   end
+
+  attr :artwork, :any, required: true
+  attr :media, :list, default: nil
+  attr :show_description, :boolean, default: false
+  attr :show_statement, :boolean, default: false
+  attr :show_edit_link, :boolean, default: false
+  attr :class, :string, default: ""
+
+  def artwork_card(assigns) do
+    artwork = assigns[:artwork]
+    resolved_media = assigns[:media] || MykonosBiennale.Content.list_media_for_entity(artwork)
+    assigns = assign(assigns, :resolved_media, resolved_media)
+
+    ~H"""
+    <div class={"card bg-base-100 shadow-sm border border-base-300 #{@class}"}>
+      <figure class="bg-base-200 aspect-video flex items-center justify-center">
+        <%= case first_image(@resolved_media) do %>
+          <% %{source_type: "upload", source_path: path} -> %>
+            <img
+              src={"/uploads/#{path}"}
+              alt={artwork_field(@artwork, "title")}
+              class="w-full h-full object-cover"
+            />
+          <% %{source_type: "url", source_url: url} -> %>
+            <img src={url} alt={artwork_field(@artwork, "title")} class="w-full h-full object-cover" />
+          <% _ -> %>
+            <.icon name="hero-photo" class="w-12 h-12 text-base-300" />
+        <% end %>
+      </figure>
+      <div class="card-body p-4 gap-2">
+        <h3 class="card-title text-base">
+          {artwork_field(@artwork, "title", "Untitled")}
+        </h3>
+        <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/60">
+          <span :if={artwork_field(@artwork, "date")}>{artwork_field(@artwork, "date")}</span>
+          <span :if={artwork_field(@artwork, "size")}>{artwork_field(@artwork, "size")}</span>
+          <span :if={artwork_field(@artwork, "medium")}>{artwork_field(@artwork, "medium")}</span>
+        </div>
+        <p
+          :if={@show_description && artwork_field(@artwork, "description")}
+          class="text-sm text-base-content/70 line-clamp-3 mt-1"
+        >
+          {artwork_field(@artwork, "description")}
+        </p>
+        <p
+          :if={@show_statement && artwork_field(@artwork, "statement")}
+          class="text-sm text-base-content/70 line-clamp-3 mt-1"
+        >
+          {artwork_field(@artwork, "statement")}
+        </p>
+        <div :if={@show_edit_link} class="card-actions justify-end mt-2">
+          <.link
+            patch={"/admin/artworks/#{@artwork.id}/edit"}
+            class="btn btn-sm btn-ghost"
+          >
+            Edit
+          </.link>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp artwork_field(entity, key, default \\ nil)
+
+  defp artwork_field(%{fields: fields}, key, default) when is_map(fields) do
+    Map.get(fields, to_string(key), Map.get(fields, key, default))
+  end
+
+  defp artwork_field(_, _key, default), do: default
+
+  defp first_image([]), do: nil
+
+  defp first_image([media | _]) do
+    case media.source_type do
+      "upload" when is_binary(media.source_path) -> media
+      "url" when is_binary(media.source_url) -> media
+      _ -> first_image([])
+    end
+  end
+
+  defp first_image(_), do: nil
 end
