@@ -677,4 +677,70 @@ defmodule MykonosBiennaleWeb.CoreComponents do
     </div>
     """
   end
+
+  attr :entity, :any, required: true
+  attr :cancel_path, :string, required: true
+
+  def entity_detail(assigns) do
+    ~H"""
+    <div data-theme="light" class="bg-white rounded-xl p-6 max-h-[80vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-900">
+          {@entity.identity || "Entity ##{@entity.id}"}
+        </h2>
+        <.link patch={@cancel_path} class="text-gray-400 hover:text-gray-600">
+          <.icon name="hero-x-mark" class="w-5 h-5" />
+        </.link>
+      </div>
+
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span class="font-semibold text-gray-500">ID</span>
+            <div class="text-gray-900">{@entity.id}</div>
+          </div>
+          <div>
+            <span class="font-semibold text-gray-500">Type</span>
+            <div class="text-gray-900">{@entity.type}</div>
+          </div>
+          <div>
+            <span class="font-semibold text-gray-500">Slug</span>
+            <div class="text-gray-900">{@entity.slug}</div>
+          </div>
+          <div>
+            <span class="font-semibold text-gray-500">Visible</span>
+            <div class="text-gray-900">{@entity.visible}</div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-semibold text-gray-500 mb-2">Fields</h3>
+          <pre class="bg-gray-50 rounded-lg p-4 text-xs text-gray-800 overflow-x-auto whitespace-pre-wrap break-words">{format_fields(@entity.fields)}</pre>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp format_fields(fields) when is_map(fields) do
+    fields
+    |> Enum.sort_by(fn {k, _} -> to_string(k) end)
+    |> Enum.map(fn {k, v} -> format_field(k, v) end)
+    |> Enum.join("\n")
+  end
+
+  defp format_fields(_), do: "(empty)"
+
+  defp format_field(key, value) when is_map(value) do
+    formatted = format_fields(value)
+    "#{key}:\n  #{String.replace(formatted, "\n", "\n  ")}"
+  end
+
+  defp format_field(key, value) when is_list(value) do
+    "#{key}: #{inspect(value)}"
+  end
+
+  defp format_field(key, value) do
+    "#{key}: #{inspect(value)}"
+  end
 end

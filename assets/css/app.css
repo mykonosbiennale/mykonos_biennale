@@ -1,4 +1,5 @@
 @import "tailwindcss" source(none);
+@import "./ex_editor.css";
 @source "../css";
 @source "../js";
 @source "../../lib/mykonos_biennale_web";

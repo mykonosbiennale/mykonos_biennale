@@ -1,0 +1,184 @@
+<Layouts.app flash={@flash}>
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+    <.admin_nav current_page="artworks" />
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-4">
+          <.link patch="/admin/artworks" class="text-gray-400 hover:text-white transition-colors">
+            <.icon name="hero-arrow-left" class="w-5 h-5" />
+          </.link>
+          <h1 class="text-3xl font-bold text-white">{field(@artwork, "title")}</h1>
+        </div>
+        <.link
+          patch={"/admin/artworks/#{@artwork.id}/edit"}
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          Edit
+        </.link>
+      </div>
+
+      <div class="flex gap-2 mb-6">
+        <button
+          phx-click="switch_tab"
+          phx-value-tab="default"
+          class={"px-4 py-2 text-sm font-medium rounded-lg transition-colors " <>
+            if(@active_tab == "default", do: "bg-white text-gray-900", else: "bg-gray-800 text-gray-300 hover:bg-gray-700")}
+        >
+          Default
+        </button>
+        <button
+          phx-click="switch_tab"
+          phx-value-tab="fields"
+          class={"px-4 py-2 text-sm font-medium rounded-lg transition-colors " <>
+            if(@active_tab == "fields", do: "bg-white text-gray-900", else: "bg-gray-800 text-gray-300 hover:bg-gray-700")}
+        >
+          Fields
+        </button>
+      </div>
+
+      <%= if @active_tab == "default" do %>
+        <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-6 space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</span>
+              <div class="text-white mt-1">{@artwork.id}</div>
+            </div>
+            <div>
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Creator
+              </span>
+              <div class="mt-1">
+                <%= if @participants == [] do %>
+                  <span class="text-gray-500">—</span>
+                <% else %>
+                  <%= for rel <- @participants do %>
+                    <.link
+                      patch={"/admin/participants/#{rel.object_id}"}
+                      class="text-purple-400 hover:text-purple-300"
+                    >
+                      {field(rel.object, "name")}
+                    </.link>
+                    <%= if rel.fields["role"] do %>
+                      <span class="ml-1 text-xs text-gray-500">({rel.fields["role"]})</span>
+                    <% end %>
+                    <br />
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+            <div>
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Year
+              </span>
+              <div class="text-white mt-1">{field(@artwork, "date") || "—"}</div>
+            </div>
+            <div>
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Medium
+              </span>
+              <div class="text-white mt-1">{field(@artwork, "medium") || "—"}</div>
+            </div>
+          </div>
+
+          <div>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Title
+            </span>
+            <div class="text-white mt-1 text-lg">{field(@artwork, "title")}</div>
+          </div>
+
+          <%= if field(@artwork, "description") do %>
+            <div>
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Description
+              </span>
+              <div class="text-gray-300 mt-1 prose prose-invert max-w-none">
+                {field(@artwork, "description")}
+              </div>
+            </div>
+          <% end %>
+
+          <div>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Events
+            </span>
+            <div class="mt-2">
+              <%= if @events == [] do %>
+                <span class="text-gray-500">No linked events</span>
+              <% else %>
+                <div class="flex flex-wrap gap-2">
+                  <%= for rel <- @events do %>
+                    <.link
+                      patch={"/admin/events/#{rel.object_id}"}
+                      class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 transition-colors"
+                    >
+                      {field(rel.object, "title")}
+                    </.link>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <%= if @media != [] do %>
+          <div class="mt-6">
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 block">
+              Media
+            </span>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <%= for m <- @media do %>
+                <div class="bg-gray-800/30 rounded-lg overflow-hidden border border-gray-700/30">
+                  <div class="aspect-video bg-gray-700 flex items-center justify-center">
+                    <%= case m.source_type do %>
+                      <% "upload" -> %>
+                        <%= if m.source_path do %>
+                          <img
+                            src={"/uploads/#{m.source_path}"}
+                            alt={m.alt_text || m.caption}
+                            class="w-full h-full object-cover"
+                          />
+                        <% else %>
+                          <.icon name="hero-photo" class="w-8 h-8 text-gray-400" />
+                        <% end %>
+                      <% "url" -> %>
+                        <%= if m.source_url do %>
+                          <img
+                            src={m.source_url}
+                            alt={m.alt_text || m.caption}
+                            class="w-full h-full object-cover"
+                          />
+                        <% else %>
+                          <.icon name="hero-link" class="w-8 h-8 text-gray-400" />
+                        <% end %>
+                      <% "embed" -> %>
+                        <.icon name="hero-video-camera" class="w-8 h-8 text-gray-400" />
+                    <% end %>
+                  </div>
+                  <%= if m.caption do %>
+                    <div class="px-2 py-1 text-xs text-gray-400 truncate">{m.caption}</div>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+
+      <%= if @active_tab == "fields" do %>
+        <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-4">
+          <.live_component
+            module={ExEditorWeb.LiveEditor}
+            id="fields-editor"
+            content={Jason.encode!(@artwork.fields, pretty: true)}
+            language={:json}
+            on_change="fields_changed"
+            class="light"
+            style="height: 600px;"
+          />
+        </div>
+      <% end %>
+    </div>
+  </div>
+</Layouts.app>

@@ -63,6 +63,7 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/biennales/:id", Admin.BiennaleLive.Index, :show
       live "/admin/events", Admin.EventLive.Index, :index
       live "/admin/events/new", Admin.EventLive.Index, :new
+      live "/admin/events/:id", Admin.EventLive.Index, :show
       live "/admin/events/:id/edit", Admin.EventLive.Index, :edit
       live "/admin/participants", Admin.ParticipantLive.Index, :index
       live "/admin/participants/new", Admin.ParticipantLive.Index, :new
@@ -71,13 +72,14 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/artworks", Admin.ArtworkLive.Index, :index
       live "/admin/artworks/new", Admin.ArtworkLive.Index, :new
       live "/admin/artworks/:id/edit", Admin.ArtworkLive.Index, :edit
-      live "/admin/artworks/:id", Admin.ArtworkLive.Index, :show
+      live "/admin/artworks/:id", Admin.ArtworkLive.Show, :show
       live "/admin/festivals", Admin.FestivalLive.Index, :index
       live "/admin/festivals/new", Admin.FestivalLive.Index, :new
       live "/admin/festivals/:id/edit", Admin.FestivalLive.Index, :edit
       live "/admin/festivals/:id", Admin.FestivalLive.Index, :show
       live "/admin/projects", Admin.ProjectLive.Index, :index
       live "/admin/projects/new", Admin.ProjectLive.Index, :new
+      live "/admin/projects/:id", Admin.ProjectLive.Index, :show
       live "/admin/projects/:id/edit", Admin.ProjectLive.Index, :edit
       live "/admin/media", Admin.MediaLive.Index, :index
       live "/admin/media/new", Admin.MediaLive.Index, :new

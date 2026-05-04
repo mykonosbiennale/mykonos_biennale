@@ -23,6 +23,12 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
     |> assign(:event, Content.get_event_for_admin!(id))
   end
 
+  defp apply_action(socket, :show, %{"id" => id}) do
+    socket
+    |> assign(:page_title, "Show Event")
+    |> assign(:event, Content.get_event_for_admin!(id))
+  end
+
   defp apply_action(socket, :new, _params) do
     # Create a new entity with type "event" instead of %Event{}
     socket
@@ -84,7 +90,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
   defp rel_type_slug?(
          %Relationship{relationship_type: %MykonosBiennale.Content.RelationshipType{slug: slug}},
          slug
-       ), do: true
+       ),
+       do: true
 
   defp rel_type_slug?(_, _), do: false
 

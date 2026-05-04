@@ -1,0 +1,234 @@
+/* ExEditor Default Styles */
+/* VS Code Dark Theme Inspired */
+
+.ex-editor-container {
+  position: relative;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 21px;
+  tab-size: 2;
+  -moz-tab-size: 2;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: 1px solid #3e3e3e;
+  border-radius: 0.5rem;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.ex-editor-container *,
+.ex-editor-container *::before,
+.ex-editor-container *::after {
+  box-sizing: border-box;
+}
+
+/* Wrapper: flex row — [gutter] [code-area] */
+.ex-editor-wrapper {
+  display: flex;
+  height: 100%;
+}
+
+/* Line number gutter — scrollable with hidden scrollbar for JS sync */
+.ex-editor-gutter {
+  flex-shrink: 0;
+  width: 3.5rem;
+  padding: 1rem 0.5rem;
+  text-align: right;
+  color: #858585;
+  background: #252525;
+  border-right: 1px solid #3e3e3e;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.ex-editor-gutter::-webkit-scrollbar {
+  display: none;
+}
+
+.ex-editor-line-number {
+  height: 21px;
+}
+
+/* Code area: relative container for stacked highlight + textarea */
+.ex-editor-code-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Highlighted layer: visible, server-rendered syntax highlighting */
+.ex-editor-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1rem;
+  margin: 0;
+  overflow: auto;
+  white-space: pre;
+  word-wrap: normal;
+  pointer-events: none;
+  font: inherit;
+  line-height: inherit;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Scrollbar for highlight layer (visible, matches editor theme) */
+.ex-editor-highlight::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ex-editor-highlight::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.ex-editor-highlight::-webkit-scrollbar-thumb {
+  background: #4e4e4e;
+  border-radius: 4px;
+}
+
+.ex-editor-highlight::-webkit-scrollbar-thumb:hover {
+  background: #5e5e5e;
+}
+
+/* Individual line wrapper */
+.ex-editor-line {
+  display: block;
+  height: 21px;
+  white-space: pre;
+}
+
+/* Textarea: invisible text, visible native caret, captures all input */
+.ex-editor-textarea {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  margin: 0;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: transparent;
+  caret-color: #d4d4d4;
+  font: inherit;
+  line-height: inherit;
+  white-space: pre;
+  word-wrap: normal;
+  overflow: auto;
+  z-index: 1;
+  -webkit-text-fill-color: transparent;
+}
+
+.ex-editor-textarea:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Scrollbar for textarea (hidden — highlight layer scrollbar is shown) */
+.ex-editor-textarea::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ex-editor-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ex-editor-textarea::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* Focus indicator */
+.ex-editor-container:focus-within {
+  border-color: #007acc;
+  box-shadow: 0 0 0 1px #007acc;
+}
+
+/* Read-only mode */
+.ex-editor-container.readonly .ex-editor-textarea {
+  cursor: default;
+}
+
+/* Light Theme */
+.ex-editor-container.light {
+  background: #ffffff;
+  color: #1e1e1e;
+  border-color: #e0e0e0;
+}
+
+.ex-editor-container.light .ex-editor-gutter {
+  background: #f5f5f5;
+  border-color: #e0e0e0;
+  color: #999999;
+}
+
+.ex-editor-container.light .ex-editor-highlight {
+  background: #ffffff;
+}
+
+.ex-editor-container.light .ex-editor-highlight::-webkit-scrollbar-track {
+  background: #ffffff;
+}
+
+.ex-editor-container.light .ex-editor-highlight::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+}
+
+.ex-editor-container.light .ex-editor-textarea {
+  caret-color: #1e1e1e;
+}
+
+/* Disabled state */
+.ex-editor-container.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Print styles */
+@media print {
+  .ex-editor-textarea {
+    display: none;
+  }
+}
+
+/* Syntax Highlighting — VS Code Dark theme */
+.hl-keyword    { color: #569cd6; font-weight: 600; }
+.hl-string     { color: #ce9178; }
+.hl-number     { color: #b5cea8; }
+.hl-boolean    { color: #569cd6; }
+.hl-null       { color: #569cd6; }
+.hl-key        { color: #9cdcfe; }
+.hl-punctuation { color: #d4d4d4; }
+.hl-comment    { color: #6a9955; font-style: italic; }
+.hl-operator   { color: #d4d4d4; }
+.hl-function   { color: #dcdcaa; }
+.hl-module     { color: #4ec9b0; }
+.hl-variable   { color: #9cdcfe; }
+
+/* Light theme syntax overrides */
+.ex-editor-container.light .hl-keyword    { color: #0000ff; }
+.ex-editor-container.light .hl-string     { color: #a31515; }
+.ex-editor-container.light .hl-number     { color: #098658; }
+.ex-editor-container.light .hl-boolean    { color: #0000ff; }
+.ex-editor-container.light .hl-null       { color: #0000ff; }
+.ex-editor-container.light .hl-key        { color: #001080; }
+.ex-editor-container.light .hl-punctuation { color: #1e1e1e; }
+.ex-editor-container.light .hl-comment    { color: #008000; }
+.ex-editor-container.light .hl-operator   { color: #1e1e1e; }
+.ex-editor-container.light .hl-function   { color: #795e26; }
+.ex-editor-container.light .hl-module     { color: #267f99; }
+.ex-editor-container.light .hl-variable   { color: #001080; }
