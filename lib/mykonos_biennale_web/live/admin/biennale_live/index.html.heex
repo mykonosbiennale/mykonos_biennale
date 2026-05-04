@@ -64,7 +64,7 @@
               <td class="px-6 py-4">
                 <div class="flex items-center justify-end space-x-2">
                   <.link
-                    patch={"/admin/biennales/#{biennale.id}"}
+                    navigate={"/admin/biennales/#{biennale.id}"}
                     class="text-blue-400 hover:text-blue-300 transition-colors"
                   >
                     Show
@@ -91,15 +91,6 @@
       </div>
     </div>
   </div>
-
-  <.modal
-    :if={@live_action == :show}
-    id="biennale-show-modal"
-    show
-    on_cancel={JS.patch("/admin/biennales")}
-  >
-    <.entity_detail entity={@biennale} cancel_path="/admin/biennales" />
-  </.modal>
 
   <.modal
     :if={@live_action in [:new, :edit]}

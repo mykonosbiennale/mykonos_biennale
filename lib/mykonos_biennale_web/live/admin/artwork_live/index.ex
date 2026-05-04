@@ -1,14 +1,110 @@
 defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
   use MykonosBiennaleWeb, :live_view
 
+  import Ecto.Query, warn: false
+
+  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
+  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
 
   @impl true
   def mount(_params, _session, socket) do
+    artworks = Content.list_artworks()
+    artwork_ids = Enum.map(artworks, & &1.id)
+
+    creators_map = batch_load_creators(artwork_ids)
+    events_map = batch_load_events(artwork_ids)
+    media_map = batch_load_first_media(artwork_ids)
+
     {:ok,
      socket
      |> assign(:page_title, "Manage Artworks")
-     |> stream(:artworks, Content.list_artworks())}
+     |> assign(:creators_map, creators_map)
+     |> assign(:events_map, events_map)
+     |> assign(:media_map, media_map)
+     |> stream(:artworks, artworks)}
+  end
+
+  defp batch_load_creators(artwork_ids) do
+    rt = Repo.get_by(RelationshipType, slug: "artwork_participant")
+
+    if rt == nil or artwork_ids == [] do
+      %{}
+    else
+      rels =
+        Repo.all(
+          from r in Relationship,
+            where: r.relationship_type_id == ^rt.id and r.subject_id in ^artwork_ids,
+            preload: [:object]
+        )
+
+      rels
+      |> Enum.group_by(& &1.subject_id, fn r ->
+        name =
+          case r.object do
+            nil ->
+              "Unknown"
+
+            p ->
+              p.fields["name"] ||
+                "#{p.fields["first_name"] || ""} #{p.fields["last_name"] || ""}" |> String.trim()
+          end
+
+        %{id: r.object_id, name: name, role: r.fields["role"]}
+      end)
+    end
+  end
+
+  defp batch_load_events(artwork_ids) do
+    rt = Repo.get_by(RelationshipType, slug: "artwork_event")
+
+    if rt == nil or artwork_ids == [] do
+      %{}
+    else
+      rels =
+        Repo.all(
+          from r in Relationship,
+            where: r.relationship_type_id == ^rt.id and r.subject_id in ^artwork_ids,
+            preload: [:object]
+        )
+
+      rels
+      |> Enum.group_by(& &1.subject_id, fn r ->
+        title = if r.object, do: r.object.fields["title"], else: "Unknown"
+        %{id: r.object_id, title: title}
+      end)
+    end
+  end
+
+  defp batch_load_first_media(artwork_ids) do
+    if artwork_ids == [] do
+      %{}
+    else
+      ems =
+        Repo.all(
+          from em in EntityMedia,
+            where: em.entity_id in ^artwork_ids,
+            join: m in Media,
+            on: m.id == em.media_id,
+            order_by: [em.entity_id, em.position],
+            select: %{
+              entity_id: em.entity_id,
+              source_type: m.source_type,
+              source_path: m.source_path,
+              source_url: m.source_url
+            }
+        )
+
+      ems
+      |> Enum.group_by(& &1.entity_id)
+      |> Enum.into(%{}, fn {eid, items} ->
+        first =
+          Enum.find(items, &(&1.source_type == "upload" and is_binary(&1.source_path))) ||
+            Enum.find(items, &(&1.source_type == "url" and is_binary(&1.source_url)))
+
+        {eid, first}
+      end)
+    end
   end
 
   @impl true
