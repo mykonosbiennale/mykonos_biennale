@@ -74,6 +74,12 @@
               <td class="px-6 py-4">
                 <div class="flex items-center justify-end space-x-2">
                   <.link
+                    patch={~p"/admin/events/#{event.id}"}
+                    class="text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    Show
+                  </.link>
+                  <.link
                     patch={~p"/admin/events/#{event.id}/edit"}
                     class="text-blue-400 hover:text-blue-300 transition-colors"
                   >
@@ -95,6 +101,15 @@
       </div>
     </div>
   </div>
+
+  <.modal
+    :if={@live_action == :show}
+    id="event-show-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/events")}
+  >
+    <.entity_detail entity={@event} cancel_path={~p"/admin/events" |> to_string()} />
+  </.modal>
 
   <.modal
     :if={@live_action in [:new, :edit]}

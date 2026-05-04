@@ -1,0 +1,211 @@
+<Layouts.app flash={@flash}>
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+    <.admin_nav current_page="participants" />
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-4">
+          <.link
+            patch="/admin/participants"
+            class="text-gray-400 hover:text-white transition-colors"
+          >
+            <.icon name="hero-arrow-left" class="w-5 h-5" />
+          </.link>
+          <%= if @headshot do %>
+            <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+              <%= case @headshot.source_type do %>
+                <% "upload" -> %>
+                  <img
+                    src={"/uploads/#{@headshot.source_path}"}
+                    alt={pfield(@participant, "name")}
+                    class="w-full h-full object-cover"
+                  />
+                <% "url" -> %>
+                  <img
+                    src={@headshot.source_url}
+                    alt={pfield(@participant, "name")}
+                    class="w-full h-full object-cover"
+                  />
+                <% _ -> %>
+                  <.icon name="hero-user" class="w-8 h-8 text-gray-400" />
+              <% end %>
+            </div>
+          <% else %>
+            <div class="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
+              <.icon name="hero-user" class="w-8 h-8 text-gray-400" />
+            </div>
+          <% end %>
+          <h1 class="text-3xl font-bold text-white">{pfield(@participant, "name")}</h1>
+        </div>
+        <.link
+          patch={"/admin/participants/#{@participant.id}/edit"}
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          Edit
+        </.link>
+      </div>
+
+      <div class="flex gap-2 mb-6">
+        <button
+          phx-click="switch_tab"
+          phx-value-tab="default"
+          class={"px-4 py-2 text-sm font-medium rounded-lg transition-colors " <>
+            if(@active_tab == "default", do: "bg-white text-gray-900", else: "bg-gray-800 text-gray-300 hover:bg-gray-700")}
+        >
+          Default
+        </button>
+        <button
+          phx-click="switch_tab"
+          phx-value-tab="fields"
+          class={"px-4 py-2 text-sm font-medium rounded-lg transition-colors " <>
+            if(@active_tab == "fields", do: "bg-white text-gray-900", else: "bg-gray-800 text-gray-300 hover:bg-gray-700")}
+        >
+          Fields
+        </button>
+      </div>
+
+      <%= if @active_tab == "default" do %>
+        <div class="space-y-6">
+          <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  ID
+                </span>
+                <div class="text-white mt-1">{@participant.id}</div>
+              </div>
+              <div>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Name
+                </span>
+                <div class="text-white mt-1">{pfield(@participant, "name")}</div>
+              </div>
+              <div>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Country
+                </span>
+                <div class="text-white mt-1">{pfield(@participant, "country") || "—"}</div>
+              </div>
+              <div>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Visible
+                </span>
+                <div class="mt-1">
+                  <%= if @participant.visible do %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Yes
+                    </span>
+                  <% else %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      No
+                    </span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div :if={pfield(@participant, "email")}>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Email
+                </span>
+                <div class="text-white mt-1 text-sm">{pfield(@participant, "email")}</div>
+              </div>
+              <div :if={pfield(@participant, "phone")}>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Phone
+                </span>
+                <div class="text-white mt-1 text-sm">{pfield(@participant, "phone")}</div>
+              </div>
+              <div :if={pfield(@participant, "website")}>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Website
+                </span>
+                <div class="mt-1 text-sm">
+                  <a
+                    href={pfield(@participant, "website")}
+                    target="_blank"
+                    class="text-purple-400 hover:text-purple-300"
+                  >
+                    {pfield(@participant, "website")}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <%= if pfield(@participant, "bio") do %>
+            <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-6">
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Bio
+              </span>
+              <div class="text-gray-300 mt-2 prose prose-invert max-w-none">
+                {pfield(@participant, "bio")}
+              </div>
+            </div>
+          <% end %>
+
+          <%= for {event, artwork_entries} <- @artworks_by_event do %>
+            <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-white">
+                  <.link
+                    patch={"/admin/events/#{event.id}"}
+                    class="text-purple-400 hover:text-purple-300"
+                  >
+                    {pfield(event, "title")}
+                  </.link>
+                </h3>
+                <%= if pfield(event, "date") do %>
+                  <span class="text-xs text-gray-500">{pfield(event, "date")}</span>
+                <% end %>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <%= for {artwork, media} <- artwork_entries do %>
+                  <.artwork_card
+                    artwork={artwork}
+                    media={media}
+                    show_description={true}
+                    show_creators={false}
+                  />
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+
+          <%= if @artworks_by_event == [] and @events != [] do %>
+            <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-6">
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Events
+              </span>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <%= for event <- @events do %>
+                  <.link
+                    patch={"/admin/events/#{event.id}"}
+                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 transition-colors"
+                  >
+                    {pfield(event, "title")}
+                  </.link>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%= if @active_tab == "fields" do %>
+        <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-4">
+          <.live_component
+            module={ExEditorWeb.LiveEditor}
+            id="fields-editor"
+            content={Jason.encode!(@participant.fields, pretty: true)}
+            language={:json}
+            on_change="fields_changed"
+            class="light"
+            style="height: 600px;"
+          />
+        </div>
+      <% end %>
+    </div>
+  </div>
+</Layouts.app>

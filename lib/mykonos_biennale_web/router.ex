@@ -60,27 +60,31 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/biennales", Admin.BiennaleLive.Index, :index
       live "/admin/biennales/new", Admin.BiennaleLive.Index, :new
       live "/admin/biennales/:id/edit", Admin.BiennaleLive.Index, :edit
-      live "/admin/biennales/:id", Admin.BiennaleLive.Index, :show
+      live "/admin/biennales/:id", Admin.BiennaleLive.Show, :show
       live "/admin/events", Admin.EventLive.Index, :index
       live "/admin/events/new", Admin.EventLive.Index, :new
+      live "/admin/events/:id", Admin.EventLive.Show, :show
       live "/admin/events/:id/edit", Admin.EventLive.Index, :edit
       live "/admin/participants", Admin.ParticipantLive.Index, :index
       live "/admin/participants/new", Admin.ParticipantLive.Index, :new
       live "/admin/participants/:id/edit", Admin.ParticipantLive.Index, :edit
-      live "/admin/participants/:id", Admin.ParticipantLive.Index, :show
+      live "/admin/participants/:id", Admin.ParticipantLive.Show, :show
       live "/admin/artworks", Admin.ArtworkLive.Index, :index
+      live "/admin/artworks/merge", Admin.ArtworkLive.Merge, :index
       live "/admin/artworks/new", Admin.ArtworkLive.Index, :new
       live "/admin/artworks/:id/edit", Admin.ArtworkLive.Index, :edit
-      live "/admin/artworks/:id", Admin.ArtworkLive.Index, :show
+      live "/admin/artworks/:id", Admin.ArtworkLive.Show, :show
       live "/admin/festivals", Admin.FestivalLive.Index, :index
       live "/admin/festivals/new", Admin.FestivalLive.Index, :new
       live "/admin/festivals/:id/edit", Admin.FestivalLive.Index, :edit
       live "/admin/festivals/:id", Admin.FestivalLive.Index, :show
       live "/admin/projects", Admin.ProjectLive.Index, :index
       live "/admin/projects/new", Admin.ProjectLive.Index, :new
+      live "/admin/projects/:id", Admin.ProjectLive.Show, :show
       live "/admin/projects/:id/edit", Admin.ProjectLive.Index, :edit
       live "/admin/media", Admin.MediaLive.Index, :index
       live "/admin/media/new", Admin.MediaLive.Index, :new
+      live "/admin/media/:id", Admin.MediaLive.Show, :show
       live "/admin/media/:id/edit", Admin.MediaLive.Index, :edit
       live "/admin/relationship_types", Admin.RelationshipTypeLive.Index, :index
       live "/admin/relationship_types/new", Admin.RelationshipTypeLive.Index, :new

@@ -22,6 +22,12 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.Index do
     |> assign(:project, Content.get_project!(id))
   end
 
+  defp apply_action(socket, :show, %{"id" => id}) do
+    socket
+    |> assign(:page_title, "Show Project")
+    |> assign(:project, Content.get_project!(id))
+  end
+
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New Project")
