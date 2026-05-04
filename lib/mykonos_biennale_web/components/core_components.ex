@@ -746,6 +746,8 @@ defmodule MykonosBiennaleWeb.CoreComponents do
 
   attr :artwork, :any, required: true
   attr :media, :list, default: nil
+  attr :creators, :list, default: nil
+  attr :show_creators, :boolean, default: true
   attr :show_description, :boolean, default: false
   attr :show_statement, :boolean, default: false
   attr :show_edit_link, :boolean, default: false
@@ -754,7 +756,15 @@ defmodule MykonosBiennaleWeb.CoreComponents do
   def artwork_card(assigns) do
     artwork = assigns[:artwork]
     resolved_media = assigns[:media] || MykonosBiennale.Content.list_media_for_entity(artwork)
+    resolved_creators = assigns[:creators] || resolve_artwork_creators(artwork)
     assigns = assign(assigns, :resolved_media, resolved_media)
+
+    assigns =
+      assign(
+        assigns,
+        :resolved_creators,
+        if(assigns[:show_creators], do: resolved_creators, else: [])
+      )
 
     ~H"""
     <div class={"card bg-base-100 shadow-sm border border-base-300 #{@class}"}>
@@ -776,6 +786,18 @@ defmodule MykonosBiennaleWeb.CoreComponents do
         <h3 class="card-title text-base">
           {artwork_field(@artwork, "title", "Untitled")}
         </h3>
+        <%= if @resolved_creators != [] do %>
+          <div class="text-sm text-base-content/50">
+            <%= for {creator, idx} <- Enum.with_index(@resolved_creators) do %>
+              <.link patch={"/admin/participants/#{creator.id}"} class="hover:text-base-content/70">
+                {artwork_field(creator, "name")}
+              </.link>
+              <%= if idx < length(@resolved_creators) - 1 do %>
+                ,
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
         <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/60">
           <span :if={artwork_field(@artwork, "date")}>{artwork_field(@artwork, "date")}</span>
           <span :if={artwork_field(@artwork, "size")}>{artwork_field(@artwork, "size")}</span>
@@ -813,6 +835,12 @@ defmodule MykonosBiennaleWeb.CoreComponents do
   end
 
   defp artwork_field(_, _key, default), do: default
+
+  defp resolve_artwork_creators(artwork) do
+    MykonosBiennale.Content.Artwork.list_linked_participants(artwork)
+    |> Enum.map(& &1.object)
+    |> Enum.reject(&is_nil/1)
+  end
 
   defp first_image([]), do: nil
 

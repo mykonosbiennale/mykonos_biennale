@@ -162,7 +162,12 @@
               </div>
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 <%= for {artwork, media} <- artwork_entries do %>
-                  <.artwork_card artwork={artwork} media={media} show_description={true} />
+                  <.artwork_card
+                    artwork={artwork}
+                    media={media}
+                    show_description={true}
+                    show_creators={false}
+                  />
                 <% end %>
               </div>
             </div>
