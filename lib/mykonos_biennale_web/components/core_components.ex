@@ -648,6 +648,16 @@ defmodule MykonosBiennaleWeb.CoreComponents do
                 Art Works
               </.link>
               <.link
+                navigate="/admin/films"
+                class={
+                  if @current_page == "films",
+                    do: "text-white font-semibold",
+                    else: "text-gray-400 hover:text-white transition-colors"
+                }
+              >
+                Films
+              </.link>
+              <.link
                 navigate="/admin/media"
                 class={
                   if @current_page == "media",

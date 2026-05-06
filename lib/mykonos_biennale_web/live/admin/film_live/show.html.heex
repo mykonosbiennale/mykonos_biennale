@@ -1,0 +1,252 @@
+<Layouts.app flash={@flash}>
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+    <.admin_nav current_page="films" />
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-4">
+          <.link navigate="/admin/films" class="text-gray-400 hover:text-white transition-colors">
+            <.icon name="hero-arrow-left" class="w-5 h-5" />
+          </.link>
+          <h1 class="text-3xl font-bold text-white">{@film.identity}</h1>
+          <span class="inline-block px-2 py-1 rounded bg-purple-900/50 text-purple-300 text-sm">
+            {@film.type}
+          </span>
+        </div>
+        <div class="flex items-center gap-3">
+          <.link
+            patch={"/admin/films/#{@film.id}/edit"}
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Edit
+          </.link>
+          <button
+            phx-click="delete"
+            data-confirm="Are you sure you want to delete this film?"
+            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-2 mb-6">
+        <button
+          phx-click="switch_tab"
+          phx-value-tab="default"
+          class={"px-4 py-2 text-sm font-medium rounded-lg transition-colors " <>
+            if(@active_tab == "default", do: "bg-white text-gray-900", else: "bg-gray-800 text-gray-300 hover:bg-gray-700")}
+        >
+          Default
+        </button>
+        <button
+          phx-click="switch_tab"
+          phx-value-tab="fields"
+          class={"px-4 py-2 text-sm font-medium rounded-lg transition-colors " <>
+            if(@active_tab == "fields", do: "bg-white text-gray-900", else: "bg-gray-800 text-gray-300 hover:bg-gray-700")}
+        >
+          Fields
+        </button>
+      </div>
+
+      <%= if @active_tab == "default" do %>
+        <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-6">
+          <div class="flex gap-6">
+            <div class="flex-shrink-0">
+              <%= case @poster do %>
+                <% %{source_type: "upload", source_path: path} -> %>
+                  <img
+                    src={"/uploads/#{path}"}
+                    alt={@film.identity}
+                    class="w-48 h-64 rounded-lg object-cover"
+                  />
+                <% %{source_type: "url", source_url: url} -> %>
+                  <img src={url} alt={@film.identity} class="w-48 h-64 rounded-lg object-cover" />
+                <% _ -> %>
+                  <div class="w-48 h-64 rounded-lg bg-gray-700 flex items-center justify-center">
+                    <.icon name="hero-film" class="w-16 h-16 text-gray-500" />
+                  </div>
+              <% end %>
+            </div>
+
+            <div class="flex-1 space-y-4">
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div>
+                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    ID
+                  </span>
+                  <div class="text-white mt-1">{@film.id}</div>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Ref
+                  </span>
+                  <div class="text-white mt-1 font-mono">{field(@film, "ref") || "—"}</div>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Title
+                  </span>
+                  <div class="text-white mt-1">{@film.identity}</div>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Runtime
+                  </span>
+                  <div class="text-white mt-1">
+                    {runtime = field(@film, "runtime")
+                    if runtime, do: "#{runtime} min", else: "—"}
+                  </div>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Country
+                  </span>
+                  <div class="text-white mt-1">{field(@film, "country") || "—"}</div>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Year
+                  </span>
+                  <div class="text-white mt-1">{field(@film, "year") || "—"}</div>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Director
+                  </span>
+                  <div class="text-white mt-1">{field(@film, "dir_by") || "—"}</div>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Submitted by
+                  </span>
+                  <div class="text-white mt-1">{field(@film, "sub_by") || "—"}</div>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Email
+                  </span>
+                  <div class="text-white mt-1 text-sm">
+                    {orig_field(@film, "contact_email") || "—"}
+                  </div>
+                </div>
+                <div class="col-span-2 sm:col-span-3">
+                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Event
+                  </span>
+                  <div class="mt-1">
+                    <%= if @event_rels == [] do %>
+                      <span class="text-gray-500">—</span>
+                    <% else %>
+                      <div class="flex flex-wrap gap-2">
+                        <%= for rel <- @event_rels do %>
+                          <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-500/20 text-purple-300">
+                            {field(rel.object, "date")} {field(rel.object, "title")}
+                          </span>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+
+              <%= synopsis = field(@film, "log_line") || orig_field(@film, "synopsis"); if synopsis && synopsis != "" do %>
+                <div>
+                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Synopsis
+                  </span>
+                  <div class="text-gray-300 mt-1 prose prose-invert max-w-none">{synopsis}</div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-6">
+          <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 block">
+            Relationships
+          </span>
+          <%= non_event_rels = Enum.reject(@relationships, fn r -> r.relationship_type.slug == "screened_at" end); if non_event_rels == [] do %>
+            <span class="text-gray-500">No relationships</span>
+          <% else %>
+            <div class="space-y-2">
+              <%= for rel <- non_event_rels do %>
+                <div class="flex items-center justify-between bg-gray-700/30 p-3 rounded-lg">
+                  <div class="flex items-center gap-3">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-900/50 text-blue-300">
+                      {rel.relationship_type.slug}
+                    </span>
+                    <span class="text-white text-sm">
+                      {field(rel.object, "name") ||
+                        "#{field(rel.object, "first_name")} #{field(rel.object, "last_name")}"}
+                    </span>
+                  </div>
+                  <%= if rel.fields["roles"] do %>
+                    <span class="text-gray-400 text-xs">{rel.fields["roles"]}</span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <%= if @media != [] do %>
+          <div class="mt-6">
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 block">
+              Media ({length(@media)} items)
+            </span>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <%= for m <- @media do %>
+                <div class="bg-gray-800/30 rounded-lg overflow-hidden border border-gray-700/30">
+                  <div class="aspect-video bg-gray-700 flex items-center justify-center">
+                    <%= case m.source_type do %>
+                      <% "upload" -> %>
+                        <%= if m.source_path do %>
+                          <img
+                            src={"/uploads/#{m.source_path}"}
+                            alt={m.alt_text || m.caption}
+                            class="w-full h-full object-cover"
+                          />
+                        <% else %>
+                          <.icon name="hero-photo" class="w-8 h-8 text-gray-400" />
+                        <% end %>
+                      <% "url" -> %>
+                        <%= if m.source_url do %>
+                          <img
+                            src={m.source_url}
+                            alt={m.alt_text || m.caption}
+                            class="w-full h-full object-cover"
+                          />
+                        <% else %>
+                          <.icon name="hero-link" class="w-8 h-8 text-gray-400" />
+                        <% end %>
+                      <% "embed" -> %>
+                        <.icon name="hero-video-camera" class="w-8 h-8 text-gray-400" />
+                    <% end %>
+                  </div>
+                  <%= if m.caption do %>
+                    <div class="px-2 py-1 text-xs text-gray-400 truncate">{m.caption}</div>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+
+      <%= if @active_tab == "fields" do %>
+        <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-4">
+          <.live_component
+            module={ExEditorWeb.LiveEditor}
+            id="fields-editor"
+            content={Jason.encode!(@film.fields, pretty: true)}
+            language={:json}
+            on_change="fields_changed"
+            class="light"
+            style="height: 600px;"
+          />
+        </div>
+      <% end %>
+    </div>
+  </div>
+</Layouts.app>

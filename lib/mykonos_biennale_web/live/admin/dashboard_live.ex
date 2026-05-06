@@ -6,16 +6,15 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
   def mount(_params, _session, socket) do
     biennales = Content.list_biennales()
     all_events = Content.list_events()
+    participants = Content.list_participants()
+    artworks = Content.list_artworks()
 
-    # Calculate stats
     total_biennales = length(biennales)
     total_events = length(all_events)
+    total_participants = length(participants)
+    total_artworks = length(artworks)
+    total_media = length(Content.list_media())
 
-    # Events by type - now accessing from entity.fields
-    events_by_type = Enum.group_by(all_events, fn event -> event.fields["type"] end)
-    event_type_counts = Enum.map(events_by_type, fn {type, events} -> {type, length(events)} end)
-
-    # Recent biennales (last 3)
     recent_biennales = Enum.take(biennales, 3)
 
     {:ok,
@@ -23,7 +22,9 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
      |> assign(:page_title, "Admin Dashboard")
      |> assign(:total_biennales, total_biennales)
      |> assign(:total_events, total_events)
-     |> assign(:event_type_counts, event_type_counts)
+     |> assign(:total_participants, total_participants)
+     |> assign(:total_artworks, total_artworks)
+     |> assign(:total_media, total_media)
      |> assign(:recent_biennales, recent_biennales)}
   end
 
@@ -42,7 +43,7 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
         <%!-- Main Content --%>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <%!-- Stats Grid --%>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
             <%!-- Total Biennales --%>
             <div class="bg-gradient-to-br from-purple-900/20 to-purple-950/20 border border-purple-800/30 rounded-lg p-6 hover:border-purple-700/50 transition-colors">
               <div class="flex items-center justify-between mb-4">
@@ -61,26 +62,31 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
               <h3 class="text-sm uppercase tracking-wider text-gray-400">Total Events</h3>
             </div>
 
-            <%!-- Exhibitions --%>
+            <%!-- Participants --%>
             <div class="bg-gradient-to-br from-green-900/20 to-green-950/20 border border-green-800/30 rounded-lg p-6 hover:border-green-700/50 transition-colors">
               <div class="flex items-center justify-between mb-4">
-                <.icon name="hero-photo" class="size-8 text-green-400" />
-                <span class="text-3xl font-bold text-white">
-                  {get_type_count(@event_type_counts, "exhibition")}
-                </span>
+                <.icon name="hero-user-group" class="size-8 text-green-400" />
+                <span class="text-3xl font-bold text-white">{@total_participants}</span>
               </div>
-              <h3 class="text-sm uppercase tracking-wider text-gray-400">Exhibitions</h3>
+              <h3 class="text-sm uppercase tracking-wider text-gray-400">Participants</h3>
             </div>
 
-            <%!-- Performances --%>
+            <%!-- Works Shown --%>
             <div class="bg-gradient-to-br from-red-900/20 to-red-950/20 border border-red-800/30 rounded-lg p-6 hover:border-red-700/50 transition-colors">
               <div class="flex items-center justify-between mb-4">
-                <.icon name="hero-sparkles" class="size-8 text-red-400" />
-                <span class="text-3xl font-bold text-white">
-                  {get_type_count(@event_type_counts, "performance")}
-                </span>
+                <.icon name="hero-paint-brush" class="size-8 text-red-400" />
+                <span class="text-3xl font-bold text-white">{@total_artworks}</span>
               </div>
-              <h3 class="text-sm uppercase tracking-wider text-gray-400">Performances</h3>
+              <h3 class="text-sm uppercase tracking-wider text-gray-400">Works Shown</h3>
+            </div>
+
+            <%!-- Media --%>
+            <div class="bg-gradient-to-br from-amber-900/20 to-amber-950/20 border border-amber-800/30 rounded-lg p-6 hover:border-amber-700/50 transition-colors">
+              <div class="flex items-center justify-between mb-4">
+                <.icon name="hero-photo" class="size-8 text-amber-400" />
+                <span class="text-3xl font-bold text-white">{@total_media}</span>
+              </div>
+              <h3 class="text-sm uppercase tracking-wider text-gray-400">Media</h3>
             </div>
           </div>
 
@@ -173,13 +179,6 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
       </div>
     </Layouts.app>
     """
-  end
-
-  defp get_type_count(counts, type) do
-    case Enum.find(counts, fn {t, _count} -> t == type end) do
-      {_type, count} -> count
-      nil -> 0
-    end
   end
 
   defp format_date(%Date{} = date, fmt), do: Calendar.strftime(date, fmt)
