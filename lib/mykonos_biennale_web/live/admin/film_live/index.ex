@@ -35,6 +35,15 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
     |> assign(:film, Content.Film.get!(id))
   end
 
+  defp apply_action(socket, :new, params) do
+    default_event_id = Map.get(params, "event_id", "")
+
+    socket
+    |> assign(:page_title, "New Film")
+    |> assign(:film, %Entity{type: "Short Film", fields: %{}})
+    |> assign(:default_event_id, default_event_id)
+  end
+
   defp apply_action(socket, :show, %{"id" => id}) do
     socket
     |> assign(:page_title, "Show Film")

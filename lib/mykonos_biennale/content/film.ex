@@ -23,6 +23,86 @@ defmodule MykonosBiennale.Content.Film do
     "participated_in"
   ]
 
+  def create(attrs) do
+    title = Map.get(attrs, :title) || Map.get(attrs, "title")
+    type = Map.get(attrs, :type) || Map.get(attrs, "type") || "Short Film"
+    slug = Content.slugify(title || "untitled-film")
+
+    fields =
+      attrs
+      |> Map.drop([:title, :type, "title", "type"])
+      |> Enum.map(fn
+        {k, v} when is_atom(k) -> {to_string(k), v}
+        {k, v} -> {k, v}
+      end)
+      |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+      |> Enum.into(%{})
+
+    %Entity{}
+    |> Entity.changeset(%{
+      type: type,
+      identity: title,
+      slug: slug,
+      visible: true,
+      fields: fields
+    })
+    |> Repo.insert()
+  end
+
+  def list_film_events do
+    Repo.all(
+      from e in Entity,
+        where: e.type == "event",
+        where:
+          fragment("? ->> 'type' = 'screening'", e.fields) or
+            fragment("? ->> 'type' = 'video'", e.fields) or
+            fragment("? ->> 'type' = 'film'", e.fields),
+        order_by: [
+          desc: fragment("? ->> ?", e.fields, "date"),
+          asc: fragment("? ->> ?", e.fields, "title")
+        ]
+    )
+  end
+
+  def attach_event(%Entity{} = film, %Entity{} = event) do
+    rt = Repo.get_by!(RelationshipType, slug: "screened_at")
+
+    %Relationship{}
+    |> Relationship.changeset(%{
+      relationship_type_id: rt.id,
+      subject_id: film.id,
+      object_id: event.id
+    })
+    |> Repo.insert()
+  end
+
+  def detach_event(%Entity{} = film, event_id) do
+    rt = Repo.get_by!(RelationshipType, slug: "screened_at")
+
+    Repo.delete_all(
+      from r in Relationship,
+        where:
+          r.subject_id == ^film.id and r.object_id == ^event_id and
+            r.relationship_type_id == ^rt.id
+    )
+
+    {:ok, :detached}
+  end
+
+  def list_linked_events(%Entity{} = film) do
+    rt = Repo.get_by(RelationshipType, slug: "screened_at")
+
+    if rt do
+      Repo.all(
+        from r in Relationship,
+          where: r.subject_id == ^film.id and r.relationship_type_id == ^rt.id,
+          preload: [:object, :relationship_type]
+      )
+    else
+      []
+    end
+  end
+
   def list do
     Repo.all(
       from e in Entity,
@@ -71,7 +151,19 @@ defmodule MykonosBiennale.Content.Film do
 
     new_fields =
       Enum.reduce(
-        [:title, :ref, :runtime, :country, :log_line, :synopsis, :year, :dir_by, :sub_by],
+        [
+          :ref,
+          :runtime,
+          :country,
+          :log_line,
+          :synopsis,
+          :year,
+          :dir_by,
+          :sub_by,
+          :trailer_url,
+          :trailer_embed,
+          :screening_copy_url
+        ],
         current_fields,
         fn key, acc ->
           case Map.get(attrs, key) do
@@ -82,9 +174,11 @@ defmodule MykonosBiennale.Content.Film do
       )
 
     identity = Map.get(attrs, :title) || film.identity
+    type = Map.get(attrs, :type) || film.type
 
     Content.update_entity(film, %{
       identity: identity,
+      type: type,
       visible: Map.get(attrs, :visible, film.visible),
       fields: new_fields
     })

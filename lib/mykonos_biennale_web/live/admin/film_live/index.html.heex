@@ -8,6 +8,11 @@
           <h1 class="text-4xl font-bold text-white mb-2">Films & Videos</h1>
           <p class="text-gray-400">Browse imported film festival entries</p>
         </div>
+        <div class="flex items-center gap-3">
+          <.link patch="/admin/films/new" class="btn btn-primary">
+            + New Film
+          </.link>
+        </div>
       </div>
 
       <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 overflow-hidden">
@@ -126,18 +131,19 @@
   </div>
 
   <.modal
-    :if={@live_action == :edit}
+    :if={@live_action in [:new, :edit]}
     id="film-modal"
     show
     on_cancel={JS.patch("/admin/films")}
   >
     <.live_component
       module={MykonosBiennaleWeb.Admin.FilmLive.FormComponent}
-      id={@film.id}
+      id={@film.id || :new}
       title={@page_title}
       action={@live_action}
       film={@film}
       patch="/admin/films"
+      default_event_id={Map.get(assigns, :default_event_id, "")}
     />
   </.modal>
 </Layouts.app>
