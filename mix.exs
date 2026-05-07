@@ -61,7 +61,10 @@ defmodule MykonosBiennale.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
-      {:ex_editor, "~> 0.3.0"}
+      {:ex_editor, "~> 0.3.0"},
+      {:oban, "~> 2.22"},
+      {:oban_web, "~> 2.12"},
+      {:igniter, "~> 0.7.9", only: [:dev, :test]}
     ]
   end
 

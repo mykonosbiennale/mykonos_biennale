@@ -1,6 +1,7 @@
 defmodule MykonosBiennaleWeb.Router do
   use MykonosBiennaleWeb, :router
 
+  import Oban.Web.Router
   import MykonosBiennaleWeb.UserAuth
 
   pipeline :browser do
@@ -46,6 +47,12 @@ defmodule MykonosBiennaleWeb.Router do
 
       live_dashboard "/dashboard", metrics: MykonosBiennaleWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+    end
+
+    scope "/" do
+      pipe_through :browser
+
+      oban_dashboard("/oban")
     end
   end
 
