@@ -12,6 +12,7 @@ defmodule MykonosBiennale.Application do
       MykonosBiennale.Repo,
       {Ecto.Migrator,
        repos: Application.fetch_env!(:mykonos_biennale, :ecto_repos), skip: skip_migrations?()},
+      {Oban, Application.fetch_env!(:mykonos_biennale, Oban)},
       {DNSCluster, query: Application.get_env(:mykonos_biennale, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: MykonosBiennale.PubSub},
       # Start a worker by calling: MykonosBiennale.Worker.start_link(arg)

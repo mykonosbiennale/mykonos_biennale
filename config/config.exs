@@ -7,6 +7,12 @@
 # General application configuration
 import Config
 
+config :mykonos_biennale, Oban,
+  engine: Oban.Engines.Lite,
+  notifier: Oban.Notifiers.PG,
+  queues: [default: 10],
+  repo: MykonosBiennale.Repo
+
 config :mykonos_biennale, :scopes,
   user: [
     default: true,
