@@ -648,6 +648,16 @@ defmodule MykonosBiennaleWeb.CoreComponents do
                 Art Works
               </.link>
               <.link
+                navigate="/admin/films"
+                class={
+                  if @current_page == "films",
+                    do: "text-white font-semibold",
+                    else: "text-gray-400 hover:text-white transition-colors"
+                }
+              >
+                Films
+              </.link>
+              <.link
                 navigate="/admin/media"
                 class={
                   if @current_page == "media",
@@ -656,6 +666,26 @@ defmodule MykonosBiennaleWeb.CoreComponents do
                 }
               >
                 Media
+              </.link>
+              <.link
+                navigate="/admin/pages"
+                class={
+                  if @current_page == "pages",
+                    do: "text-white font-semibold",
+                    else: "text-gray-400 hover:text-white transition-colors"
+                }
+              >
+                Pages
+              </.link>
+              <.link
+                navigate="/admin/sections"
+                class={
+                  if @current_page == "sections",
+                    do: "text-white font-semibold",
+                    else: "text-gray-400 hover:text-white transition-colors"
+                }
+              >
+                Sections
               </.link>
               <.link
                 navigate="/admin/relationship_types"

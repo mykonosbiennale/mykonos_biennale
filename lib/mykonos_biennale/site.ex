@@ -122,6 +122,13 @@ defmodule MykonosBiennale.Site do
   ## Sections
 
   @doc """
+  Returns the list of all sections.
+  """
+  def list_sections do
+    Repo.all(from s in Section, order_by: s.position, preload: [:page])
+  end
+
+  @doc """
   Returns the list of sections for a page.
   """
   def list_sections_for_page(page_id) do
@@ -143,7 +150,7 @@ defmodule MykonosBiennale.Site do
   Raises `Ecto.NoResultsError` if the Section does not exist.
   """
   def get_section!(id) do
-    Repo.get!(Section, id)
+    Repo.get!(Section, id) |> Repo.preload(:page)
   end
 
   @doc """

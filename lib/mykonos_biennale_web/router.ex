@@ -69,6 +69,10 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/participants/new", Admin.ParticipantLive.Index, :new
       live "/admin/participants/:id/edit", Admin.ParticipantLive.Index, :edit
       live "/admin/participants/:id", Admin.ParticipantLive.Show, :show
+      live "/admin/films", Admin.FilmLive.Index, :index
+      live "/admin/films/new", Admin.FilmLive.Index, :new
+      live "/admin/films/:id/edit", Admin.FilmLive.Index, :edit
+      live "/admin/films/:id", Admin.FilmLive.Show, :show
       live "/admin/artworks", Admin.ArtworkLive.Index, :index
       live "/admin/artworks/merge", Admin.ArtworkLive.Merge, :index
       live "/admin/artworks/new", Admin.ArtworkLive.Index, :new
@@ -86,6 +90,14 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/media/new", Admin.MediaLive.Index, :new
       live "/admin/media/:id", Admin.MediaLive.Show, :show
       live "/admin/media/:id/edit", Admin.MediaLive.Index, :edit
+      live "/admin/pages", Admin.PageLive.Index, :index
+      live "/admin/pages/new", Admin.PageLive.Index, :new
+      live "/admin/pages/:id", Admin.PageLive.Show, :show
+      live "/admin/pages/:id/edit", Admin.PageLive.Index, :edit
+      live "/admin/sections", Admin.SectionLive.Index, :index
+      live "/admin/sections/new", Admin.SectionLive.Index, :new
+      live "/admin/sections/:id", Admin.SectionLive.Show, :show
+      live "/admin/sections/:id/edit", Admin.SectionLive.Index, :edit
       live "/admin/relationship_types", Admin.RelationshipTypeLive.Index, :index
       live "/admin/relationship_types/new", Admin.RelationshipTypeLive.Index, :new
       live "/admin/relationship_types/:id/edit", Admin.RelationshipTypeLive.Index, :edit

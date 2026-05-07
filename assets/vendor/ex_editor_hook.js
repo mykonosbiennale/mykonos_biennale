@@ -14,12 +14,17 @@ export default {
   mounted() {
     this.textarea = this.el.querySelector('.ex-editor-textarea')
     this.highlight = this.el.querySelector('.ex-editor-highlight')
-    this.lineNumbers = this.el.querySelector('.ex-editor-line-numbers')
+    this.lineNumbers = this.el.querySelector('.ex-editor-gutter')
 
     this.cursorEl = null
     this.blinkInterval = null
     this.charWidth = null
     this.lineHeight = null
+
+    const debounce = parseInt(this.el.dataset.debounce) || 300
+    this.debounceMs = debounce
+    this.pushTimer = null
+    this.lastPushedContent = this.textarea.value
 
     this.bindEvents()
     this.setupFakeCursor()
@@ -112,6 +117,7 @@ export default {
   handleInput() {
     this.updateCursor()
     this.restartCursorBlink()
+    this.schedulePush()
   },
 
   handleCursorUpdate() {
@@ -121,6 +127,7 @@ export default {
 
   handleBlur() {
     this.stopCursorBlink()
+    this.pushChange()
   },
 
   handleResize() {
@@ -171,5 +178,25 @@ export default {
   restartCursorBlink() {
     this.stopCursorBlink()
     this.startCursorBlink()
+  },
+
+  schedulePush() {
+    if (this.pushTimer) {
+      clearTimeout(this.pushTimer)
+    }
+    this.pushTimer = setTimeout(() => this.pushChange(), this.debounceMs)
+  },
+
+  pushChange() {
+    if (this.pushTimer) {
+      clearTimeout(this.pushTimer)
+      this.pushTimer = null
+    }
+
+    const content = this.textarea.value
+    if (content === this.lastPushedContent) return
+
+    this.lastPushedContent = content
+    this.pushEvent("change", { content })
   }
 }

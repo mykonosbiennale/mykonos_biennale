@@ -2,29 +2,35 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
   use MykonosBiennaleWeb, :live_view
   alias MykonosBiennale.Content
 
+  @film_types ["Short Film", "Video", "Dance", "Animation", "Documentary"]
+
   @impl true
   def mount(_params, _session, socket) do
+    import Ecto.Query, warn: false
+    alias MykonosBiennale.Repo
+    alias MykonosBiennale.Content.Entity
+
     biennales = Content.list_biennales()
     all_events = Content.list_events()
+    participants = Content.list_participants()
+    artworks = Content.list_artworks()
+    total_media = length(Content.list_media())
 
-    # Calculate stats
-    total_biennales = length(biennales)
-    total_events = length(all_events)
+    total_films =
+      Repo.one(from e in Entity, where: e.type in ^@film_types, select: count(e.id))
 
-    # Events by type - now accessing from entity.fields
-    events_by_type = Enum.group_by(all_events, fn event -> event.fields["type"] end)
-    event_type_counts = Enum.map(events_by_type, fn {type, events} -> {type, length(events)} end)
-
-    # Recent biennales (last 3)
-    recent_biennales = Enum.take(biennales, 3)
+    current_biennale = List.first(biennales)
 
     {:ok,
      socket
      |> assign(:page_title, "Admin Dashboard")
-     |> assign(:total_biennales, total_biennales)
-     |> assign(:total_events, total_events)
-     |> assign(:event_type_counts, event_type_counts)
-     |> assign(:recent_biennales, recent_biennales)}
+     |> assign(:total_biennales, length(biennales))
+     |> assign(:total_events, length(all_events))
+     |> assign(:total_participants, length(participants))
+     |> assign(:total_artworks, length(artworks))
+     |> assign(:total_films, total_films)
+     |> assign(:total_media, total_media)
+     |> assign(:current_biennale, current_biennale)}
   end
 
   @impl true
@@ -39,68 +45,60 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
       <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
         <.admin_nav current_page="dashboard" />
 
-        <%!-- Main Content --%>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <%!-- Stats Grid --%>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <%!-- Total Biennales --%>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-12">
             <div class="bg-gradient-to-br from-purple-900/20 to-purple-950/20 border border-purple-800/30 rounded-lg p-6 hover:border-purple-700/50 transition-colors">
               <div class="flex items-center justify-between mb-4">
                 <.icon name="hero-calendar" class="size-8 text-purple-400" />
                 <span class="text-3xl font-bold text-white">{@total_biennales}</span>
               </div>
-              <h3 class="text-sm uppercase tracking-wider text-gray-400">Total Biennales</h3>
+              <h3 class="text-sm uppercase tracking-wider text-gray-400">Biennales</h3>
             </div>
 
-            <%!-- Total Events --%>
             <div class="bg-gradient-to-br from-blue-900/20 to-blue-950/20 border border-blue-800/30 rounded-lg p-6 hover:border-blue-700/50 transition-colors">
               <div class="flex items-center justify-between mb-4">
                 <.icon name="hero-star" class="size-8 text-blue-400" />
                 <span class="text-3xl font-bold text-white">{@total_events}</span>
               </div>
-              <h3 class="text-sm uppercase tracking-wider text-gray-400">Total Events</h3>
+              <h3 class="text-sm uppercase tracking-wider text-gray-400">Events</h3>
             </div>
 
-            <%!-- Exhibitions --%>
             <div class="bg-gradient-to-br from-green-900/20 to-green-950/20 border border-green-800/30 rounded-lg p-6 hover:border-green-700/50 transition-colors">
               <div class="flex items-center justify-between mb-4">
-                <.icon name="hero-photo" class="size-8 text-green-400" />
-                <span class="text-3xl font-bold text-white">
-                  {get_type_count(@event_type_counts, "exhibition")}
-                </span>
+                <.icon name="hero-user-group" class="size-8 text-green-400" />
+                <span class="text-3xl font-bold text-white">{@total_participants}</span>
               </div>
-              <h3 class="text-sm uppercase tracking-wider text-gray-400">Exhibitions</h3>
+              <h3 class="text-sm uppercase tracking-wider text-gray-400">Participants</h3>
             </div>
 
-            <%!-- Performances --%>
             <div class="bg-gradient-to-br from-red-900/20 to-red-950/20 border border-red-800/30 rounded-lg p-6 hover:border-red-700/50 transition-colors">
               <div class="flex items-center justify-between mb-4">
-                <.icon name="hero-sparkles" class="size-8 text-red-400" />
-                <span class="text-3xl font-bold text-white">
-                  {get_type_count(@event_type_counts, "performance")}
-                </span>
+                <.icon name="hero-paint-brush" class="size-8 text-red-400" />
+                <span class="text-3xl font-bold text-white">{@total_artworks}</span>
               </div>
-              <h3 class="text-sm uppercase tracking-wider text-gray-400">Performances</h3>
+              <h3 class="text-sm uppercase tracking-wider text-gray-400">Artworks</h3>
+            </div>
+
+            <div class="bg-gradient-to-br from-cyan-900/20 to-cyan-950/20 border border-cyan-800/30 rounded-lg p-6 hover:border-cyan-700/50 transition-colors">
+              <div class="flex items-center justify-between mb-4">
+                <.icon name="hero-film" class="size-8 text-cyan-400" />
+                <span class="text-3xl font-bold text-white">{@total_films}</span>
+              </div>
+              <h3 class="text-sm uppercase tracking-wider text-gray-400">Films / Videos</h3>
+            </div>
+
+            <div class="bg-gradient-to-br from-amber-900/20 to-amber-950/20 border border-amber-800/30 rounded-lg p-6 hover:border-amber-700/50 transition-colors">
+              <div class="flex items-center justify-between mb-4">
+                <.icon name="hero-photo" class="size-8 text-amber-400" />
+                <span class="text-3xl font-bold text-white">{@total_media}</span>
+              </div>
+              <h3 class="text-sm uppercase tracking-wider text-gray-400">Media</h3>
             </div>
           </div>
 
-          <%!-- Quick Actions --%>
           <div class="mb-12">
             <h2 class="text-xl font-bold uppercase mb-6 text-gray-300">Quick Actions</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <.link
-                navigate={~p"/admin/biennales/new"}
-                class="flex items-center gap-4 p-6 bg-gradient-to-r from-purple-900/30 to-purple-800/20 border border-purple-700/30 rounded-lg hover:border-purple-600/50 transition-all group"
-              >
-                <div class="p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
-                  <.icon name="hero-plus" class="size-6 text-purple-400" />
-                </div>
-                <div>
-                  <h3 class="font-bold text-white uppercase tracking-wider">New Biennale</h3>
-                  <p class="text-sm text-gray-400">Create a new biennale edition</p>
-                </div>
-              </.link>
-
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <.link
                 navigate={~p"/admin/events/new"}
                 class="flex items-center gap-4 p-6 bg-gradient-to-r from-blue-900/30 to-blue-800/20 border border-blue-700/30 rounded-lg hover:border-blue-600/50 transition-all group"
@@ -113,22 +111,77 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
                   <p class="text-sm text-gray-400">Add an event to a biennale</p>
                 </div>
               </.link>
+
+              <.link
+                navigate={~p"/admin/participants/new"}
+                class="flex items-center gap-4 p-6 bg-gradient-to-r from-green-900/30 to-green-800/20 border border-green-700/30 rounded-lg hover:border-green-600/50 transition-all group"
+              >
+                <div class="p-3 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-colors">
+                  <.icon name="hero-plus" class="size-6 text-green-400" />
+                </div>
+                <div>
+                  <h3 class="font-bold text-white uppercase tracking-wider">New Participant</h3>
+                  <p class="text-sm text-gray-400">Add an artist or participant</p>
+                </div>
+              </.link>
+
+              <.link
+                navigate={~p"/admin/artworks/new"}
+                class="flex items-center gap-4 p-6 bg-gradient-to-r from-red-900/30 to-red-800/20 border border-red-700/30 rounded-lg hover:border-red-600/50 transition-all group"
+              >
+                <div class="p-3 bg-red-500/20 rounded-lg group-hover:bg-red-500/30 transition-colors">
+                  <.icon name="hero-plus" class="size-6 text-red-400" />
+                </div>
+                <div>
+                  <h3 class="font-bold text-white uppercase tracking-wider">New Artwork</h3>
+                  <p class="text-sm text-gray-400">Add an artwork to the archive</p>
+                </div>
+              </.link>
+
+              <.link
+                patch={~p"/admin/films/new"}
+                class="flex items-center gap-4 p-6 bg-gradient-to-r from-cyan-900/30 to-cyan-800/20 border border-cyan-700/30 rounded-lg hover:border-cyan-600/50 transition-all group"
+              >
+                <div class="p-3 bg-cyan-500/20 rounded-lg group-hover:bg-cyan-500/30 transition-colors">
+                  <.icon name="hero-plus" class="size-6 text-cyan-400" />
+                </div>
+                <div>
+                  <h3 class="font-bold text-white uppercase tracking-wider">New Film</h3>
+                  <p class="text-sm text-gray-400">Add a film or video entry</p>
+                </div>
+              </.link>
             </div>
           </div>
 
-          <%!-- Recent Biennales --%>
           <div>
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-xl font-bold uppercase text-gray-300">Recent Biennales</h2>
-              <.link
-                navigate={~p"/admin/biennales"}
-                class="text-sm text-gray-400 hover:text-white uppercase tracking-wider transition-colors"
-              >
-                View All →
-              </.link>
-            </div>
+            <h2 class="text-xl font-bold uppercase mb-6 text-gray-300">Current Biennale</h2>
 
-            <%= if @recent_biennales == [] do %>
+            <%= if @current_biennale do %>
+              <.link
+                navigate={~p"/admin/biennales/#{@current_biennale.id}"}
+                class="block p-6 bg-gray-900/50 border border-gray-800 rounded-lg hover:border-gray-700 transition-all group"
+              >
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-lg font-bold text-white group-hover:text-purple-400 transition-colors">
+                      {@current_biennale.fields["year"]} - {@current_biennale.fields["theme"]}
+                    </h3>
+                    <%= if @current_biennale.fields["start_date"] && @current_biennale.fields["end_date"] do %>
+                      <p class="text-sm text-gray-500 mt-1">
+                        {format_date(@current_biennale.fields["start_date"], "%B %d")} – {format_date(
+                          @current_biennale.fields["end_date"],
+                          "%B %d, %Y"
+                        )}
+                      </p>
+                    <% end %>
+                  </div>
+                  <.icon
+                    name="hero-chevron-right"
+                    class="size-5 text-gray-600 group-hover:text-purple-400 transition-colors"
+                  />
+                </div>
+              </.link>
+            <% else %>
               <div class="text-center py-12 border border-gray-800 rounded-lg">
                 <p class="text-gray-500 mb-4">No biennales created yet.</p>
                 <.link
@@ -138,48 +191,12 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
                   Create First Biennale
                 </.link>
               </div>
-            <% else %>
-              <div class="space-y-4">
-                <%= for biennale <- @recent_biennales do %>
-                  <.link
-                    navigate={~p"/admin/biennales/#{biennale.id}"}
-                    class="block p-6 bg-gray-900/50 border border-gray-800 rounded-lg hover:border-gray-700 transition-all group"
-                  >
-                    <div class="flex items-center justify-between">
-                      <div>
-                        <h3 class="text-lg font-bold text-white group-hover:text-purple-400 transition-colors">
-                          {biennale.fields["year"]} - {biennale.fields["theme"]}
-                        </h3>
-                        <%= if biennale.fields["start_date"] && biennale.fields["end_date"] do %>
-                          <p class="text-sm text-gray-500 mt-1">
-                            {format_date(biennale.fields["start_date"], "%B %d")} – {format_date(
-                              biennale.fields["end_date"],
-                              "%B %d, %Y"
-                            )}
-                          </p>
-                        <% end %>
-                      </div>
-                      <.icon
-                        name="hero-chevron-right"
-                        class="size-5 text-gray-600 group-hover:text-purple-400 transition-colors"
-                      />
-                    </div>
-                  </.link>
-                <% end %>
-              </div>
             <% end %>
           </div>
         </div>
       </div>
     </Layouts.app>
     """
-  end
-
-  defp get_type_count(counts, type) do
-    case Enum.find(counts, fn {t, _count} -> t == type end) do
-      {_type, count} -> count
-      nil -> 0
-    end
   end
 
   defp format_date(%Date{} = date, fmt), do: Calendar.strftime(date, fmt)
