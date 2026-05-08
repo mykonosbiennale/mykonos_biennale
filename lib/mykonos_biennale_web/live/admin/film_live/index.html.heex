@@ -8,11 +8,13 @@
           <h1 class="text-4xl font-bold text-white mb-2">Films & Videos</h1>
           <p class="text-gray-400">Browse imported film festival entries</p>
         </div>
-        <div class="flex items-center gap-3">
-          <.link patch="/admin/films/new" class="btn btn-primary">
-            + New Film
-          </.link>
-        </div>
+        <.link patch="/admin/films/new" class="btn btn-primary">+ New Film</.link>
+      </div>
+
+      <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-purple-500/20 p-4 mb-6">
+        <form phx-submit="search">
+          <input type="text" name="search" value={@search} placeholder="Search title, original title, country, event, participant…" class="w-full bg-gray-900 border border-gray-700 text-gray-300 rounded px-3 py-2 text-sm placeholder-gray-600 focus:ring-purple-500 focus:border-purple-500" />
+        </form>
       </div>
 
       <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 overflow-hidden">
@@ -22,30 +24,18 @@
               <th class="px-3 py-4 text-left text-sm font-semibold text-gray-300 w-14"></th>
               <th class="px-3 py-4 text-left text-sm font-semibold text-gray-300 w-20">Ref</th>
               <th class="px-3 py-4 text-left text-sm font-semibold text-gray-300">Title</th>
-              <th class="px-3 py-4 text-left text-sm font-semibold text-gray-300 w-20">
-                Runtime
-              </th>
+              <th class="px-3 py-4 text-left text-sm font-semibold text-gray-300 w-20">Runtime</th>
               <th class="px-3 py-4 text-left text-sm font-semibold text-gray-300">Log Line</th>
               <th class="px-3 py-4 text-left text-sm font-semibold text-gray-300 w-40">Event</th>
-              <th class="px-3 py-4 text-right text-sm font-semibold text-gray-300 w-28">
-                Actions
-              </th>
+              <th class="px-3 py-4 text-right text-sm font-semibold text-gray-300 w-28">Actions</th>
             </tr>
           </thead>
           <tbody id="films" phx-update="stream" class="divide-y divide-gray-700/50">
-            <tr
-              :for={{id, film} <- @streams.films}
-              id={id}
-              class="hover:bg-gray-700/20 transition-colors"
-            >
+            <tr :for={{id, film} <- @streams.films} id={id} class="hover:bg-gray-700/20 transition-colors">
               <td class="px-3 py-2">
                 <%= case Map.get(@poster_map, film.id) do %>
                   <% %{source_type: "upload", source_path: path} -> %>
-                    <img
-                      src={"/uploads/#{path}"}
-                      alt={film.identity}
-                      class="w-10 h-14 rounded object-cover"
-                    />
+                    <img src={"/uploads/#{path}"} alt={film.identity} class="w-10 h-14 rounded object-cover" />
                   <% %{source_type: "url", source_url: url} -> %>
                     <img src={url} alt={film.identity} class="w-10 h-14 rounded object-cover" />
                   <% _ -> %>
@@ -54,73 +44,37 @@
                     </div>
                 <% end %>
               </td>
-              <td class="px-3 py-2">
-                <span class="text-gray-400 text-sm font-mono">{field(film, "ref")}</span>
-              </td>
+              <td class="px-3 py-2"><span class="text-gray-400 text-sm font-mono">{field(film, "ref")}</span></td>
               <td class="px-3 py-2">
                 <div class="text-white font-medium">{film.identity}</div>
                 <div class="text-gray-500 text-xs mt-0.5">
-                  <span class="inline-block px-1.5 py-0.5 rounded bg-purple-900/50 text-purple-300 text-xs">
-                    {film.type}
-                  </span>
-                  <%= if field(film, "country") do %>
-                    <span class="ml-1">{field(film, "country")}</span>
-                  <% end %>
-                  <%= if field(film, "year") do %>
-                    <span class="ml-1">· {field(film, "year")}</span>
-                  <% end %>
+                  <span class="inline-block px-1.5 py-0.5 rounded bg-purple-900/50 text-purple-300 text-xs">{film.type}</span>
+                  <%= if field(film, "country") do %><span class="ml-1">{field(film, "country")}</span><% end %>
+                  <%= if field(film, "year") do %><span class="ml-1">· {field(film, "year")}</span><% end %>
                 </div>
               </td>
               <td class="px-3 py-2">
                 <% runtime = field(film, "runtime") %>
-                <%= if runtime do %>
-                  <span class="text-gray-300 text-sm">{to_string(runtime)} min</span>
-                <% else %>
-                  <span class="text-gray-600 text-sm">—</span>
-                <% end %>
+                <%= if runtime do %><span class="text-gray-300 text-sm">{to_string(runtime)} min</span><% else %><span class="text-gray-600 text-sm">—</span><% end %>
               </td>
               <td class="px-3 py-2">
                 <% log_line = field(film, "log_line") %>
-                <%= if log_line && log_line != "" do %>
-                  <span class="text-gray-400 text-sm line-clamp-2">{log_line}</span>
-                <% else %>
-                  <span class="text-gray-600 text-sm">—</span>
-                <% end %>
+                <%= if log_line && log_line != "" do %><span class="text-gray-400 text-sm line-clamp-2">{log_line}</span><% else %><span class="text-gray-600 text-sm">—</span><% end %>
               </td>
               <td class="px-3 py-2">
                 <%= case Map.get(@events_map, film.id, []) do %>
-                  <% [] -> %>
-                    <span class="text-gray-600 text-sm">—</span>
+                  <% [] -> %><span class="text-gray-600 text-sm">—</span>
                   <% events -> %>
                     <div class="gap-1">
-                      <%= for e <- events do %>
-                        <span class="text-purple-400 text-sm">{e.year} {e.title}</span>
-                      <% end %>
+                      <%= for e <- events do %><span class="text-purple-400 text-sm">{e.year} {e.title}</span><% end %>
                     </div>
                 <% end %>
               </td>
               <td class="px-3 py-2">
                 <div class="flex items-center justify-end space-x-2">
-                  <.link
-                    navigate={"/admin/films/#{film.id}"}
-                    class="text-blue-400 hover:text-blue-300 transition-colors text-sm"
-                  >
-                    Show
-                  </.link>
-                  <.link
-                    patch={"/admin/films/#{film.id}/edit"}
-                    class="text-purple-400 hover:text-purple-300 transition-colors text-sm"
-                  >
-                    Edit
-                  </.link>
-                  <button
-                    phx-click="delete"
-                    phx-value-id={film.id}
-                    data-confirm="Are you sure?"
-                    class="text-red-400 hover:text-red-300 transition-colors text-sm"
-                  >
-                    Delete
-                  </button>
+                  <.link navigate={"/admin/films/#{film.id}"} class="text-blue-400 hover:text-blue-300 transition-colors text-sm">Show</.link>
+                  <.link patch={"/admin/films/#{film.id}/edit"} class="text-purple-400 hover:text-purple-300 transition-colors text-sm">Edit</.link>
+                  <button phx-click="delete" phx-value-id={film.id} data-confirm="Are you sure?" class="text-red-400 hover:text-red-300 transition-colors text-sm">Delete</button>
                 </div>
               </td>
             </tr>
@@ -130,20 +84,7 @@
     </div>
   </div>
 
-  <.modal
-    :if={@live_action in [:new, :edit]}
-    id="film-modal"
-    show
-    on_cancel={JS.patch("/admin/films")}
-  >
-    <.live_component
-      module={MykonosBiennaleWeb.Admin.FilmLive.FormComponent}
-      id={@film.id || :new}
-      title={@page_title}
-      action={@live_action}
-      film={@film}
-      patch="/admin/films"
-      default_event_id={Map.get(assigns, :default_event_id, "")}
-    />
+  <.modal :if={@live_action in [:new, :edit]} id="film-modal" show on_cancel={JS.patch("/admin/films")}>
+    <.live_component module={MykonosBiennaleWeb.Admin.FilmLive.FormComponent} id={@film.id || :new} title={@page_title} action={@live_action} film={@film} patch="/admin/films" default_event_id={Map.get(assigns, :default_event_id, "")} />
   </.modal>
 </Layouts.app>

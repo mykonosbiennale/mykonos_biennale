@@ -10,7 +10,7 @@ import Config
 config :mykonos_biennale, Oban,
   engine: Oban.Engines.Lite,
   notifier: Oban.Notifiers.PG,
-  queues: [default: 10],
+  queues: [default: 10, search: 4],
   repo: MykonosBiennale.Repo
 
 config :mykonos_biennale, :scopes,

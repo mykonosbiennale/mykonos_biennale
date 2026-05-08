@@ -11,6 +11,8 @@ defmodule MykonosBiennale.Content.Media do
     field :mime_type, :string
     field :alt_text, :string
     field :metadata, :map
+    field :search_index, :string
+    field :search_indexed_at, :naive_datetime
 
     many_to_many(:entities, MykonosBiennale.Content.Entity,
       join_through: "entity_media",
@@ -31,7 +33,9 @@ defmodule MykonosBiennale.Content.Media do
       :source_path,
       :mime_type,
       :alt_text,
-      :metadata
+      :metadata,
+      :search_index,
+      :search_indexed_at
     ])
     |> validate_required([:source_type])
     |> validate_inclusion(:source_type, ["upload", "url", "embed"])

@@ -8,6 +8,8 @@ defmodule MykonosBiennale.Content.Entity do
     field :slug, :string
     field :visible, :boolean, default: false
     field :fields, :map
+    field :search_index, :string
+    field :search_indexed_at, :naive_datetime
 
     has_many(:as_subject, MykonosBiennale.Content.Relationship, foreign_key: :subject_id)
     has_many(:as_object, MykonosBiennale.Content.Relationship, foreign_key: :object_id)
@@ -23,7 +25,7 @@ defmodule MykonosBiennale.Content.Entity do
   @doc false
   def changeset(entity, attrs, _meta \\ []) do
     entity
-    |> cast(attrs, [:identity, :type, :slug, :visible, :fields])
+    |> cast(attrs, [:identity, :type, :slug, :visible, :fields, :search_index, :search_indexed_at])
     |> validate_required([:identity, :type, :slug, :visible])
   end
 end
