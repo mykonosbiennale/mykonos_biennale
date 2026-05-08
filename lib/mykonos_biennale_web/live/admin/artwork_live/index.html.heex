@@ -1,29 +1,25 @@
 <Layouts.app flash={@flash}>
   <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
     <.admin_nav current_page="artworks" />
-    
-<!-- Main Content -->
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Header with Create Button -->
       <div class="flex items-center justify-between mb-8">
         <div>
           <h1 class="text-4xl font-bold text-white mb-2">Manage Artworks</h1>
           <p class="text-gray-400">Create and manage artworks</p>
         </div>
         <div class="flex items-center gap-3">
-          <.link
-            patch="/admin/artworks/merge"
-            class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            Merge Duplicates
-          </.link>
-          <.link patch="/admin/artworks/new" class="btn btn-primary">
-            + New Artwork
-          </.link>
+          <.link patch="/admin/artworks/merge" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors">Merge Duplicates</.link>
+          <.link patch="/admin/artworks/new" class="btn btn-primary">+ New Artwork</.link>
         </div>
       </div>
-      
-<!-- Artworks Table -->
+
+      <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-purple-500/20 p-4 mb-6">
+        <form phx-submit="search">
+          <input type="text" name="search" value={@search} placeholder="Search title, creator, event…" class="w-full bg-gray-900 border border-gray-700 text-gray-300 rounded px-3 py-2 text-sm placeholder-gray-600 focus:ring-purple-500 focus:border-purple-500" />
+        </form>
+      </div>
+
       <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 overflow-hidden">
         <table class="w-full">
           <thead class="bg-gray-900/50 border-b border-purple-500/20">
@@ -36,25 +32,13 @@
             </tr>
           </thead>
           <tbody id="artworks" phx-update="stream" class="divide-y divide-gray-700/50">
-            <tr
-              :for={{id, artwork} <- @streams.artworks}
-              id={id}
-              class="hover:bg-gray-700/20 transition-colors"
-            >
+            <tr :for={{id, artwork} <- @streams.artworks} id={id} class="hover:bg-gray-700/20 transition-colors">
               <td class="px-4 py-3">
                 <%= case Map.get(@media_map, artwork.id) do %>
                   <% %{source_type: "upload", source_path: path} -> %>
-                    <img
-                      src={"/uploads/#{path}"}
-                      alt={field(artwork, "title")}
-                      class="w-10 h-10 rounded object-cover"
-                    />
+                    <img src={"/uploads/#{path}"} alt={field(artwork, "title")} class="w-10 h-10 rounded object-cover" />
                   <% %{source_type: "url", source_url: url} -> %>
-                    <img
-                      src={url}
-                      alt={field(artwork, "title")}
-                      class="w-10 h-10 rounded object-cover"
-                    />
+                    <img src={url} alt={field(artwork, "title")} class="w-10 h-10 rounded object-cover" />
                   <% _ -> %>
                     <div class="w-10 h-10 rounded bg-gray-700 flex items-center justify-center">
                       <.icon name="hero-photo" class="w-5 h-5 text-gray-500" />
@@ -64,73 +48,38 @@
               <td class="px-4 py-3">
                 <div class="text-white font-medium">{field(artwork, "title")}</div>
                 <div class="text-gray-500 text-xs mt-0.5">
-                  <%= if field(artwork, "type") do %>
-                    <span class="capitalize">{field(artwork, "type")}</span>
-                  <% end %>
-                  <%= if field(artwork, "date") do %>
-                    · {field(artwork, "date")}
-                  <% end %>
-                  <%= if field(artwork, "medium") do %>
-                    · {field(artwork, "medium")}
-                  <% end %>
+                  <%= if field(artwork, "type") do %><span class="capitalize">{field(artwork, "type")}</span><% end %>
+                  <%= if field(artwork, "date") do %>· {field(artwork, "date")}<% end %>
+                  <%= if field(artwork, "medium") do %>· {field(artwork, "medium")}<% end %>
                 </div>
               </td>
               <td class="px-4 py-3">
                 <%= case Map.get(@creators_map, artwork.id, []) do %>
-                  <% [] -> %>
-                    <span class="text-gray-500 text-sm">—</span>
+                  <% [] -> %><span class="text-gray-500 text-sm">—</span>
                   <% creators -> %>
                     <div class="flex flex-wrap gap-1">
                       <%= for c <- creators do %>
-                        <.link
-                          navigate={"/admin/participants/#{c.id}"}
-                          class="text-blue-400 hover:text-blue-300 text-sm"
-                        >
-                          {c.name}
-                        </.link>
+                        <.link navigate={"/admin/participants/#{c.id}"} class="text-blue-400 hover:text-blue-300 text-sm">{c.name}</.link>
                       <% end %>
                     </div>
                 <% end %>
               </td>
               <td class="px-4 py-3">
                 <%= case Map.get(@events_map, artwork.id, []) do %>
-                  <% [] -> %>
-                    <span class="text-gray-500 text-sm">—</span>
+                  <% [] -> %><span class="text-gray-500 text-sm">—</span>
                   <% events -> %>
                     <div class="flex flex-wrap gap-1">
                       <%= for e <- events do %>
-                        <.link
-                          navigate={"/admin/events/#{e.id}"}
-                          class="text-purple-400 hover:text-purple-300 text-sm"
-                        >
-                          {e.title}
-                        </.link>
+                        <.link navigate={"/admin/events/#{e.id}"} class="text-purple-400 hover:text-purple-300 text-sm">{e.title}</.link>
                       <% end %>
                     </div>
                 <% end %>
               </td>
               <td class="px-4 py-3">
                 <div class="flex items-center justify-end space-x-2">
-                  <.link
-                    navigate={"/admin/artworks/#{artwork.id}"}
-                    class="text-blue-400 hover:text-blue-300 transition-colors"
-                  >
-                    Show
-                  </.link>
-                  <.link
-                    patch={"/admin/artworks/#{artwork.id}/edit"}
-                    class="text-purple-400 hover:text-purple-300 transition-colors"
-                  >
-                    Edit
-                  </.link>
-                  <button
-                    phx-click="delete"
-                    phx-value-id={artwork.id}
-                    data-confirm="Are you sure you want to delete this artwork?"
-                    class="text-red-400 hover:text-red-300 transition-colors"
-                  >
-                    Delete
-                  </button>
+                  <.link navigate={"/admin/artworks/#{artwork.id}"} class="text-blue-400 hover:text-blue-300 transition-colors">Show</.link>
+                  <.link patch={"/admin/artworks/#{artwork.id}/edit"} class="text-purple-400 hover:text-purple-300 transition-colors">Edit</.link>
+                  <button phx-click="delete" phx-value-id={artwork.id} data-confirm="Are you sure you want to delete this artwork?" class="text-red-400 hover:text-red-300 transition-colors">Delete</button>
                 </div>
               </td>
             </tr>
@@ -140,28 +89,11 @@
     </div>
   </div>
 
-  <.modal
-    :if={@live_action == :show}
-    id="artwork-show-modal"
-    show
-    on_cancel={JS.patch("/admin/artworks")}
-  >
+  <.modal :if={@live_action == :show} id="artwork-show-modal" show on_cancel={JS.patch("/admin/artworks")}>
     <.entity_detail entity={@artwork} cancel_path="/admin/artworks" />
   </.modal>
 
-  <.modal
-    :if={@live_action in [:new, :edit]}
-    id="artwork-modal"
-    show
-    on_cancel={JS.patch("/admin/artworks")}
-  >
-    <.live_component
-      module={MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent}
-      id={@artwork.id || :new}
-      title={@page_title}
-      action={@live_action}
-      artwork={@artwork}
-      patch="/admin/artworks"
-    />
+  <.modal :if={@live_action in [:new, :edit]} id="artwork-modal" show on_cancel={JS.patch("/admin/artworks")}>
+    <.live_component module={MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent} id={@artwork.id || :new} title={@page_title} action={@live_action} artwork={@artwork} patch="/admin/artworks" />
   </.modal>
 </Layouts.app>

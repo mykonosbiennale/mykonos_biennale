@@ -11,6 +11,7 @@ defmodule MykonosBiennale.Content do
   import Ecto.Query, warn: false
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
+  alias MykonosBiennale.Workers.SearchReindex
 
   ## Delegates - Biennale
 
@@ -203,6 +204,7 @@ defmodule MykonosBiennale.Content do
     %Entity{}
     |> Entity.changeset(attrs)
     |> Repo.insert()
+    |> tap_ok(&SearchReindex.enqueue_entity(&1.id))
   end
 
   @doc """
@@ -212,14 +214,48 @@ defmodule MykonosBiennale.Content do
     entity
     |> Entity.changeset(attrs)
     |> Repo.update()
+    |> tap_ok(&SearchReindex.enqueue_entity_cascade(&1.id))
   end
 
   @doc """
   Deletes an entity.
   """
   def delete_entity(%Entity{} = entity) do
-    Repo.delete(entity)
+    neighbor_ids = neighbor_ids_of(entity.id)
+
+    case Repo.delete(entity) do
+      {:ok, deleted} = ok ->
+        if neighbor_ids != [], do: SearchReindex.enqueue_ids_cascade(neighbor_ids)
+        _ = deleted
+        ok
+
+      other ->
+        other
+    end
   end
+
+  defp neighbor_ids_of(entity_id) do
+    Repo.all(
+      from r in Relationship,
+        where: r.subject_id == ^entity_id or r.object_id == ^entity_id,
+        select:
+          fragment(
+            "CASE WHEN ? = ? THEN ? ELSE ? END",
+            r.subject_id,
+            ^entity_id,
+            r.object_id,
+            r.subject_id
+          )
+    )
+    |> Enum.uniq()
+  end
+
+  defp tap_ok({:ok, value} = result, fun) do
+    _ = fun.(value)
+    result
+  end
+
+  defp tap_ok(other, _fun), do: other
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking entity changes.
@@ -280,22 +316,42 @@ defmodule MykonosBiennale.Content do
     %Relationship{}
     |> Relationship.changeset(attrs)
     |> Repo.insert()
+    |> tap_ok(&enqueue_relationship_endpoints/1)
   end
 
   @doc """
   Updates a relationship.
   """
   def update_relationship(%Relationship{} = relationship, attrs) do
+    old_ids = [relationship.subject_id, relationship.object_id]
+
     relationship
     |> Relationship.changeset(attrs)
     |> Repo.update()
+    |> tap_ok(fn updated ->
+      ids = Enum.uniq(old_ids ++ [updated.subject_id, updated.object_id])
+      SearchReindex.enqueue_ids_cascade(ids)
+    end)
   end
 
   @doc """
   Deletes a relationship.
   """
   def delete_relationship(%Relationship{} = relationship) do
-    Repo.delete(relationship)
+    ids = [relationship.subject_id, relationship.object_id]
+
+    case Repo.delete(relationship) do
+      {:ok, _} = ok ->
+        SearchReindex.enqueue_ids_cascade(ids)
+        ok
+
+      other ->
+        other
+    end
+  end
+
+  defp enqueue_relationship_endpoints(%Relationship{subject_id: s, object_id: o}) do
+    SearchReindex.enqueue_ids_cascade([s, o])
   end
 
   @doc """
@@ -326,6 +382,7 @@ defmodule MykonosBiennale.Content do
     %Media{}
     |> Media.changeset(attrs)
     |> Repo.insert()
+    |> tap_ok(&SearchReindex.enqueue_media(&1.id))
   end
 
   @doc """
@@ -335,6 +392,7 @@ defmodule MykonosBiennale.Content do
     media
     |> Media.changeset(attrs)
     |> Repo.update()
+    |> tap_ok(&SearchReindex.enqueue_media(&1.id))
   end
 
   @doc """
@@ -384,8 +442,12 @@ defmodule MykonosBiennale.Content do
       })
       |> Repo.insert()
       |> case do
-        {:ok, _} -> {:ok, :attached}
-        {:error, cs} -> {:error, cs}
+        {:ok, _} ->
+          SearchReindex.enqueue_media(media.id)
+          {:ok, :attached}
+
+        {:error, cs} ->
+          {:error, cs}
       end
     end
   end
@@ -398,6 +460,7 @@ defmodule MykonosBiennale.Content do
       from em in EntityMedia, where: em.entity_id == ^entity.id and em.media_id == ^media.id
     )
 
+    SearchReindex.enqueue_media(media.id)
     {:ok, :detached}
   end
 

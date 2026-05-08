@@ -1,21 +1,22 @@
 <Layouts.app flash={@flash}>
   <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
     <.admin_nav current_page="participants" />
-    
-<!-- Main Content -->
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Header with Create Button -->
       <div class="flex items-center justify-between mb-8">
         <div>
           <h1 class="text-4xl font-bold text-white mb-2">Manage Participants</h1>
           <p class="text-gray-400">Create and manage participants</p>
         </div>
-        <.link patch="/admin/participants/new" class="btn btn-primary">
-          + New Participant
-        </.link>
+        <.link patch="/admin/participants/new" class="btn btn-primary">+ New Participant</.link>
       </div>
-      
-<!-- Participants Table -->
+
+      <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-purple-500/20 p-4 mb-6">
+        <form phx-submit="search">
+          <input type="text" name="search" value={@search} placeholder="Search name, email, country, event, film…" class="w-full bg-gray-900 border border-gray-700 text-gray-300 rounded px-3 py-2 text-sm placeholder-gray-600 focus:ring-purple-500 focus:border-purple-500" />
+        </form>
+      </div>
+
       <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 overflow-hidden">
         <table class="w-full">
           <thead class="bg-gray-900/50 border-b border-purple-500/20">
@@ -27,54 +28,25 @@
             </tr>
           </thead>
           <tbody id="participants" phx-update="stream" class="divide-y divide-gray-700/50">
-            <tr
-              :for={{id, participant} <- @streams.participants}
-              id={id}
-              class="hover:bg-gray-700/20 transition-colors"
-            >
+            <tr :for={{id, participant} <- @streams.participants} id={id} class="hover:bg-gray-700/20 transition-colors">
               <td class="px-6 py-4">
                 <div class="text-white font-medium">{field(participant, "name")}</div>
               </td>
               <td class="px-6 py-4">
                 <div class="text-gray-300 text-sm">
-                  <%= if field(participant, "country") do %>
-                    {field(participant, "country")}
-                  <% else %>
-                    <span class="text-gray-500">—</span>
-                  <% end %>
+                  <%= if field(participant, "country") do %>{field(participant, "country")}<% else %><span class="text-gray-500">—</span><% end %>
                 </div>
               </td>
               <td class="px-6 py-4">
                 <div class="text-gray-300 text-sm">
-                  <%= if field(participant, "email") do %>
-                    {field(participant, "email")}
-                  <% else %>
-                    <span class="text-gray-500">—</span>
-                  <% end %>
+                  <%= if field(participant, "email") do %>{field(participant, "email")}<% else %><span class="text-gray-500">—</span><% end %>
                 </div>
               </td>
               <td class="px-6 py-4">
                 <div class="flex items-center justify-end space-x-2">
-                  <.link
-                    patch={"/admin/participants/#{participant.id}"}
-                    class="text-blue-400 hover:text-blue-300 transition-colors"
-                  >
-                    Show
-                  </.link>
-                  <.link
-                    patch={"/admin/participants/#{participant.id}/edit"}
-                    class="text-purple-400 hover:text-purple-300 transition-colors"
-                  >
-                    Edit
-                  </.link>
-                  <button
-                    phx-click="delete"
-                    phx-value-id={participant.id}
-                    data-confirm="Are you sure you want to delete this participant?"
-                    class="text-red-400 hover:text-red-300 transition-colors"
-                  >
-                    Delete
-                  </button>
+                  <.link patch={"/admin/participants/#{participant.id}"} class="text-blue-400 hover:text-blue-300 transition-colors">Show</.link>
+                  <.link patch={"/admin/participants/#{participant.id}/edit"} class="text-purple-400 hover:text-purple-300 transition-colors">Edit</.link>
+                  <button phx-click="delete" phx-value-id={participant.id} data-confirm="Are you sure you want to delete this participant?" class="text-red-400 hover:text-red-300 transition-colors">Delete</button>
                 </div>
               </td>
             </tr>
@@ -84,28 +56,11 @@
     </div>
   </div>
 
-  <.modal
-    :if={@live_action == :show}
-    id="participant-show-modal"
-    show
-    on_cancel={JS.patch("/admin/participants")}
-  >
+  <.modal :if={@live_action == :show} id="participant-show-modal" show on_cancel={JS.patch("/admin/participants")}>
     <.entity_detail entity={@participant} cancel_path="/admin/participants" />
   </.modal>
 
-  <.modal
-    :if={@live_action in [:new, :edit]}
-    id="participant-modal"
-    show
-    on_cancel={JS.patch("/admin/participants")}
-  >
-    <.live_component
-      module={MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent}
-      id={@participant.id || :new}
-      title={@page_title}
-      action={@live_action}
-      participant={@participant}
-      patch="/admin/participants"
-    />
+  <.modal :if={@live_action in [:new, :edit]} id="participant-modal" show on_cancel={JS.patch("/admin/participants")}>
+    <.live_component module={MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent} id={@participant.id || :new} title={@page_title} action={@live_action} participant={@participant} patch="/admin/participants" />
   </.modal>
 </Layouts.app>

@@ -26,6 +26,7 @@ defmodule MykonosBiennaleWeb.Router do
     live "/archive/:year", ArchiveDetailLive
     live "/program", ProgramLive
     live "/about", AboutLive
+    live "/search", PublicSearchLive
   end
 
   # Other scopes may use custom stacks.
@@ -108,6 +109,10 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/relationship_types", Admin.RelationshipTypeLive.Index, :index
       live "/admin/relationship_types/new", Admin.RelationshipTypeLive.Index, :new
       live "/admin/relationship_types/:id/edit", Admin.RelationshipTypeLive.Index, :edit
+      live "/admin/relationships", Admin.RelationshipLive.Index, :index
+      live "/admin/relationships/new", Admin.RelationshipLive.Index, :new
+      live "/admin/relationships/:id", Admin.RelationshipLive.Show, :show
+      live "/admin/relationships/:id/edit", Admin.RelationshipLive.Index, :edit
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end

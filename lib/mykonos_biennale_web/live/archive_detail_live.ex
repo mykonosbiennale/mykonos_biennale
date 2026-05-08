@@ -13,8 +13,9 @@ defmodule MykonosBiennaleWeb.ArchiveDetailLive do
          |> put_flash(:error, "Biennale #{year} not found")
          |> redirect(to: ~p"/archive")}
 
-      biennale ->
-        events = Content.list_events_for_biennale(biennale.id)
+      biennale_entity ->
+        biennale = present_biennale(biennale_entity)
+        events = year |> Content.list_events_for_biennale() |> Enum.map(&present_event/1)
 
         {:ok,
          socket
@@ -29,6 +30,47 @@ defmodule MykonosBiennaleWeb.ArchiveDetailLive do
   def handle_params(_params, _uri, socket) do
     {:noreply, socket}
   end
+
+  defp present_biennale(%MykonosBiennale.Content.Entity{fields: fields}) do
+    %{
+      year: parse_year(fields["year"]),
+      theme: fields["theme"],
+      statement: fields["statement"],
+      description: fields["description"],
+      start_date: parse_date(fields["start_date"]),
+      end_date: parse_date(fields["end_date"])
+    }
+  end
+
+  defp present_event(%MykonosBiennale.Content.Entity{fields: fields}) do
+    %{
+      title: fields["title"],
+      type: fields["type"] || "other",
+      date: parse_date(fields["date"]),
+      location: fields["location"],
+      description: fields["description"]
+    }
+  end
+
+  defp parse_year(nil), do: nil
+  defp parse_year(y) when is_integer(y), do: y
+  defp parse_year(y) when is_binary(y) do
+    case Integer.parse(y) do
+      {n, _} -> n
+      :error -> nil
+    end
+  end
+
+  defp parse_date(nil), do: nil
+  defp parse_date(%Date{} = d), do: d
+  defp parse_date(s) when is_binary(s) do
+    case Date.from_iso8601(s) do
+      {:ok, d} -> d
+      _ -> nil
+    end
+  end
+
+  defp parse_date(_), do: nil
 
   defp group_events_by_type(events) do
     Enum.group_by(events, & &1.type)

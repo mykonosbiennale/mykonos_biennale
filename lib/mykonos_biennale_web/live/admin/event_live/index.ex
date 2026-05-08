@@ -1,15 +1,20 @@
 defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
   use MykonosBiennaleWeb, :live_view
 
+  import Ecto.Query, warn: false
+
+  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
+  alias MykonosBiennale.Search
 
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      socket
      |> assign(:page_title, "Manage Events")
-     |> stream(:events, Content.list_events_for_admin())}
+     |> assign(:search, "")
+     |> stream(:events, list_events_filtered(""))}
   end
 
   @impl true
@@ -18,36 +23,23 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "Edit Event")
-    |> assign(:event, Content.get_event_for_admin!(id))
+    socket |> assign(:page_title, "Edit Event") |> assign(:event, Content.get_event_for_admin!(id))
   end
 
   defp apply_action(socket, :show, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "Show Event")
-    |> assign(:event, Content.get_event_for_admin!(id))
+    socket |> assign(:page_title, "Show Event") |> assign(:event, Content.get_event_for_admin!(id))
   end
 
   defp apply_action(socket, :new, _params) do
-    # Create a new entity with type "event" instead of %Event{}
-    socket
-    |> assign(:page_title, "New Event")
-    |> assign(:event, %Content.Entity{type: "event", fields: %{}})
+    socket |> assign(:page_title, "New Event") |> assign(:event, %Content.Entity{type: "event", fields: %{}})
   end
 
   defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:page_title, "Manage Events")
-    |> assign(:event, nil)
+    socket |> assign(:page_title, "Manage Events") |> assign(:event, nil)
   end
 
   @impl true
-  def handle_info(
-        {MykonosBiennaleWeb.Admin.EventLive.FormComponent, {:saved, event}},
-        socket
-      ) do
-    # Ensure the streamed row has the biennale relationship preloaded for rendering.
+  def handle_info({MykonosBiennaleWeb.Admin.EventLive.FormComponent, {:saved, event}}, socket) do
     event = Content.get_event_for_admin!(event.id)
     {:noreply, stream_insert(socket, :events, event)}
   end
@@ -56,17 +48,48 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
   def handle_event("delete", %{"id" => id}, socket) do
     event = Content.get_event!(id)
     {:ok, _} = Content.delete_event(event)
-
     {:noreply, stream_delete(socket, :events, event)}
   end
 
-  # Template helpers (admin events are `Content.Entity` records with domain fields under `fields`)
-  defp field(entity, key, default \\ nil)
+  @impl true
+  def handle_event("search", %{"search" => term}, socket) do
+    {:noreply, socket |> assign(:search, term) |> stream(:events, list_events_filtered(term), reset: true)}
+  end
 
+  @impl true
+  def handle_event("clear_search", _params, socket) do
+    {:noreply, socket |> assign(:search, "") |> stream(:events, list_events_filtered(""), reset: true)}
+  end
+
+  defp list_events_filtered(""), do: Content.list_events_for_admin()
+  defp list_events_filtered(term) do
+    pattern = Search.entity_search_pattern(term)
+    rel_query = admin_relationship_query()
+
+    Repo.all(
+      from e in Entity,
+        where: e.type == "event",
+        where: not is_nil(e.search_index) and like(e.search_index, ^pattern),
+        order_by: [asc: fragment("? ->> ?", e.fields, "date")],
+        preload: [as_subject: ^rel_query]
+    )
+  end
+
+  defp admin_relationship_query do
+    rt_ids =
+      from rt in RelationshipType,
+        where: rt.slug in ^["biennale_event", "event_festival", "event_project"],
+        select: rt.id
+
+    from r in Relationship,
+      where: r.relationship_type_id in subquery(rt_ids),
+      preload: [:object, :relationship_type]
+  end
+
+  defp field(entity, key, default \\ nil)
   defp field(%Content.Entity{fields: fields}, key, default) when is_map(fields) do
     Map.get(fields, to_string(key), Map.get(fields, key, default))
   end
-
   defp field(%Content.Entity{}, _key, default), do: default
 
   defp event_biennale(%Content.Entity{as_subject: rels}) when is_list(rels) do
@@ -75,7 +98,6 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
       _ -> nil
     end
   end
-
   defp event_biennale(%Content.Entity{}), do: nil
 
   defp event_project(%Content.Entity{as_subject: rels}) when is_list(rels) do
@@ -84,27 +106,19 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
       _ -> nil
     end
   end
-
   defp event_project(%Content.Entity{}), do: nil
 
-  defp rel_type_slug?(
-         %Relationship{relationship_type: %MykonosBiennale.Content.RelationshipType{slug: slug}},
-         slug
-       ),
-       do: true
-
+  defp rel_type_slug?(%Relationship{relationship_type: %RelationshipType{slug: slug}}, slug), do: true
   defp rel_type_slug?(_, _), do: false
 
   defp parse_date(%Date{} = date), do: {:ok, date}
   defp parse_date(nil), do: :error
-
   defp parse_date(date) when is_binary(date) do
     case Date.from_iso8601(date) do
       {:ok, d} -> {:ok, d}
       _ -> :error
     end
   end
-
   defp parse_date(_), do: :error
 
   defp format_event_date(%Content.Entity{} = event) do
