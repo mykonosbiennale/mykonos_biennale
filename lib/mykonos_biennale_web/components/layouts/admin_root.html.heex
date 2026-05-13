@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title default="Mykonos Biennale · Admin" suffix=" · Admin">
+      {assigns[:page_title]}
+    </.live_title>
+    <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
+    </script>
+    <script>
+      (() => {
+        const setTheme = (theme) => {
+          if (theme === "system") {
+            localStorage.removeItem("phx:theme");
+            document.documentElement.removeAttribute("data-theme");
+          } else {
+            localStorage.setItem("phx:theme", theme);
+            document.documentElement.setAttribute("data-theme", theme);
+          }
+        };
+        if (!document.documentElement.hasAttribute("data-theme")) {
+          setTheme(localStorage.getItem("phx:theme") || "dark");
+        }
+        window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "dark"));
+        window.addEventListener("phx:set-theme", ({ detail: { theme } }) => setTheme(theme));
+      })();
+    </script>
+  </head>
+  <body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white antialiased">
+    <div class="bg-gray-900/80 border-b border-purple-500/20 text-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-10 gap-4">
+        <.link navigate="/" class="text-purple-400 hover:text-purple-300 transition-colors text-xs shrink-0 mr-2">
+          ← View Site
+        </.link>
+
+        <nav class="flex items-center gap-1 shrink-0">
+          <.link navigate="/admin" class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mr-3">
+            Admin
+          </.link>
+
+          <div class="relative group">
+            <button class={["px-2 py-1 rounded transition-colors flex items-center gap-1", if(assigns[:current_page] in ["biennales", "projects", "events"], do: "text-white font-semibold", else: "text-gray-400 hover:text-white")]}>
+              Biennale
+              <.icon name="hero-chevron-down-mini" class="w-3 h-3 opacity-50" />
+            </button>
+            <div class="absolute left-0 top-full pt-1 hidden group-hover:block z-50">
+              <div class="bg-gray-900 border border-purple-500/20 rounded-md shadow-lg py-1 min-w-[160px]">
+                <.link navigate="/admin/biennales" class={["block px-3 py-1.5 transition-colors", if(assigns[:current_page] == "biennales", do: "text-white bg-purple-500/20", else: "text-gray-400 hover:text-white hover:bg-gray-800")]}>Biennales</.link>
+                <.link navigate="/admin/projects" class={["block px-3 py-1.5 transition-colors", if(assigns[:current_page] == "projects", do: "text-white bg-purple-500/20", else: "text-gray-400 hover:text-white hover:bg-gray-800")]}>Projects</.link>
+                <.link navigate="/admin/events" class={["block px-3 py-1.5 transition-colors", if(assigns[:current_page] == "events", do: "text-white bg-purple-500/20", else: "text-gray-400 hover:text-white hover:bg-gray-800")]}>Events</.link>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative group">
+            <button class={["px-2 py-1 rounded transition-colors flex items-center gap-1", if(assigns[:current_page] in ["participants", "artworks", "films", "festivals"], do: "text-white font-semibold", else: "text-gray-400 hover:text-white")]}>
+              Festival
+              <.icon name="hero-chevron-down-mini" class="w-3 h-3 opacity-50" />
+            </button>
+            <div class="absolute left-0 top-full pt-1 hidden group-hover:block z-50">
+              <div class="bg-gray-900 border border-purple-500/20 rounded-md shadow-lg py-1 min-w-[160px]">
+                <.link navigate="/admin/participants" class={["block px-3 py-1.5 transition-colors", if(assigns[:current_page] == "participants", do: "text-white bg-purple-500/20", else: "text-gray-400 hover:text-white hover:bg-gray-800")]}>Artists</.link>
+                <.link navigate="/admin/artworks" class={["block px-3 py-1.5 transition-colors", if(assigns[:current_page] == "artworks", do: "text-white bg-purple-500/20", else: "text-gray-400 hover:text-white hover:bg-gray-800")]}>Artworks</.link>
+                <.link navigate="/admin/films" class={["block px-3 py-1.5 transition-colors", if(assigns[:current_page] == "films", do: "text-white bg-purple-500/20", else: "text-gray-400 hover:text-white hover:bg-gray-800")]}>Film</.link>
+                <.link navigate="/admin/festivals" class={["block px-3 py-1.5 transition-colors", if(assigns[:current_page] == "festivals", do: "text-white bg-purple-500/20", else: "text-gray-400 hover:text-white hover:bg-gray-800")]}>Festivals</.link>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative group">
+            <button class={["px-2 py-1 rounded transition-colors flex items-center gap-1", if(assigns[:current_page] in ["pages", "sections"], do: "text-white font-semibold", else: "text-gray-400 hover:text-white")]}>
+              Site
+              <.icon name="hero-chevron-down-mini" class="w-3 h-3 opacity-50" />
+            </button>
+            <div class="absolute left-0 top-full pt-1 hidden group-hover:block z-50">
+              <div class="bg-gray-900 border border-purple-500/20 rounded-md shadow-lg py-1 min-w-[160px]">
+                <.link navigate="/admin/pages" class={["block px-3 py-1.5 transition-colors", if(assigns[:current_page] == "pages", do: "text-white bg-purple-500/20", else: "text-gray-400 hover:text-white hover:bg-gray-800")]}>Pages</.link>
+                <.link navigate="/admin/sections" class={["block px-3 py-1.5 transition-colors", if(assigns[:current_page] == "sections", do: "text-white bg-purple-500/20", else: "text-gray-400 hover:text-white hover:bg-gray-800")]}>Sections</.link>
+              </div>
+            </div>
+          </div>
+
+          <.link navigate="/admin/media" class={["px-2 py-1 rounded transition-colors", if(assigns[:current_page] == "media", do: "text-white font-semibold", else: "text-gray-400 hover:text-white")]}>Media</.link>
+
+          <div class="relative group">
+            <button class={["px-2 py-1 rounded transition-colors flex items-center gap-1", if(assigns[:current_page] in ["relationships", "relationship_types"], do: "text-white font-semibold", else: "text-gray-400 hover:text-white")]}>
+              Other
+              <.icon name="hero-chevron-down-mini" class="w-3 h-3 opacity-50" />
+            </button>
+            <div class="absolute left-0 top-full pt-1 hidden group-hover:block z-50">
+              <div class="bg-gray-900 border border-purple-500/20 rounded-md shadow-lg py-1 min-w-[160px]">
+                <.link navigate="/admin/relationships" class={["block px-3 py-1.5 transition-colors", if(assigns[:current_page] == "relationships", do: "text-white bg-purple-500/20", else: "text-gray-400 hover:text-white hover:bg-gray-800")]}>Relationships</.link>
+                <.link navigate="/admin/relationship_types" class={["block px-3 py-1.5 transition-colors", if(assigns[:current_page] == "relationship_types", do: "text-white bg-purple-500/20", else: "text-gray-400 hover:text-white hover:bg-gray-800")]}>Relationship Types</.link>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        <form phx-submit="search" class="flex-1 flex justify-center">
+          <input type="text" name="search" value={assigns[:search] || ""} placeholder="Search…" class="bg-gray-900 border border-gray-700 text-gray-300 rounded px-2 py-0.5 text-xs placeholder-gray-600 focus:ring-purple-500 focus:border-purple-500 w-48" />
+        </form>
+
+        <div class="flex items-center gap-3 shrink-0">
+          <%= if assigns[:current_scope] && @current_scope.user do %>
+            <span class="text-xs text-gray-400">{@current_scope.user.email}</span>
+            <.link href={~p"/users/log-out"} method="delete" class="text-xs text-gray-500 hover:text-gray-300 transition-colors">Log out</.link>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    {@inner_content}
+  </body>
+</html>

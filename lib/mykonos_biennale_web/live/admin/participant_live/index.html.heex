@@ -1,30 +1,14 @@
 <Layouts.app flash={@flash}>
-  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-    <.admin_nav current_page="participants" />
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="flex items-center justify-between mb-8">
-        <div>
-          <h1 class="text-4xl font-bold text-white mb-2">Manage Participants</h1>
-          <p class="text-gray-400">Create and manage participants</p>
-        </div>
-        <.link patch="/admin/participants/new" class="btn btn-primary">+ New Participant</.link>
-      </div>
-
-      <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-purple-500/20 p-4 mb-6">
-        <form phx-submit="search">
-          <input type="text" name="search" value={@search} placeholder="Search name, email, country, event, film…" class="w-full bg-gray-900 border border-gray-700 text-gray-300 rounded px-3 py-2 text-sm placeholder-gray-600 focus:ring-purple-500 focus:border-purple-500" />
-        </form>
-      </div>
-
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 overflow-hidden">
         <table class="w-full">
           <thead class="bg-gray-900/50 border-b border-purple-500/20">
             <tr>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Name</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Country</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Email</th>
-              <th class="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">Name</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">Country</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">Email</th>
+              <th class="px-6 py-3 text-right"><.link patch="/admin/participants/new" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors">+ New</.link></th>
             </tr>
           </thead>
           <tbody id="participants" phx-update="stream" class="divide-y divide-gray-700/50">
@@ -54,7 +38,6 @@
         </table>
       </div>
     </div>
-  </div>
 
   <.modal :if={@live_action == :show} id="participant-show-modal" show on_cancel={JS.patch("/admin/participants")}>
     <.entity_detail entity={@participant} cancel_path="/admin/participants" />
