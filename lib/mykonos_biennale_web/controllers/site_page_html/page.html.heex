@@ -1,0 +1,9 @@
+<div class="min-h-screen bg-black text-white">
+  <div class="max-w-4xl mx-auto px-6 py-20">
+    <h1 class="text-4xl md:text-6xl font-bold uppercase mb-8">{@page.title}</h1>
+    <p :if={@page.description} class="text-xl text-gray-400 mb-12">{@page.description}</p>
+    <div class="text-gray-300 leading-relaxed">
+      {@page_content}
+    </div>
+  </div>
+</div>

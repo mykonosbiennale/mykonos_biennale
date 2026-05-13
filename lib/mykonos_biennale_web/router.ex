@@ -27,6 +27,8 @@ defmodule MykonosBiennaleWeb.Router do
     live "/program", ProgramLive
     live "/about", AboutLive
     live "/search", PublicSearchLive
+    get "/page/:slug", SitePageController, :show
+    get "/biennale/:slug", BiennaleController, :show
   end
 
   # Other scopes may use custom stacks.
@@ -62,8 +64,9 @@ defmodule MykonosBiennaleWeb.Router do
   scope "/", MykonosBiennaleWeb do
     pipe_through [:browser, :require_authenticated_user]
 
-    live_session :require_authenticated_user,
-      on_mount: [{MykonosBiennaleWeb.UserAuth, :require_authenticated}] do
+    live_session :admin,
+      on_mount: [{MykonosBiennaleWeb.UserAuth, :require_authenticated}, {MykonosBiennaleWeb.UserAuth, :admin_nav_assigns}],
+      root_layout: {MykonosBiennaleWeb.Layouts, :admin_root} do
       live "/admin", Admin.DashboardLive
       live "/admin/biennales", Admin.BiennaleLive.Index, :index
       live "/admin/biennales/new", Admin.BiennaleLive.Index, :new
@@ -113,6 +116,10 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/relationships/new", Admin.RelationshipLive.Index, :new
       live "/admin/relationships/:id", Admin.RelationshipLive.Show, :show
       live "/admin/relationships/:id/edit", Admin.RelationshipLive.Index, :edit
+    end
+
+    live_session :require_authenticated_user,
+      on_mount: [{MykonosBiennaleWeb.UserAuth, :require_authenticated}] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end

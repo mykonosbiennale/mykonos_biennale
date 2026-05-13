@@ -215,6 +215,39 @@ defmodule MykonosBiennaleWeb.UserAuth do
     {:cont, mount_current_scope(socket, session)}
   end
 
+  def on_mount(:admin_nav_assigns, _params, _session, socket) do
+    current_page =
+      case socket.view do
+        MykonosBiennaleWeb.Admin.DashboardLive -> "dashboard"
+        MykonosBiennaleWeb.Admin.BiennaleLive.Index -> "biennales"
+        MykonosBiennaleWeb.Admin.BiennaleLive.Show -> "biennales"
+        MykonosBiennaleWeb.Admin.EventLive.Index -> "events"
+        MykonosBiennaleWeb.Admin.EventLive.Show -> "events"
+        MykonosBiennaleWeb.Admin.ParticipantLive.Index -> "participants"
+        MykonosBiennaleWeb.Admin.ParticipantLive.Show -> "participants"
+        MykonosBiennaleWeb.Admin.FilmLive.Index -> "films"
+        MykonosBiennaleWeb.Admin.FilmLive.Show -> "films"
+        MykonosBiennaleWeb.Admin.ArtworkLive.Index -> "artworks"
+        MykonosBiennaleWeb.Admin.ArtworkLive.Show -> "artworks"
+        MykonosBiennaleWeb.Admin.ArtworkLive.Merge -> "artworks"
+        MykonosBiennaleWeb.Admin.FestivalLive.Index -> "festivals"
+        MykonosBiennaleWeb.Admin.ProjectLive.Index -> "projects"
+        MykonosBiennaleWeb.Admin.ProjectLive.Show -> "projects"
+        MykonosBiennaleWeb.Admin.MediaLive.Index -> "media"
+        MykonosBiennaleWeb.Admin.MediaLive.Show -> "media"
+        MykonosBiennaleWeb.Admin.PageLive.Index -> "pages"
+        MykonosBiennaleWeb.Admin.PageLive.Show -> "pages"
+        MykonosBiennaleWeb.Admin.SectionLive.Index -> "sections"
+        MykonosBiennaleWeb.Admin.SectionLive.Show -> "sections"
+        MykonosBiennaleWeb.Admin.RelationshipTypeLive.Index -> "relationship_types"
+        MykonosBiennaleWeb.Admin.RelationshipLive.Index -> "relationships"
+        MykonosBiennaleWeb.Admin.RelationshipLive.Show -> "relationships"
+        _ -> nil
+      end
+
+    {:cont, Phoenix.Component.assign(socket, :current_page, current_page)}
+  end
+
   def on_mount(:require_authenticated, _params, session, socket) do
     socket = mount_current_scope(socket, session)
 

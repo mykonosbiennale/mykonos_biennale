@@ -1,29 +1,16 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
-  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-    <.admin_nav current_page="media" />
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <.header>
-        Media Library
-        <:subtitle>Manage images, videos, and embeds</:subtitle>
-        <:actions>
-          <.link patch={~p"/admin/media/new"}>
-            <.button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-              <.icon name="hero-plus" class="w-5 h-5 mr-2" /> New Media
-            </.button>
-          </.link>
-        </:actions>
-      </.header>
-
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <.modal :if={@live_action in [:new, :edit]} id="media-modal" show on_cancel={JS.patch(~p"/admin/media")}>
         <.live_component module={MykonosBiennaleWeb.Admin.MediaLive.FormComponent} id={@media.id || :new} title={@page_title} action={@live_action} media={@media} patch={~p"/admin/media"} />
       </.modal>
 
-      <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-purple-500/20 p-4 mb-6 mt-6">
-        <form phx-submit="search">
-          <input type="text" name="search" value={@search} placeholder="Search title, artwork creator, film…" class="w-full bg-gray-900 border border-gray-700 text-gray-300 rounded px-3 py-2 text-sm placeholder-gray-600 focus:ring-purple-500 focus:border-purple-500" />
-        </form>
-      </div>
+      <.link patch={~p"/admin/media/new"} class="block mb-6">
+        <div class="border-2 border-dashed border-gray-700 rounded-lg p-6 text-center hover:border-purple-500 transition-colors">
+          <.icon name="hero-plus" class="w-8 h-8 text-gray-500 mx-auto mb-2" />
+          <span class="text-sm text-gray-400">Add Media</span>
+        </div>
+      </.link>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="media-grid" phx-update="stream">
         <div :for={{dom_id, media} <- @streams.media_collection} id={dom_id} class="group relative bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
@@ -64,6 +51,8 @@
         </div>
       </div>
 
+      
+
       <%= if @streams.media_collection.inserts == [] do %>
         <div class="text-center py-12">
           <.icon name="hero-photo" class="mx-auto w-16 h-16 text-gray-400 mb-4" />
@@ -75,5 +64,4 @@
         </div>
       <% end %>
     </div>
-  </div>
 </Layouts.app>

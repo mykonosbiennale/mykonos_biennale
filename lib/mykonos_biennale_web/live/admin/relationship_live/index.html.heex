@@ -1,0 +1,71 @@
+<Layouts.app flash={@flash}>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-900/50 border-b border-purple-500/20">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400">Type</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400">Subject</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400">→</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400">Object</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400">Fields</th>
+              <th class="px-4 py-3 text-right"><.link patch="/admin/relationships/new" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors">+ New</.link></th>
+            </tr>
+          </thead>
+          <tbody id="relationships" phx-update="stream" class="divide-y divide-gray-700/50">
+            <tr
+              :for={{id, rel} <- @streams.relationships}
+              id={id}
+              class="hover:bg-gray-700/20 transition-colors"
+            >
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                  {rel.relationship_type.slug}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <.link navigate={entity_path(rel.subject)} class="text-blue-400 hover:text-blue-300 text-sm">
+                  {entity_label(rel.subject)}
+                </.link>
+                <span class="ml-1 text-gray-600 text-xs">({entity_type_badge(rel.subject)})</span>
+              </td>
+              <td class="px-4 py-3 text-gray-500 text-sm">→</td>
+              <td class="px-4 py-3">
+                <.link navigate={entity_path(rel.object)} class="text-blue-400 hover:text-blue-300 text-sm">
+                  {entity_label(rel.object)}
+                </.link>
+                <span class="ml-1 text-gray-600 text-xs">({entity_type_badge(rel.object)})</span>
+              </td>
+              <td class="px-4 py-3">
+                <%= if rel.fields && map_size(rel.fields) > 0 do %>
+                  <span class="text-gray-400 text-xs">{format_fields(rel.fields)}</span>
+                <% else %>
+                  <span class="text-gray-600 text-xs">—</span>
+                <% end %>
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex items-center justify-end space-x-2">
+                  <.link navigate={"/admin/relationships/#{rel.id}"} class="text-blue-400 hover:text-blue-300 transition-colors text-sm">Show</.link>
+                  <.link patch={"/admin/relationships/#{rel.id}/edit"} class="text-purple-400 hover:text-purple-300 transition-colors text-sm">Edit</.link>
+                  <button phx-click="delete" phx-value-id={rel.id} data-confirm="Are you sure?" class="text-red-400 hover:text-red-300 transition-colors text-sm">Delete</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  <.modal :if={@live_action in [:new, :edit]} id="relationship-modal" show on_cancel={JS.patch("/admin/relationships")}>
+    <.live_component
+      module={MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent}
+      id={@relationship.id || :new}
+      title={@page_title}
+      action={@live_action}
+      relationship={@relationship}
+      relationship_types={@relationship_types}
+      patch="/admin/relationships"
+    />
+  </.modal>
+</Layouts.app>
