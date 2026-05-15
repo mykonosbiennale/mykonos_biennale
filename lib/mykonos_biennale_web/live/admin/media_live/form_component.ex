@@ -195,10 +195,9 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
           # Generate unique filename
           ext = Path.extname(entry.client_name)
           filename = "#{Ecto.UUID.generate()}#{ext}"
-          dest = Path.join(["priv", "static", "uploads", filename])
+          dest = MykonosBiennale.Uploads.uploads_path(filename)
 
-          # Ensure uploads directory exists
-          File.mkdir_p!(Path.dirname(dest))
+          MykonosBiennale.Uploads.ensure_uploads_dir()
 
           # Copy file to destination
           File.cp!(path, dest)

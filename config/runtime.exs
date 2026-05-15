@@ -28,9 +28,15 @@ if config_env() == :prod do
       For example: /etc/mykonos_biennale/mykonos_biennale.db
       """
 
+database_dir = Path.dirname(database_path)
+  File.mkdir_p(database_dir)
+
   config :mykonos_biennale, MykonosBiennale.Repo,
     database: database_path,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
+
+  config :mykonos_biennale, :uploads_dir, "/data/uploads"
+  File.mkdir_p!("/data/uploads")
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you

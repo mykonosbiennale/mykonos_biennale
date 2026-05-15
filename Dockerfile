@@ -79,6 +79,12 @@ ENV LC_ALL en_US.UTF-8
 WORKDIR "/app"
 RUN chown nobody /app
 
+# Create symlink so that /app/priv/static/uploads points to the persistent volume
+# This ensures uploaded files survive deploys
+RUN mkdir -p /data/uploads && \
+    ln -s /data/uploads /app/priv/static/uploads && \
+    chown -R nobody /data
+
 # set runner ENV
 ENV MIX_ENV="prod"
 

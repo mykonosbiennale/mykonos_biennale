@@ -818,7 +818,6 @@ defmodule MykonosBiennale.Workers.ImportFestival do
   end
 
   @s3_base "https://s3.amazonaws.com/com.mykonosbiennale.static/"
-  @uploads_dir "priv/static/uploads"
 
   defp download_s3_image(url) do
     filename =
@@ -828,11 +827,11 @@ defmodule MykonosBiennale.Workers.ImportFestival do
       |> URI.decode()
 
     local_filename = "#{Ecto.UUID.generate()}#{Path.extname(filename)}"
-    local_path = Path.join(@uploads_dir, local_filename)
+    local_path = MykonosBiennale.Uploads.uploads_path(local_filename)
 
     case Req.get(url, receive_timeout: 30_000) do
       {:ok, %{status: 200, body: body}} ->
-        File.mkdir_p!(@uploads_dir)
+        MykonosBiennale.Uploads.ensure_uploads_dir()
         File.write!(local_path, body)
         {:ok, local_filename}
 

@@ -7,6 +7,10 @@ app = "mykonos-biennale"
 primary_region = "ams"
 kill_signal = "SIGTERM"
 
+[mounts]
+  source = "data"
+  destination = "/data"
+
 [build]
 
 [deploy]
@@ -15,6 +19,7 @@ kill_signal = "SIGTERM"
 [env]
   PHX_HOST = "mykonos-biennale-bitter-sea-4396.fly.dev"
   PORT = "8080"
+  DATABASE_PATH = "/data/mykonos_biennale.db"
 
 [http_service]
   internal_port = 8080
