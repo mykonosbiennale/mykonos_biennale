@@ -374,8 +374,8 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
       consume_uploaded_entries(socket, :headshot, fn %{path: path}, entry ->
         ext = Path.extname(entry.client_name)
         filename = "#{Ecto.UUID.generate()}#{ext}"
-        dest = Path.join(["priv", "static", "uploads", filename])
-        File.mkdir_p!(Path.dirname(dest))
+        dest = MykonosBiennale.Uploads.uploads_path(filename)
+        MykonosBiennale.Uploads.ensure_uploads_dir()
         File.cp!(path, dest)
         {:ok, %{path: filename, mime_type: entry.client_type}}
       end)

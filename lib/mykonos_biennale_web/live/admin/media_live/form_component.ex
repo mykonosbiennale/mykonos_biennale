@@ -136,7 +136,7 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
      |> allow_upload(:media_file,
        accept: ~w(.jpg .jpeg .png .gif .mp4 .webm .webp),
        max_entries: 1,
-       max_file_size: 10_000_000
+       max_file_size: 100_000_000
      )}
   end
 
@@ -195,10 +195,9 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
           # Generate unique filename
           ext = Path.extname(entry.client_name)
           filename = "#{Ecto.UUID.generate()}#{ext}"
-          dest = Path.join(["priv", "static", "uploads", filename])
+          dest = MykonosBiennale.Uploads.uploads_path(filename)
 
-          # Ensure uploads directory exists
-          File.mkdir_p!(Path.dirname(dest))
+          MykonosBiennale.Uploads.ensure_uploads_dir()
 
           # Copy file to destination
           File.cp!(path, dest)
