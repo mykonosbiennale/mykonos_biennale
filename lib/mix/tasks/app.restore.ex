@@ -21,7 +21,7 @@ defmodule Mix.Tasks.App.Restore do
     relationship_types: ~w(id label slug inserted_at updated_at)a,
     users: ~w(id email hashed_password confirmed_at inserted_at updated_at)a,
     users_tokens: ~w(id token context sent_to authenticated_at user_id inserted_at)a,
-    entities: ~w(id identity type slug visible fields search_index search_indexed_at inserted_at updated_at)a,
+    entities: ~w(id identity type slug visible template fields search_index search_indexed_at inserted_at updated_at)a,
     media: ~w(id caption source_type source_url source_embed source_path mime_type alt_text metadata search_index search_indexed_at inserted_at updated_at)a,
     entity_media: ~w(entity_id media_id position metadata inserted_at updated_at)a,
     relationships: ~w(id fields relationship_type_id subject_id object_id inserted_at updated_at)a,
@@ -106,6 +106,7 @@ defmodule Mix.Tasks.App.Restore do
       {"token", s} when is_binary(s) -> {:token, Base.decode64!(s)}
       {"visible", true} -> {:visible, 1}
       {"visible", false} -> {:visible, 0}
+      {"template", nil} -> {:template, "default"}
       {k, v} when is_map(v) -> {String.to_atom(k), Jason.encode!(v)}
       {k, v} when is_binary(k) -> {String.to_atom(k), v}
     end)

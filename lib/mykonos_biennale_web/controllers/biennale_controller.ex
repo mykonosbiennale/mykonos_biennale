@@ -2,20 +2,20 @@ defmodule MykonosBiennaleWeb.BiennaleController do
   use MykonosBiennaleWeb, :controller
 
   alias MykonosBiennale.Content
+  alias MykonosBiennaleWeb.BiennaleHTML
 
   def show(conn, %{"slug" => slug}) do
     case Content.get_entity_by_slug(slug) do
       %{type: "biennale", visible: true} = biennale ->
-        year = parse_year(biennale.fields["year"])
-        events = Content.list_events_for_biennale(year) |> Enum.map(&present_event/1)
-        biennale_media = Content.list_media_for_entity(biennale)
-
         conn
         |> assign(:biennale, biennale)
-        |> assign(:biennale_media, biennale_media)
-        |> assign(:events, events)
-        |> assign(:page_title, "#{biennale.fields["theme"]} — Mykonos Biennale #{biennale.fields["year"]}")
-        |> render(:biennale)
+        |> assign(:events, load_events(biennale))
+        |> assign(:biennale_media, Content.list_media_for_entity(biennale))
+        |> assign(
+          :page_title,
+          "#{biennale.fields["theme"]} — Mykonos Biennale #{biennale.fields["year"]}"
+        )
+        |> render_template(biennale)
 
       %{visible: false} ->
         not_found(conn)
@@ -26,6 +26,28 @@ defmodule MykonosBiennaleWeb.BiennaleController do
       _ ->
         not_found(conn)
     end
+  end
+
+  defp load_events(biennale) do
+    year = parse_year(biennale.fields["year"])
+    Content.list_events_for_biennale(year) |> Enum.map(&present_event/1)
+  end
+
+  defp render_template(conn, %{template: :none}) do
+    biennale = conn.assigns.biennale
+    content = BiennaleHTML.render_content(biennale.fields["content"], conn.assigns)
+
+    conn
+    |> assign(:page_content, content)
+    |> render(:none)
+  end
+
+  defp render_template(conn, "list") do
+    render(conn, :list)
+  end
+
+  defp render_template(conn, _template) do
+    render(conn, :biennale)
   end
 
   defp present_event(%MykonosBiennale.Content.Entity{} = entity) do
@@ -56,6 +78,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
 
   defp parse_year(nil), do: nil
   defp parse_year(y) when is_integer(y), do: y
+
   defp parse_year(y) when is_binary(y) do
     case Integer.parse(y) do
       {n, _} -> n

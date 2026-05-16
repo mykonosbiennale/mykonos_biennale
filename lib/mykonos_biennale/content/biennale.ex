@@ -58,6 +58,7 @@ defmodule MykonosBiennale.Content.Biennale do
       type: "biennale",
       slug: to_string(year),
       visible: Map.get(attrs, :visible, true),
+      template: Map.get(attrs, :template, :default),
       fields: fields
     })
   end
@@ -84,6 +85,7 @@ defmodule MykonosBiennale.Content.Biennale do
       identity: to_string(new_fields["year"]),
       slug: to_string(new_fields["year"]),
       visible: Map.get(attrs, :visible, biennale_entity.visible),
+      template: Map.get(attrs, :template, biennale_entity.template),
       fields: new_fields
     })
   end
