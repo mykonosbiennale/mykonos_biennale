@@ -12,6 +12,8 @@ defmodule MykonosBiennale.Content.Entity do
     field :search_index, :string
     field :search_indexed_at, :naive_datetime
 
+    belongs_to :created_by, MykonosBiennale.Accounts.User
+
     has_many(:as_subject, MykonosBiennale.Content.Relationship, foreign_key: :subject_id)
     has_many(:as_object, MykonosBiennale.Content.Relationship, foreign_key: :object_id)
 
@@ -26,7 +28,7 @@ defmodule MykonosBiennale.Content.Entity do
   @doc false
   def changeset(entity, attrs, _meta \\ []) do
     entity
-    |> cast(attrs, [:identity, :type, :slug, :visible, :template, :fields, :search_index, :search_indexed_at])
+    |> cast(attrs, [:identity, :type, :slug, :visible, :template, :fields, :search_index, :search_indexed_at, :created_by_id])
     |> validate_required([:identity, :type, :slug, :visible])
   end
 end
