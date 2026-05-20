@@ -22,12 +22,10 @@ import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
-import {hooks as colocatedHooks} from "phoenix-colocated/mykonos_biennale"
 import topbar from "../vendor/topbar"
 import EditorHook from "../vendor/ex_editor_hook.js"
 
 const hooks = {
-  ...colocatedHooks,
   EditorHook,
   SortableMediaLinks: {
     mounted() {

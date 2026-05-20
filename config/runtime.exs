@@ -28,7 +28,7 @@ if config_env() == :prod do
       For example: /etc/mykonos_biennale/mykonos_biennale.db
       """
 
-database_dir = Path.dirname(database_path)
+  database_dir = Path.dirname(database_path)
   File.mkdir_p(database_dir)
 
   config :mykonos_biennale, MykonosBiennale.Repo,

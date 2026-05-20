@@ -64,7 +64,7 @@ defmodule MykonosBiennale.MixProject do
       {:ex_editor, "~> 0.3.0"},
       {:oban, "~> 2.22"},
       {:oban_web, "~> 2.12"},
-      {:igniter, "~> 0.7.9", only: [:dev, :test]}
+      {:igniter, "~> 0.8.0", only: [:dev, :test]}
     ]
   end
 
