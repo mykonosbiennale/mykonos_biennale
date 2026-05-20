@@ -38,6 +38,12 @@ if config_env() == :prod do
   config :mykonos_biennale, :uploads_dir, "/data/uploads"
   File.mkdir_p!("/data/uploads")
 
+  config :mykonos_biennale, MykonosBiennale.Mailer,
+    api_key: System.get_env("SENDGRID_API_KEY") ||
+      raise """
+      environment variable SENDGRID_API_KEY is missing.
+      """
+
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
   # want to use a different value for prod and you most likely don't want
