@@ -3,7 +3,9 @@ defmodule MykonosBiennale.Repo.Migrations.AddCreatedByToEntities do
 
   def change do
     alter table(:entities) do
-      add :created_by, references(:users, on_delete: :nilify_all)
+      add :created_by_id, references(:users, on_delete: :restrict)
     end
+
+    create index(:entities, [:created_by_id])
   end
 end
