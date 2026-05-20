@@ -9,7 +9,7 @@ defmodule MykonosBiennale.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"MykonosBiennale", "contact@example.com"})
+      |> from({"Mykonos Biennale", "team@mykonosbiennale.com"})
       |> subject(subject)
       |> text_body(body)
 
