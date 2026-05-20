@@ -242,6 +242,7 @@ defmodule MykonosBiennaleWeb.UserAuth do
         MykonosBiennaleWeb.Admin.RelationshipTypeLive.Index -> "relationship_types"
         MykonosBiennaleWeb.Admin.RelationshipLive.Index -> "relationships"
         MykonosBiennaleWeb.Admin.RelationshipLive.Show -> "relationships"
+        MykonosBiennaleWeb.Admin.UserLive.Index -> "users"
         _ -> nil
       end
 
