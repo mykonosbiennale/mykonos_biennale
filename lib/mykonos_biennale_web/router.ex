@@ -116,6 +116,11 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/relationships/new", Admin.RelationshipLive.Index, :new
       live "/admin/relationships/:id", Admin.RelationshipLive.Show, :show
       live "/admin/relationships/:id/edit", Admin.RelationshipLive.Index, :edit
+    end
+
+    live_session :admin_users,
+      on_mount: [{MykonosBiennaleWeb.UserAuth, :require_authenticated}, {MykonosBiennaleWeb.UserAuth, :require_admin}, {MykonosBiennaleWeb.UserAuth, :admin_nav_assigns}],
+      root_layout: {MykonosBiennaleWeb.Layouts, :admin_root} do
       live "/admin/users", Admin.UserLive.Index, :index
       live "/admin/users/new", Admin.UserLive.Index, :new
       live "/admin/users/:id/edit", Admin.UserLive.Index, :edit
