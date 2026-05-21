@@ -296,8 +296,8 @@ defmodule MykonosBiennale.Workers.ImportFestival do
       from e in Entity,
         where:
           e.type == "project" and
-            fragment("json_extract(?, '$.import_slug') IS NOT NULL", e.fields),
-        select: {fragment("json_extract(?, '$.import_slug')", e.fields), e.id}
+            fragment("? ->> 'import_slug' IS NOT NULL", e.fields),
+        select: {fragment("? ->> 'import_slug'", e.fields), e.id}
     )
     |> Enum.into(%{})
   end
@@ -595,8 +595,8 @@ defmodule MykonosBiennale.Workers.ImportFestival do
       from e in Entity,
         where:
           e.type == "participant" and
-            fragment("json_extract(?, '$.import_model')", e.fields) == "festival.artist",
-        select: {fragment("CAST(json_extract(?, '$.import_pk') AS INTEGER)", e.fields), e.id}
+            fragment("? ->> 'import_model'", e.fields) == "festival.artist",
+        select: {fragment("CAST(? ->> 'import_pk' AS INTEGER)", e.fields), e.id}
     )
     |> Enum.into(%{})
   end
@@ -607,8 +607,8 @@ defmodule MykonosBiennale.Workers.ImportFestival do
         from e in Entity,
           where:
             e.type == "event" and
-              fragment("json_extract(?, '$.import_key') IS NOT NULL", e.fields),
-          select: {fragment("json_extract(?, '$.import_key')", e.fields), e.id}
+              fragment("? ->> 'import_key' IS NOT NULL", e.fields),
+          select: {fragment("? ->> 'import_key'", e.fields), e.id}
       )
       |> Enum.into(%{})
 
@@ -893,7 +893,9 @@ defmodule MykonosBiennale.Workers.ImportFestival do
           where:
             e.type == "participant" and
               fragment(
-                "json_extract(?, '$.original_record.fields.headshot') IS NOT NULL AND json_extract(?, '$.original_record.fields.headshot') != ''",
+                "? ->> 'original_record' IS NOT NULL AND (? ->> 'original_record')::jsonb ->> 'fields' IS NOT NULL AND ((? ->> 'original_record')::jsonb -> 'fields')::jsonb ->> 'headshot' IS NOT NULL AND ((? ->> 'original_record')::jsonb -> 'fields')::jsonb ->> 'headshot' != ''",
+                e.fields,
+                e.fields,
                 e.fields,
                 e.fields
               )
@@ -948,7 +950,7 @@ defmodule MykonosBiennale.Workers.ImportFestival do
           where:
             e.type == "artwork" and
               fragment(
-                "json_extract(?, '$.import_photo_url') IS NOT NULL AND json_extract(?, '$.import_photo_url') != ''",
+                "? ->> 'import_photo_url' IS NOT NULL AND ? ->> 'import_photo_url' != ''",
                 e.fields,
                 e.fields
               )

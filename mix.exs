@@ -21,7 +21,7 @@ defmodule MykonosBiennale.MixProject do
   def application do
     [
       mod: {MykonosBiennale.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :ssl, :crypto]
     ]
   end
 
@@ -39,7 +39,8 @@ defmodule MykonosBiennale.MixProject do
       {:phoenix, "~> 1.8.0-rc.4", override: true},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.13"},
-      {:ecto_sqlite3, ">= 0.0.0"},
+      {:ecto_psql_extras, "~> 0.8.8"},
+      {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0-rc.0"},
@@ -64,7 +65,7 @@ defmodule MykonosBiennale.MixProject do
       {:ex_editor, "~> 0.3.0"},
       {:oban, "~> 2.22"},
       {:oban_web, "~> 2.12"},
-      {:igniter, "~> 0.7.9", only: [:dev, :test]}
+      {:igniter, "~> 0.8.0", only: [:dev, :test]}
     ]
   end
 

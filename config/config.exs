@@ -8,7 +8,7 @@
 import Config
 
 config :mykonos_biennale, Oban,
-  engine: Oban.Engines.Lite,
+  engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.PG,
   queues: [default: 10, search: 4],
   repo: MykonosBiennale.Repo
@@ -28,7 +28,9 @@ config :mykonos_biennale, :scopes,
 
 config :mykonos_biennale,
   ecto_repos: [MykonosBiennale.Repo],
-  generators: [timestamp_type: :utc_datetime]
+  generators: [timestamp_type: :utc_datetime],
+  current_biennale_year: 2021,
+  uploads_dir: "/data/uploads"
 
 # Configures the endpoint
 config :mykonos_biennale, MykonosBiennaleWeb.Endpoint,

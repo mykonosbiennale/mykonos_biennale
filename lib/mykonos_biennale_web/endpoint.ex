@@ -26,12 +26,10 @@ defmodule MykonosBiennaleWeb.Endpoint do
     gzip: not code_reloading?,
     only: MykonosBiennaleWeb.static_paths()
 
-  if Application.get_env(:mykonos_biennale, :uploads_dir) do
-    plug Plug.Static,
-      at: "/uploads",
-      from: Application.get_env(:mykonos_biennale, :uploads_dir),
-      gzip: not code_reloading?
-  end
+  plug Plug.Static,
+    at: "/uploads",
+    from: Application.get_env(:mykonos_biennale, :uploads_dir, "/data/uploads"),
+    gzip: not code_reloading?
 
   if Mix.env() == :dev do
     plug Tidewave

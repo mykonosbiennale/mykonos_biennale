@@ -10,6 +10,10 @@ defmodule MykonosBiennale.Accounts do
 
   ## Database getters
 
+  def list_users do
+    Repo.all(from(u in User, order_by: [asc: u.email]))
+  end
+
   @doc """
   Gets a user by email.
 
@@ -78,6 +82,19 @@ defmodule MykonosBiennale.Accounts do
     %User{}
     |> User.email_changeset(attrs)
     |> Repo.insert()
+  end
+
+  def update_user(%User{} = user, attrs) do
+    user
+    |> User.admin_changeset(attrs)
+    |> Repo.update()
+  end
+
+  def delete_user(%User{} = user) do
+    Repo.transact(fn ->
+      Repo.delete_all(from(UserToken, where: [user_id: ^user.id]))
+      Repo.delete(user)
+    end)
   end
 
   ## Settings

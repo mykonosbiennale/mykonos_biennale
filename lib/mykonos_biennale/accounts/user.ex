@@ -2,12 +2,15 @@ defmodule MykonosBiennale.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @roles [:admin, :staff, :participant]
+
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
+    field :role, Ecto.Enum, values: @roles, default: :participant
 
     timestamps(type: :utc_datetime)
   end
@@ -25,7 +28,7 @@ defmodule MykonosBiennale.Accounts.User do
   """
   def email_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email])
+    |> cast(attrs, [:email, :role])
     |> validate_email(opts)
   end
 
@@ -128,5 +131,25 @@ defmodule MykonosBiennale.Accounts.User do
   def valid_password?(_, _) do
     Bcrypt.no_user_verify()
     false
+  end
+
+  @doc """
+  Returns the list of available roles.
+  """
+  def roles, do: @roles
+
+  @doc """
+  Changeset for admin user management (email + role).
+  """
+  def admin_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email, :role])
+    |> validate_required([:email, :role])
+    |> validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
+      message: "must have the @ sign and no spaces"
+    )
+    |> validate_length(:email, max: 160)
+    |> unsafe_validate_unique(:email, MykonosBiennale.Repo)
+    |> unique_constraint(:email)
   end
 end

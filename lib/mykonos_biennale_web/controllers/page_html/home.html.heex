@@ -1,193 +1,167 @@
-<div class="min-h-screen bg-black text-white">
-  <%!-- Hero Section --%>
-  <div class="relative min-h-screen flex flex-col items-center justify-center px-6 py-20">
-    <%!-- Dramatic Title --%>
-    <div class="text-center space-y-8 max-w-4xl">
-      <h1 class="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight uppercase">
-        <span class="block text-white">Mykonos</span>
-        <span class="block text-gray-400">Biennale</span>
-      </h1>
+<%= if @biennale do %>
+  <div class="min-h-screen bg-black text-white">
+    <%!-- Hero Section --%>
+    <div class="relative min-h-screen flex flex-col items-center justify-center px-6 py-20">
+      <div class="text-center space-y-8 max-w-4xl">
+        <h1 class="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight uppercase">
+          <span class="block text-white">Mykonos</span>
+          <span class="block text-gray-400">Biennale</span>
+        </h1>
 
-      <p class="text-xl md:text-2xl text-gray-400 font-light tracking-wider uppercase">
-        2025 — Anti-Mausoleum
-      </p>
-
-      <div class="pt-8">
-        <p class="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
-          An international arts festival exploring the boundaries between
-          performance, installation, video art, and experimental cinema.
+        <p class="text-xl md:text-2xl text-gray-400 font-light tracking-wider uppercase">
+          {@biennale.fields["year"]} — {@biennale.fields["theme"]}
         </p>
+
+        <%= if @biennale.fields["statement"] do %>
+          <div class="pt-8">
+            <p class="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
+              {@biennale.fields["statement"]}
+            </p>
+          </div>
+        <% end %>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+          <a
+            href={~p"/program"}
+            class="px-8 py-4 bg-white text-black font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors"
+          >
+            View Program
+          </a>
+          <a
+            href={~p"/archive"}
+            class="px-8 py-4 border-2 border-white text-white font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-colors"
+          >
+            Archive
+          </a>
+        </div>
       </div>
 
-      <%!-- CTA Buttons --%>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-        <button class="px-8 py-4 bg-white text-black font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors">
-          View Program
-        </button>
-        <button class="px-8 py-4 border-2 border-white text-white font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-colors">
-          Archive
-        </button>
+      <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+          </path>
+        </svg>
       </div>
     </div>
 
-    <%!-- Scroll Indicator --%>
-    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-      <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-        </path>
-      </svg>
-    </div>
-  </div>
-
-  <%!-- Program Preview Section --%>
-  <div class="px-6 py-20 md:py-32 max-w-7xl mx-auto">
-    <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
-      Program 2025
-    </h2>
-
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <%!-- Exhibition Card --%>
-      <div class="group cursor-pointer">
-        <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
-          <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-black group-hover:scale-105 transition-transform duration-500">
-          </div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <span class="text-6xl text-gray-600">01</span>
-          </div>
-        </div>
-        <h3 class="text-xl font-bold uppercase mb-2">Exhibitions</h3>
-        <p class="text-gray-400 text-sm">
-          Contemporary installations across multiple venues in Mykonos
-        </p>
-      </div>
-
-      <%!-- Dramatic Nights Card --%>
-      <div class="group cursor-pointer">
-        <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
-          <div class="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-black group-hover:scale-105 transition-transform duration-500">
-          </div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <span class="text-6xl text-gray-600">02</span>
-          </div>
-        </div>
-        <h3 class="text-xl font-bold uppercase mb-2">Dramatic Nights</h3>
-        <p class="text-gray-400 text-sm">
-          Live performances and experimental theater under the stars
-        </p>
-      </div>
-
-      <%!-- Video Graffiti Card --%>
-      <div class="group cursor-pointer">
-        <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
-          <div class="absolute inset-0 bg-gradient-to-br from-blue-900/30 to-black group-hover:scale-105 transition-transform duration-500">
-          </div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <span class="text-6xl text-gray-600">03</span>
-          </div>
-        </div>
-        <h3 class="text-xl font-bold uppercase mb-2">Video Graffiti</h3>
-        <p class="text-gray-400 text-sm">
-          Large-scale video projections transforming urban landscapes
-        </p>
-      </div>
-
-      <%!-- Short Films Card --%>
-      <div class="group cursor-pointer">
-        <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
-          <div class="absolute inset-0 bg-gradient-to-br from-red-900/30 to-black group-hover:scale-105 transition-transform duration-500">
-          </div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <span class="text-6xl text-gray-600">04</span>
-          </div>
-        </div>
-        <h3 class="text-xl font-bold uppercase mb-2">Short Films</h3>
-        <p class="text-gray-400 text-sm">
-          International experimental and narrative short film screenings
-        </p>
-      </div>
-
-      <%!-- Performances Card --%>
-      <div class="group cursor-pointer">
-        <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
-          <div class="absolute inset-0 bg-gradient-to-br from-green-900/30 to-black group-hover:scale-105 transition-transform duration-500">
-          </div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <span class="text-6xl text-gray-600">05</span>
-          </div>
-        </div>
-        <h3 class="text-xl font-bold uppercase mb-2">Performances</h3>
-        <p class="text-gray-400 text-sm">
-          Multi-disciplinary live art and site-specific interventions
-        </p>
-      </div>
-
-      <%!-- Workshops Card --%>
-      <div class="group cursor-pointer">
-        <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
-          <div class="absolute inset-0 bg-gradient-to-br from-yellow-900/30 to-black group-hover:scale-105 transition-transform duration-500">
-          </div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <span class="text-6xl text-gray-600">06</span>
-          </div>
-        </div>
-        <h3 class="text-xl font-bold uppercase mb-2">Workshops</h3>
-        <p class="text-gray-400 text-sm">
-          Artist-led sessions exploring contemporary art practices
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <%!-- Archive Teaser Section --%>
-  <div class="px-6 py-20 md:py-32 bg-gray-950">
-    <div class="max-w-7xl mx-auto">
+    <%!-- Program Preview Section --%>
+    <div class="px-6 py-20 md:py-32 max-w-7xl mx-auto">
       <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
-        Archive
+        Program {@biennale.fields["year"]}
       </h2>
 
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="aspect-square bg-black border border-gray-800 flex items-center justify-center hover:bg-gray-900 transition-colors cursor-pointer">
-          <span class="text-3xl font-bold text-gray-600">2024</span>
-        </div>
-        <div class="aspect-square bg-black border border-gray-800 flex items-center justify-center hover:bg-gray-900 transition-colors cursor-pointer">
-          <span class="text-3xl font-bold text-gray-600">2022</span>
-        </div>
-        <div class="aspect-square bg-black border border-gray-800 flex items-center justify-center hover:bg-gray-900 transition-colors cursor-pointer">
-          <span class="text-3xl font-bold text-gray-600">2015</span>
-        </div>
-        <div class="aspect-square bg-black border border-gray-800 flex items-center justify-center hover:bg-gray-900 transition-colors cursor-pointer">
-          <span class="text-3xl font-bold text-gray-600">2013</span>
-        </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <%= for event <- @events do %>
+          <%
+            media_list = Map.get(@event_media, event.id, [])
+            first_media = List.first(media_list)
+            bg_style = if first_media do
+              "background-image: url('#{media_url(first_media)}'); background-size: cover; background-position: center;"
+            else
+              ""
+            end
+          %>
+          <div class="group cursor-pointer">
+            <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
+              <%= if first_media do %>
+                <div class="absolute inset-0 group-hover:scale-105 transition-transform duration-500" style={bg_style}></div>
+              <% else %>
+                <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-black group-hover:scale-105 transition-transform duration-500"></div>
+              <% end %>
+            </div>
+            <h3 class="text-xl font-bold uppercase mb-2">
+              {event.fields["title"]}
+            </h3>
+            <%= if event.fields["type"] do %>
+              <p class="text-gray-500 text-xs uppercase tracking-wider mb-1">
+                {Phoenix.Naming.humanize(event.fields["type"])}
+              </p>
+            <% end %>
+            <%= if event.fields["description"] do %>
+              <p class="text-gray-400 text-sm line-clamp-2">
+                {event.fields["description"]}
+              </p>
+            <% end %>
+          </div>
+        <% end %>
       </div>
+    </div>
 
-      <div class="text-center mt-12">
-        <button class="px-8 py-4 border-2 border-white text-white font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-colors">
-          View All Editions
-        </button>
+    <%!-- Archive Teaser Section --%>
+    <div class="px-6 py-20 md:py-32 bg-gray-950">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
+          Archive
+        </h2>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <%= for biennale <- @biennales do %>
+            <%
+              media_list = Map.get(@biennale_media, biennale.id, [])
+              first_media = List.first(media_list)
+              bg_style = if first_media do
+                "background-image: url('#{media_url(first_media)}'); background-size: cover; background-position: center;"
+              else
+                ""
+              end
+            %>
+            <a
+              href={~p"/biennale/#{biennale.slug}"}
+              class="aspect-square bg-black border border-gray-800 flex items-center justify-center hover:bg-gray-900 transition-colors relative overflow-hidden"
+              style={bg_style}
+            >
+              <div class="absolute inset-0 bg-black/30"></div>
+              <div class="relative text-center">
+                <span class="text-3xl font-bold text-red-700 hover:text-red-500 transition-colors">{biennale.fields["year"]}</span>
+                <span class="block text-sm font-bold text-red-700 mt-1">{biennale.fields["theme"]}</span>
+              </div>
+            </a>
+          <% end %>
+        </div>
+
+        <%= if length(@biennales) > 8 do %>
+          <div class="text-center mt-12">
+            <a
+              href={~p"/archive"}
+              class="px-8 py-4 border-2 border-white text-white font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-colors inline-block"
+            >
+              View All Editions
+            </a>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%!-- Footer --%>
+    <div class="px-6 py-12 border-t border-gray-800">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="text-center md:text-left">
+          <p class="text-sm text-gray-400 uppercase tracking-wider">
+            Mykonos Biennale © {@biennale.fields["year"]}
+          </p>
+        </div>
+
+        <div class="flex gap-6">
+          <a
+            href={~p"/about"}
+            class="text-sm text-gray-400 hover:text-white uppercase tracking-wider"
+          >
+            About
+          </a>
+          <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
+            Contact
+          </a>
+          <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
+            Press
+          </a>
+        </div>
       </div>
     </div>
   </div>
-
-  <%!-- Footer --%>
-  <div class="px-6 py-12 border-t border-gray-800">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-      <div class="text-center md:text-left">
-        <p class="text-sm text-gray-400 uppercase tracking-wider">
-          Mykonos Biennale © 2025
-        </p>
-      </div>
-
-      <div class="flex gap-6">
-        <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
-          About
-        </a>
-        <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
-          Contact
-        </a>
-        <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
-          Press
-        </a>
-      </div>
+<% else %>
+  <div class="min-h-screen bg-black text-white flex items-center justify-center">
+    <div class="text-center">
+      <p class="text-2xl text-gray-500">No biennale configured.</p>
     </div>
   </div>
-</div>
+<% end %>

@@ -93,7 +93,7 @@ defmodule MykonosBiennaleWeb.ArchiveLive do
   defp biennale_card(assigns) do
     ~H"""
     <.link
-      navigate={~p"/archive/#{@biennale.fields["year"]}"}
+      navigate={~p"/biennale/#{@biennale.slug}"}
       class="group block bg-gray-900 border border-gray-800 hover:border-gray-600 transition-all duration-300"
     >
       <div class="aspect-square bg-black relative overflow-hidden">

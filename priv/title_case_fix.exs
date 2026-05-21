@@ -8,7 +8,7 @@ all_caps =
     from ent in Entity,
       where:
         ent.type == "participant" and
-          fragment("json_extract(?, '$.import_model')", ent.fields) == "filmfestival.credit" and
+          fragment("? ->> 'import_model'", ent.fields) == "filmfestival.credit" and
           ent.identity == fragment("UPPER(?)", ent.identity) and
           fragment("length(?)", ent.identity) > 4
   )
@@ -47,7 +47,7 @@ double_space =
     from ent in Entity,
       where:
         ent.type == "participant" and
-          fragment("json_extract(?, '$.import_model')", ent.fields) == "filmfestival.credit" and
+          fragment("? ->> 'import_model'", ent.fields) == "filmfestival.credit" and
           fragment("INSTR(?, '  ')", ent.identity) > 0
   )
 

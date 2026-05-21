@@ -2,10 +2,15 @@ import Config
 
 # Configure your database
 config :mykonos_biennale, MykonosBiennale.Repo,
-  database: Path.expand("../mykonos_biennale_dev.db", __DIR__),
-  pool_size: 5,
+  url: System.get_env("DATABASE_URL") || "ecto://postgres:postgres@localhost/mykonos_biennale_dev",
+  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+  queue_target: 5000,
+  queue_interval: 2000,
   stacktrace: true,
-  show_sensitive_data_on_connection_error: true
+  show_sensitive_data_on_connection_error: true,
+  ssl: System.get_env("DATABASE_SSL") == "true" && [verify: :verify_none] || false
+
+config :mykonos_biennale, :uploads_dir, Path.expand("../priv/static/uploads", __DIR__)
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

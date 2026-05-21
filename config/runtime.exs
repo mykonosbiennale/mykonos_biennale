@@ -21,22 +21,28 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
-  database_path =
-    System.get_env("DATABASE_PATH") ||
+  database_url =
+    System.get_env("DATABASE_URL") ||
       raise """
-      environment variable DATABASE_PATH is missing.
-      For example: /etc/mykonos_biennale/mykonos_biennale.db
+      environment variable DATABASE_URL is missing.
+      For example: ecto://USER:PASS@HOST/DATABASE
       """
 
-database_dir = Path.dirname(database_path)
-  File.mkdir_p(database_dir)
+  ssl_options = if System.get_env("DATABASE_SSL") == "true", do: [verify: :verify_none], else: false
 
   config :mykonos_biennale, MykonosBiennale.Repo,
-    database: database_path,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
+    url: database_url,
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+    ssl: ssl_options
 
   config :mykonos_biennale, :uploads_dir, "/data/uploads"
-  File.mkdir_p!("/data/uploads")
+  File.mkdir_p("/data/uploads")
+
+  config :mykonos_biennale, MykonosBiennale.Mailer,
+    api_key: System.get_env("SENDGRID_API_KEY") ||
+      raise """
+      environment variable SENDGRID_API_KEY is missing.
+      """
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you

@@ -1,25 +1,16 @@
-# fly.toml app configuration file generated for mykonos-biennale-bitter-sea-4396 on 2024-01-15T10:30:00Z
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = "mykonos-biennale"
 primary_region = "ams"
 kill_signal = "SIGTERM"
 
+[build]
+
+[env]
+  PHX_HOST = "mykonos-biennale.fly.dev"
+  PORT = "8080"
+
 [mounts]
   source = "data"
   destination = "/data"
-
-[build]
-
-[deploy]
-  release_command = "/app/bin/migrate"
-
-[env]
-  PHX_HOST = "mykonos-biennale-bitter-sea-4396.fly.dev"
-  PORT = "8080"
-  DATABASE_PATH = "/data/mykonos_biennale.db"
 
 [http_service]
   internal_port = 8080
