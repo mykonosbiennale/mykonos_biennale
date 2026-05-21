@@ -21,7 +21,7 @@ defmodule MykonosBiennaleWeb.Router do
   scope "/", MykonosBiennaleWeb do
     pipe_through :browser
 
-    live "/", BiennaleLive
+    get "/", PageController, :home
     live "/archive", ArchiveLive
     live "/archive/:year", ArchiveDetailLive
     live "/program", ProgramLive
@@ -48,7 +48,11 @@ defmodule MykonosBiennaleWeb.Router do
     scope "/dev" do
       pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: MykonosBiennaleWeb.Telemetry
+      live_dashboard "/dashboard",
+        metrics: MykonosBiennaleWeb.Telemetry,
+        ecto_repos: [MykonosBiennale.Repo],
+        ecto_psql_extras_options: [long_running_queries: [threshold: "200 milliseconds"]]
+
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
 
@@ -65,7 +69,10 @@ defmodule MykonosBiennaleWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :admin,
-      on_mount: [{MykonosBiennaleWeb.UserAuth, :require_authenticated}, {MykonosBiennaleWeb.UserAuth, :admin_nav_assigns}],
+      on_mount: [
+        {MykonosBiennaleWeb.UserAuth, :require_authenticated},
+        {MykonosBiennaleWeb.UserAuth, :admin_nav_assigns}
+      ],
       root_layout: {MykonosBiennaleWeb.Layouts, :admin_root} do
       live "/admin", Admin.DashboardLive
       live "/admin/biennales", Admin.BiennaleLive.Index, :index
@@ -119,7 +126,11 @@ defmodule MykonosBiennaleWeb.Router do
     end
 
     live_session :admin_users,
-      on_mount: [{MykonosBiennaleWeb.UserAuth, :require_authenticated}, {MykonosBiennaleWeb.UserAuth, :require_admin}, {MykonosBiennaleWeb.UserAuth, :admin_nav_assigns}],
+      on_mount: [
+        {MykonosBiennaleWeb.UserAuth, :require_authenticated},
+        {MykonosBiennaleWeb.UserAuth, :require_admin},
+        {MykonosBiennaleWeb.UserAuth, :admin_nav_assigns}
+      ],
       root_layout: {MykonosBiennaleWeb.Layouts, :admin_root} do
       live "/admin/users", Admin.UserLive.Index, :index
       live "/admin/users/new", Admin.UserLive.Index, :new

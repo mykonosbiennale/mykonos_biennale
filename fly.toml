@@ -7,7 +7,6 @@ kill_signal = "SIGTERM"
 [env]
   PHX_HOST = "mykonos-biennale.fly.dev"
   PORT = "8080"
-  DATABASE_PATH = "/data/mykonos_biennale.db"
 
 [mounts]
   source = "data"

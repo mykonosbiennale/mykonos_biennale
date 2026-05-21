@@ -89,14 +89,8 @@ defmodule Mix.Tasks.App.Restore do
   end
 
   defp truncate_tables do
-    if Repo.__adapter__() == Ecto.Adapters.SQLite3 do
-      Repo.query!("PRAGMA foreign_keys = OFF")
-      for table <- @table_order, do: Repo.query!("DELETE FROM #{table}")
-      Repo.query!("DELETE FROM sqlite_sequence")
-      Repo.query!("PRAGMA foreign_keys = ON")
-    else
-      Repo.query!("TRUNCATE TABLE #{Enum.join(@table_order, ", ")} CASCADE")
-    end
+    tables_sql = Enum.map_join(@table_order, ", ", &"#{&1}")
+    Repo.query!("TRUNCATE TABLE #{tables_sql} CASCADE")
   end
 
   defp deserialize_record(record) do
@@ -104,8 +98,8 @@ defmodule Mix.Tasks.App.Restore do
     |> Enum.map(fn
       {"hashed_password", s} when is_binary(s) -> {:hashed_password, Base.decode64!(s)}
       {"token", s} when is_binary(s) -> {:token, Base.decode64!(s)}
-      {"visible", true} -> {:visible, 1}
-      {"visible", false} -> {:visible, 0}
+      {"visible", true} -> {:visible, true}
+      {"visible", false} -> {:visible, false}
       {"template", nil} -> {:template, "default"}
       {k, v} when is_map(v) -> {String.to_atom(k), Jason.encode!(v)}
       {k, v} when is_binary(k) -> {String.to_atom(k), v}

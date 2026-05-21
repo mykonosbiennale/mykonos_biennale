@@ -10,7 +10,7 @@ config :bcrypt_elixir, :log_rounds, 1
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :mykonos_biennale, MykonosBiennale.Repo,
-  database: Path.expand("../mykonos_biennale_test.db", __DIR__),
+  url: System.get_env("DATABASE_URL") || "ecto://postgres:postgres@localhost/mykonos_biennale_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool_size: 5,
   pool: Ecto.Adapters.SQL.Sandbox
 

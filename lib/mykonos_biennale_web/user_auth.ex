@@ -37,7 +37,7 @@ defmodule MykonosBiennaleWeb.UserAuth do
 
     conn
     |> create_or_extend_session(user, params)
-    |> redirect(to: user_return_to || signed_in_path(conn))
+    |> redirect(to: user_return_to || signed_in_path(user))
   end
 
   @doc """
@@ -306,8 +306,11 @@ defmodule MykonosBiennaleWeb.UserAuth do
   end
 
   @doc "Returns the path to redirect to after log in."
-  # the user was already logged in, redirect to settings
-  def signed_in_path(%Plug.Conn{assigns: %{current_scope: %Scope{user: %Accounts.User{}}}}) do
+  def signed_in_path(%Accounts.User{role: role}) when role in [:admin, :staff] do
+    ~p"/admin"
+  end
+
+  def signed_in_path(%Accounts.User{}) do
     ~p"/users/settings"
   end
 
