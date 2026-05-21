@@ -1,0 +1,60 @@
+name: Deploy to Lightsail
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+env:
+  ELIXIR_VERSION: "1.19.3"
+  OTP_VERSION: "27.2.3"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build release in Docker
+        run: |
+          docker buildx build --platform linux/amd64 \
+            --build-arg ELIXIR_VERSION=${{ env.ELIXIR_VERSION }} \
+            --build-arg OTP_VERSION=${{ env.OTP_VERSION }} \
+            -t mykonos-biennale-release \
+            --output type=local,dest=./release-artifact \
+            .
+
+      - name: Compress release
+        run: tar czf release.tar.gz -C release-artifact .
+
+      - name: Upload to Lightsail and deploy
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ubuntu
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          source: "release.tar.gz"
+          target: "/tmp"
+
+      - name: Deploy on Lightsail
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ubuntu
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script: |
+            set -e
+            cd /tmp
+            rm -rf /opt/mykonos_biennale_old 2>/dev/null || true
+            mv /opt/mykonos_biennale /opt/mykonos_biennale_old 2>/dev/null || true
+            mkdir -p /opt/mykonos_biennale
+            tar xzf release.tar.gz -C /opt/mykonos_biennale
+            cp /opt/mykonos_biennale_old/.env /opt/mykonos_biennale/.env 2>/dev/null || true
+            sudo systemctl restart mykonos-biennale
+            sleep 5
+            sudo systemctl is-active mykonos-biennale
