@@ -13,14 +13,16 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - name: Build release
+      - name: Build and extract release
         run: |
           docker buildx build --platform linux/amd64 \
             --build-arg ELIXIR_VERSION=1.19.3 \
             --build-arg OTP_VERSION=27.2.3 \
-            --output type=local,dest=./release-artifact .
-
-      - run: tar czf release.tar.gz -C release-artifact .
+            -t mykonos-biennale-release .
+          docker create --name release-extract mykonos-biennale-release
+          docker cp release-extract:/app ./release-artifact
+          docker rm release-extract
+          tar czf release.tar.gz -C release-artifact .
 
       - uses: appleboy/scp-action@v0.1.7
         with:
@@ -38,13 +40,11 @@ jobs:
           command_timeout: 120s
           script: |
             set -e
-            cd /tmp
             rm -rf /opt/mykonos_biennale_old 2>/dev/null || true
             mv /opt/mykonos_biennale /opt/mykonos_biennale_old 2>/dev/null || true
             mkdir -p /opt/mykonos_biennale
-            sudo tar xzf release.tar.gz --no-same-owner --overwrite -C /opt/mykonos_biennale
+            tar xzf /tmp/release.tar.gz -C /opt/mykonos_biennale
             cp /opt/mykonos_biennale_old/.env /opt/mykonos_biennale/.env 2>/dev/null || true
-            sudo chown -R ubuntu:ubuntu /opt/mykonos_biennale
             sudo mkdir -p /data/uploads /data/thumbnails
             sudo chown -R ubuntu:ubuntu /data
             sudo systemctl restart mykonos-biennale
