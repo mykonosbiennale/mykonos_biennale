@@ -15,7 +15,7 @@ jobs:
 
       - name: Build and extract release
         run: |
-          docker buildx build --platform linux/amd64 \
+          docker buildx build --platform linux/amd64 --load \
             --build-arg ELIXIR_VERSION=1.19.3 \
             --build-arg OTP_VERSION=27.2.3 \
             -t mykonos-biennale-release .
