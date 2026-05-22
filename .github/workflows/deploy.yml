@@ -35,14 +35,19 @@ jobs:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ubuntu
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script_stop: true
+          command_timeout: 120s
           script: |
             set -e
             cd /tmp
             rm -rf /opt/mykonos_biennale_old 2>/dev/null || true
             mv /opt/mykonos_biennale /opt/mykonos_biennale_old 2>/dev/null || true
             mkdir -p /opt/mykonos_biennale
-            tar xzf release.tar.gz -C /opt/mykonos_biennale
+            sudo tar xzf release.tar.gz --no-same-owner -C /opt/mykonos_biennale
             cp /opt/mykonos_biennale_old/.env /opt/mykonos_biennale/.env 2>/dev/null || true
+            sudo chown -R ubuntu:ubuntu /opt/mykonos_biennale
+            sudo mkdir -p /data/uploads /data/thumbnails
+            sudo chown -R ubuntu:ubuntu /data
             sudo systemctl restart mykonos-biennale
             sleep 5
             sudo systemctl is-active mykonos-biennale
