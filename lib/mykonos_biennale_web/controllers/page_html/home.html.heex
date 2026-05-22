@@ -55,16 +55,16 @@
           <%
             media_list = Map.get(@event_media, event.id, [])
             first_media = List.first(media_list)
-            bg_style = if first_media do
-              "background-image: url('#{media_url(first_media)}'); background-size: cover; background-position: center;"
-            else
-              ""
-            end
-          %>
-          <div class="group cursor-pointer">
-            <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
-              <%= if first_media do %>
-                <div class="absolute inset-0 group-hover:scale-105 transition-transform duration-500" style={bg_style}></div>
+bg_style = if first_media do
+               "background-image: url('#{media_url(first_media, size: "card")}'); background-size: cover; background-position: center;"
+             else
+               ""
+             end
+           %>
+           <div class="group cursor-pointer">
+             <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
+               <%= if first_media do %>
+                 <div class="absolute inset-0 group-hover:scale-105 transition-transform duration-500" style={bg_style}></div>
               <% else %>
                 <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-black group-hover:scale-105 transition-transform duration-500"></div>
               <% end %>
@@ -99,11 +99,11 @@
             <%
               media_list = Map.get(@biennale_media, biennale.id, [])
               first_media = List.first(media_list)
-              bg_style = if first_media do
-                "background-image: url('#{media_url(first_media)}'); background-size: cover; background-position: center;"
-              else
-                ""
-              end
+bg_style = if first_media do
+                 "background-image: url('#{media_url(first_media, size: "thumb")}'); background-size: cover; background-position: center;"
+               else
+                 ""
+               end
             %>
             <a
               href={~p"/biennale/#{biennale.slug}"}

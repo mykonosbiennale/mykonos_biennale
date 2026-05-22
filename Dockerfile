@@ -4,7 +4,6 @@ ARG DEBIAN_VERSION=bookworm-20260518-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="ubuntu:24.04"
-ARG TARGETPLATFORM
 
 FROM ${BUILDER_IMAGE} AS builder
 
@@ -39,14 +38,14 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && \
-    apt-get install -y libstdc++6 openssl libncurses6 locales ca-certificates \
+    apt-get install -y libstdc++6 openssl libncurses6 locales ca-certificates imagemagick \
     && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
 WORKDIR /app
 RUN chown nobody /app
@@ -55,7 +54,7 @@ ENV MIX_ENV="prod"
 
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/mykonos_biennale ./
 
-RUN mkdir -p /data/uploads && chown -R nobody /data
+RUN mkdir -p /data/uploads /data/thumbnails && chown -R nobody /data
 
 USER nobody
 
