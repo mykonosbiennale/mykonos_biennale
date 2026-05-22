@@ -37,6 +37,7 @@ if config_env() == :prod do
 
   config :mykonos_biennale, :uploads_dir, "/data/uploads"
   File.mkdir_p("/data/uploads")
+  File.mkdir_p("/data/thumbnails")
 
   config :mykonos_biennale, MykonosBiennale.Mailer,
     api_key: System.get_env("SENDGRID_API_KEY") ||

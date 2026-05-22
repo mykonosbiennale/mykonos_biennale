@@ -3,9 +3,8 @@ defmodule MykonosBiennaleWeb.BiennaleHTML do
 
   embed_templates "biennale_html/*"
 
-  def media_url(%{source_type: "upload", source_path: path}) when is_binary(path), do: "/uploads/#{path}"
-  def media_url(%{source_type: "url", source_url: url}) when is_binary(url), do: url
-  def media_url(_), do: nil
+  def media_url(media, opts \\ [])
+  def media_url(media, opts), do: MykonosBiennale.Uploads.media_url(media, opts)
 
   def format_date(nil), do: nil
   def format_date(date) when is_binary(date) do

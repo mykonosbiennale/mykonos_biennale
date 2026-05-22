@@ -22,4 +22,19 @@ defmodule MykonosBiennale.Uploads do
   def ensure_uploads_dir do
     File.mkdir_p!(uploads_dir())
   end
+
+  def media_url(%{source_type: "upload", source_path: path}, opts \\ []) when is_binary(path) do
+    size = Keyword.get(opts, :size, "card")
+    ext = Path.extname(path) |> String.downcase()
+    basename = Path.basename(path, Path.extname(path))
+
+    if ext in [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff", ".tif"] do
+      "/media/#{size}/#{basename}#{ext}"
+    else
+      "/uploads/#{path}"
+    end
+  end
+
+  def media_url(%{source_type: "url", source_url: url}, _opts) when is_binary(url), do: url
+  def media_url(_, _opts), do: nil
 end

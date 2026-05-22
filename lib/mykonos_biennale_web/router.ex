@@ -22,6 +22,7 @@ defmodule MykonosBiennaleWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/media/:dimensions/:filename", MediaController, :show
     live "/archive", ArchiveLive
     live "/archive/:year", ArchiveDetailLive
     live "/program", ProgramLive

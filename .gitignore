@@ -41,3 +41,20 @@ phx_new_cache-*.tar
 npm-debug.log
 /assets/node_modules/
 
+.gitignore
+
+# Thumbnails (generated)
+/priv/static/thumbnails/
+
+# Release artifacts
+/release/
+/release-artifact/
+
+# Scratch files
+*.md
+!/README.md
+/docs/
+/backups/
+/exports/
+/prompts/
+/media/
