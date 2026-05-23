@@ -52,9 +52,8 @@
           <div class="flex gap-6">
             <div class="flex-shrink-0">
               <%= case @poster do %>
-                <% %{source_type: "upload", source_path: path} = media -> %>
-                  <% thumb = MykonosBiennale.Uploads.media_url(media, size: "card") %>
-                  <.picture webp={thumb} original={"/uploads/#{media.source_path}"} alt={@film.identity} class="w-48 h-64 rounded-lg object-cover" />
+                <% %{source_type: "upload"} = media -> %>
+                  <.picture record={media} size="card" alt={@film.identity} class="w-48 h-64 rounded-lg object-cover" />
                 <% %{source_type: "url", source_url: url} -> %>
                   <img src={url} alt={@film.identity} class="w-48 h-64 rounded-lg object-cover" />
                 <% _ -> %>
@@ -197,8 +196,7 @@
 <%= case m.source_type do %>
                        <% "upload" -> %>
                          <%= if m.source_path do %>
-<% thumb = MykonosBiennale.Uploads.media_url(m, size: "thumb") %>
-                            <.picture webp={thumb} original={"/uploads/#{m.source_path}"} alt={m.alt_text || m.caption} />
+                            <.picture record={m} size="thumb" alt={m.alt_text || m.caption} />
                          <% else %>
                            <.icon name="hero-photo" class="w-8 h-8 text-gray-400" />
                          <% end %>

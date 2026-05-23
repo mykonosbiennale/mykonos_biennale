@@ -67,6 +67,11 @@ defmodule MykonosBiennale.Workers.MediaProcess do
           {:ok, _path} -> :ok
           {:original, _path} -> :ok
         end
+
+        case Thumbnail.ensure_slug_jpeg(slug, path, size) do
+          {:ok, _path} -> :ok
+          {:original, _path} -> :ok
+        end
       end)
 
       {:ok, :generated}

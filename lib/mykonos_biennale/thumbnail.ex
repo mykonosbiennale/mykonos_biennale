@@ -2,12 +2,14 @@ defmodule MykonosBiennale.Thumbnail do
   @moduledoc """
   Generates and caches image thumbnails using ImageMagick.
 
-  Produces WebP thumbnails named by slug for SEO-friendly URLs.
-  Originals live in the uploads dir. Thumbnails are cached in the
-  media dir (alongside AVIF and press versions).
+  Produces WebP, AVIF, and JPEG thumbnails named by slug for SEO-friendly URLs.
+  Originals live in the uploads dir. Optimized versions are cached in the media dir.
 
-  File naming: `{slug}-{size}.webp`
-  Example: `katherine-liberovskaya-2a-card.webp`
+  File naming: `{slug}-{size}.{ext}`
+  Examples:
+    `katherine-liberovskaya-2a-card.webp`
+    `katherine-liberovskaya-2a-card.avif`
+    `katherine-liberovskaya-2a-card.jpg`
 
   Backward compatible: the old `thumbnails/WxH/UUID.webp` format
   still works via the old URL pattern `/media/WxH/UUID.webp`.
@@ -20,29 +22,29 @@ defmodule MykonosBiennale.Thumbnail do
   Returns the absolute filesystem path for a slug-based thumbnail.
   Creates the media directory if it doesn't exist.
   """
-  @spec slug_thumbnail_path(String.t(), String.t()) :: String.t()
-  def slug_thumbnail_path(slug, size) do
+  @spec slug_thumbnail_path(String.t(), String.t(), String.t()) :: String.t()
+  def slug_thumbnail_path(slug, size, ext \\ ".webp") do
     MediaDir.ensure_media_dir()
-    MediaDir.path(slug, size, ".webp")
+    MediaDir.path(slug, size, ext)
   end
 
   @doc """
   Returns the URL for a slug-based thumbnail.
   Example: `/media/katherine-liberovskaya-2a-card.webp`
   """
-  @spec slug_thumbnail_url(String.t(), String.t()) :: String.t()
-  def slug_thumbnail_url(slug, size) do
-    MediaDir.url(slug, size, ".webp")
+  @spec slug_thumbnail_url(String.t(), String.t(), String.t()) :: String.t()
+  def slug_thumbnail_url(slug, size, ext \\ ".webp") do
+    MediaDir.url(slug, size, ext)
   end
 
   @doc """
-  Ensures a slug-based thumbnail exists, generating it if necessary.
+  Ensures a slug-based WebP thumbnail exists, generating it if necessary.
   Returns {:ok, path} or {:original, path} if generation fails.
   """
   @spec ensure_slug_thumbnail(String.t(), String.t(), String.t()) ::
           {:ok, String.t()} | {:original, String.t()}
   def ensure_slug_thumbnail(slug, source_path, size) do
-    thumb_path = slug_thumbnail_path(slug, size)
+    thumb_path = slug_thumbnail_path(slug, size, ".webp")
     original_path = Uploads.uploads_path(source_path)
 
     cond do
@@ -58,6 +60,32 @@ defmodule MykonosBiennale.Thumbnail do
       true ->
         {width, height} = MediaDir.size_dimensions(size)
         generate_thumbnail(original_path, thumb_path, width, height)
+    end
+  end
+
+  @doc """
+  Ensures a slug-based JPEG variant exists, generating it if necessary.
+  Returns {:ok, path} or {:original, path} if generation fails.
+  """
+  @spec ensure_slug_jpeg(String.t(), String.t(), String.t()) ::
+          {:ok, String.t()} | {:original, String.t()}
+  def ensure_slug_jpeg(slug, source_path, size) do
+    jpeg_path = slug_thumbnail_path(slug, size, ".jpg")
+    original_path = Uploads.uploads_path(source_path)
+
+    cond do
+      File.exists?(jpeg_path) ->
+        {:ok, jpeg_path}
+
+      not File.exists?(original_path) ->
+        {:original, original_path}
+
+      not image_ext?(source_path) ->
+        {:original, original_path}
+
+      true ->
+        {width, height} = MediaDir.size_dimensions(size)
+        generate_jpeg(original_path, jpeg_path, width, height)
     end
   end
 
@@ -135,6 +163,30 @@ defmodule MykonosBiennale.Thumbnail do
       {error, _code} ->
         require Logger
         Logger.warning("Thumbnail generation failed for #{original_path}: #{error}")
+        {:original, original_path}
+    end
+  end
+
+  defp generate_jpeg(original_path, jpeg_path, width, height) do
+    args = [
+      original_path,
+      "-resize", "#{width}x#{height}^",
+      "-gravity", "center",
+      "-extent", "#{width}x#{height}",
+      "-quality", "85",
+      "-strip",
+      jpeg_path
+    ]
+
+    cmd = if System.find_executable("magick"), do: "magick", else: "convert"
+
+    case System.cmd(cmd, args, stderr_to_stdout: true) do
+      {_, 0} ->
+        {:ok, jpeg_path}
+
+      {error, _code} ->
+        require Logger
+        Logger.warning("JPEG generation failed for #{original_path}: #{error}")
         {:original, original_path}
     end
   end

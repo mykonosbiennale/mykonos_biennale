@@ -7,6 +7,7 @@ defmodule MykonosBiennale.Uploads do
   """
 
   alias MykonosBiennale.Thumbnail
+  alias MykonosBiennale.MediaDir
 
   def uploads_dir do
     Application.get_env(:mykonos_biennale, :uploads_dir) ||
@@ -26,13 +27,14 @@ defmodule MykonosBiennale.Uploads do
   end
 
   @doc """
-  Returns the WebP thumbnail URL for a media struct at the given size.
+  Returns the media URL for a given media struct, size, and format.
 
-  Uses slug-based URLs when available, falls back to legacy UUID-based URLs.
-  Suitable for use as an `<img>` src or CSS background-image.
+  Supported formats:
+    * `"webp"` (default) — WebP thumbnail
+    * `"avif"` — AVIF thumbnail (generated on-demand)
+    * `"jpg"` or `"jpeg"` — JPEG thumbnail (generated on-demand)
 
-  ## Supported sizes
-
+  Supported sizes:
     * `"hero"`  - 1920x1080
     * `"card"`  - 800x600
     * `"thumb"` - 400x300
@@ -43,9 +45,15 @@ defmodule MykonosBiennale.Uploads do
   def media_url(%{source_type: "upload", source_path: path, slug: slug}, opts)
       when is_binary(slug) and is_binary(path) do
     size = Keyword.get(opts, :size, "card")
+    format = Keyword.get(opts, :format, "webp")
 
     if image_path?(path) do
-      Thumbnail.slug_thumbnail_url(slug, size)
+      case format do
+        fmt when fmt in ["webp", "avif"] -> MediaDir.url(slug, size, ".#{fmt}")
+        "jpg" -> MediaDir.url(slug, size, ".jpg")
+        "jpeg" -> MediaDir.url(slug, size, ".jpg")
+        _ -> "/uploads/#{path}"
+      end
     else
       "/uploads/#{path}"
     end
@@ -53,10 +61,18 @@ defmodule MykonosBiennale.Uploads do
 
   def media_url(%{source_type: "upload", source_path: path}, opts) when is_binary(path) do
     size = Keyword.get(opts, :size, "card")
+    format = Keyword.get(opts, :format, "webp")
 
     if image_path?(path) do
       {width, height} = size_to_dimensions(size)
-      Thumbnail.thumbnail_url(path, width, height)
+
+      case format do
+        "webp" -> Thumbnail.thumbnail_url(path, width, height)
+        "avif" -> Thumbnail.thumbnail_url(path, width, height) |> String.replace(".webp", ".avif")
+        "jpg" -> Thumbnail.thumbnail_url(path, width, height) |> String.replace(".webp", ".jpg")
+        "jpeg" -> Thumbnail.thumbnail_url(path, width, height) |> String.replace(".webp", ".jpg")
+        _ -> "/uploads/#{path}"
+      end
     else
       "/uploads/#{path}"
     end

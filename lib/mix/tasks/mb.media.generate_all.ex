@@ -103,7 +103,15 @@ defmodule Mix.Tasks.Mb.Media.GenerateAll do
         end
       end)
 
-    if Enum.all?(results, &(&1 == :ok)) do
+    jpeg_results =
+      Enum.map(@sizes, fn size ->
+        case Thumbnail.ensure_slug_jpeg(slug, source_path, size) do
+          {:ok, _} -> :ok
+          {:original, _} -> :ok
+        end
+      end)
+
+    if Enum.all?(results ++ jpeg_results, &(&1 == :ok)) do
       :generated
     else
       {:error, :partial}

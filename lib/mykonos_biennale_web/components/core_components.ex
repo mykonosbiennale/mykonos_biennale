@@ -638,21 +638,43 @@ defmodule MykonosBiennaleWeb.CoreComponents do
   attr :show_description, :boolean, default: false
   attr :show_statement, :boolean, default: false
 @doc """
-  Renders a responsive `<picture>` element with WebP source and original fallback.
+  Renders a responsive `<picture>` element with AVIF, WebP sources, and JPEG fallback.
 
-  Browsers that support WebP (97%+) will load the smaller thumbnail;
-  others fall back to the original file.
+  Browsers negotiate the best format they support: AVIF (best compression),
+  WebP (wide support), or fall back to the original file (JPEG/PNG).
+
+  Pass either a `media` struct (preferred) or individual URL attributes.
   """
-  attr :webp, :string, default: nil, doc: "URL to the WebP thumbnail"
-  attr :original, :string, required: true, doc: "Fallback image URL"
+  attr :record, :map, default: nil
+  attr :size, :string, default: "card"
+  attr :avif, :string, default: nil
+  attr :webp, :string, default: nil
+  attr :original, :string, default: nil
   attr :alt, :string, default: ""
   attr :class, :string, default: "w-full h-full object-cover"
+
+  def picture(%{record: media} = assigns) when not is_nil(media) and media != %{} do
+    assigns =
+      assigns
+      |> assign(:avif_url, MykonosBiennale.Uploads.media_url(media, size: assigns[:size], format: "avif"))
+      |> assign(:webp_url, MykonosBiennale.Uploads.media_url(media, size: assigns[:size], format: "webp"))
+      |> assign(:jpg_url, MykonosBiennale.Uploads.media_url(media, size: assigns[:size], format: "jpg"))
+
+    ~H"""
+    <picture>
+      <source :if={@avif_url} type="image/avif" srcset={@avif_url} />
+      <source :if={@webp_url} type="image/webp" srcset={@webp_url} />
+      <img src={@jpg_url} alt={@alt} class={@class} loading="lazy" />
+    </picture>
+    """
+  end
 
   def picture(assigns) do
     ~H"""
     <picture>
+      <source :if={@avif} type="image/avif" srcset={@avif} />
       <source :if={@webp} type="image/webp" srcset={@webp} />
-      <img src={@original} alt={@alt} class={@class} />
+      <img src={@original} alt={@alt} class={@class} loading="lazy" />
     </picture>
     """
   end
@@ -678,7 +700,7 @@ defmodule MykonosBiennaleWeb.CoreComponents do
       <figure class="bg-base-200 aspect-video flex items-center justify-center">
         <%= case first_image(@resolved_media) do %>
           <% %{source_type: "upload", source_path: _path} = media -> %>
-            <.picture webp={MykonosBiennale.Uploads.media_url(media, size: "card")} original={"/uploads/#{media.source_path}"} alt={artwork_field(@artwork, "title")} />
+            <.picture record={media} size="card" alt={artwork_field(@artwork, "title")} />
           <% %{source_type: "url", source_url: url} -> %>
             <img src={url} alt={artwork_field(@artwork, "title")} class="w-full h-full object-cover" />
           <% _ -> %>
