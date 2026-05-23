@@ -637,6 +637,48 @@ defmodule MykonosBiennaleWeb.CoreComponents do
   attr :show_creators, :boolean, default: true
   attr :show_description, :boolean, default: false
   attr :show_statement, :boolean, default: false
+@doc """
+  Renders a responsive `<picture>` element with AVIF, WebP sources, and JPEG fallback.
+
+  Browsers negotiate the best format they support: AVIF (best compression),
+  WebP (wide support), or fall back to the original file (JPEG/PNG).
+
+  Pass either a `media` struct (preferred) or individual URL attributes.
+  """
+  attr :record, :map, default: nil
+  attr :size, :string, default: "card"
+  attr :avif, :string, default: nil
+  attr :webp, :string, default: nil
+  attr :original, :string, default: nil
+  attr :alt, :string, default: ""
+  attr :class, :string, default: "w-full h-full object-cover"
+
+  def picture(%{record: media} = assigns) when not is_nil(media) and media != %{} do
+    assigns =
+      assigns
+      |> assign(:avif_url, MykonosBiennale.Uploads.media_url(media, size: assigns[:size], format: "avif"))
+      |> assign(:webp_url, MykonosBiennale.Uploads.media_url(media, size: assigns[:size], format: "webp"))
+      |> assign(:jpg_url, MykonosBiennale.Uploads.media_url(media, size: assigns[:size], format: "jpg"))
+
+    ~H"""
+    <picture>
+      <source :if={@avif_url} type="image/avif" srcset={@avif_url} />
+      <source :if={@webp_url} type="image/webp" srcset={@webp_url} />
+      <img src={@jpg_url} alt={@alt} class={@class} loading="lazy" />
+    </picture>
+    """
+  end
+
+  def picture(assigns) do
+    ~H"""
+    <picture>
+      <source :if={@avif} type="image/avif" srcset={@avif} />
+      <source :if={@webp} type="image/webp" srcset={@webp} />
+      <img src={@original} alt={@alt} class={@class} loading="lazy" />
+    </picture>
+    """
+  end
+
   attr :show_edit_link, :boolean, default: false
   attr :class, :string, default: ""
 
@@ -657,12 +699,8 @@ defmodule MykonosBiennaleWeb.CoreComponents do
     <div class={"card bg-base-100 shadow-sm border border-base-300 #{@class}"}>
       <figure class="bg-base-200 aspect-video flex items-center justify-center">
         <%= case first_image(@resolved_media) do %>
-          <% %{source_type: "upload", source_path: path} -> %>
-            <img
-              src={"/uploads/#{path}"}
-              alt={artwork_field(@artwork, "title")}
-              class="w-full h-full object-cover"
-            />
+          <% %{source_type: "upload", source_path: _path} = media -> %>
+            <.picture record={media} size="card" alt={artwork_field(@artwork, "title")} />
           <% %{source_type: "url", source_url: url} -> %>
             <img src={url} alt={artwork_field(@artwork, "title")} class="w-full h-full object-cover" />
           <% _ -> %>

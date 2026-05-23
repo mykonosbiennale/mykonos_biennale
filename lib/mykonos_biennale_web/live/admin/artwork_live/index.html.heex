@@ -16,8 +16,8 @@
             <tr :for={{id, artwork} <- @streams.artworks} id={id} class="hover:bg-gray-700/20 transition-colors">
               <td class="px-4 py-3">
                 <%= case Map.get(@media_map, artwork.id) do %>
-                  <% %{source_type: "upload", source_path: path} -> %>
-                    <img src={"/uploads/#{path}"} alt={field(artwork, "title")} class="w-10 h-10 rounded object-cover" />
+                  <% %{source_type: "upload"} = media -> %>
+                    <.picture record={media} size="admin" alt={field(artwork, "title")} class="w-10 h-10 rounded object-cover" />
                   <% %{source_type: "url", source_url: url} -> %>
                     <img src={url} alt={field(artwork, "title")} class="w-10 h-10 rounded object-cover" />
                   <% _ -> %>

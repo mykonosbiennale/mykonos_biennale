@@ -36,7 +36,9 @@ if config_env() == :prod do
     ssl: ssl_options
 
   config :mykonos_biennale, :uploads_dir, "/data/uploads"
+  config :mykonos_biennale, :media_dir, "/data/media"
   File.mkdir_p("/data/uploads")
+  File.mkdir_p("/data/media")
   File.mkdir_p("/data/thumbnails")
 
   config :mykonos_biennale, MykonosBiennale.Mailer,

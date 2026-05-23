@@ -377,17 +377,18 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
         dest = MykonosBiennale.Uploads.uploads_path(filename)
         MykonosBiennale.Uploads.ensure_uploads_dir()
         File.cp!(path, dest)
-        {:ok, %{path: filename, mime_type: entry.client_type}}
+        {:ok, %{path: filename, mime_type: entry.client_type, original_name: entry.client_name}}
       end)
 
     case uploaded_files do
-      [%{path: path, mime_type: mime_type}] ->
+      [%{path: path, mime_type: mime_type, original_name: original_name}] ->
         {:ok, media} =
           Content.create_media(%{
             caption: "Headshot - #{field(participant, "name")}",
             source_type: "upload",
             source_path: path,
-            mime_type: mime_type
+            mime_type: mime_type,
+            original_name: original_name
           })
 
         Content.attach_media_to_entity(participant, media, metadata: %{"role" => "headshot"})
@@ -477,9 +478,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
     end)
   end
 
-  defp headshot_url(%Media{source_type: "upload", source_path: path}) when is_binary(path),
-    do: "/uploads/#{path}"
-
+  defp headshot_url(%Media{source_type: "upload"} = media), do: MykonosBiennale.Uploads.media_url(media, size: "admin")
   defp headshot_url(%Media{source_type: "url", source_url: url}) when is_binary(url), do: url
   defp headshot_url(_), do: ""
 

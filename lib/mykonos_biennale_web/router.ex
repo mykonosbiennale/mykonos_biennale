@@ -23,6 +23,7 @@ defmodule MykonosBiennaleWeb.Router do
 
     get "/", PageController, :home
     get "/media/:dimensions/:filename", MediaController, :show
+    get "/media/:filename", MediaController, :show_slug
     live "/archive", ArchiveLive
     live "/archive/:year", ArchiveDetailLive
     live "/program", ProgramLive

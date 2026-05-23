@@ -55,8 +55,8 @@ defmodule MykonosBiennaleWeb.BiennaleController do
 
     background =
       case List.last(media) do
-        %{source_type: "upload", source_path: path} when is_binary(path) ->
-          MykonosBiennale.Uploads.media_url(%{source_type: "upload", source_path: path}, size: "card")
+        %{source_type: "upload"} = m ->
+          MykonosBiennale.Uploads.media_url(m, size: "card")
 
         %{source_type: "url", source_url: url} when is_binary(url) ->
           url
