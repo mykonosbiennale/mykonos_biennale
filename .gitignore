@@ -58,3 +58,6 @@ npm-debug.log
 /exports/
 /prompts/
 /media/
+
+.env
+.tool-versions

@@ -13,11 +13,8 @@
             <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
               <%= case @headshot.source_type do %>
                 <% "upload" -> %>
-                  <img
-                    src={"/uploads/#{@headshot.source_path}"}
-                    alt={pfield(@participant, "name")}
-                    class="w-full h-full object-cover"
-                  />
+                  <% thumb = MykonosBiennale.Uploads.media_url(@headshot, size: "admin") %>
+                  <.picture webp={thumb} original={"/uploads/#{@headshot.source_path}"} alt={pfield(@participant, "name")} class="w-full h-full object-cover" />
                 <% "url" -> %>
                   <img
                     src={@headshot.source_url}

@@ -18,8 +18,9 @@
             <tr :for={{id, film} <- @streams.films} id={id} class="hover:bg-gray-700/20 transition-colors">
               <td class="px-3 py-2">
                 <%= case Map.get(@poster_map, film.id) do %>
-                  <% %{source_type: "upload", source_path: path} -> %>
-                    <img src={"/uploads/#{path}"} alt={film.identity} class="w-10 h-14 rounded object-cover" />
+                  <% %{source_type: "upload", source_path: path} = media -> %>
+                    <% thumb = MykonosBiennale.Uploads.media_url(media, size: "admin") %>
+                    <.picture webp={thumb} original={"/uploads/#{media.source_path}"} alt={film.identity} class="w-10 h-14 rounded object-cover" />
                   <% %{source_type: "url", source_url: url} -> %>
                     <img src={url} alt={film.identity} class="w-10 h-14 rounded object-cover" />
                   <% _ -> %>

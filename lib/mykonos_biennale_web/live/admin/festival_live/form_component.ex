@@ -82,7 +82,7 @@ defmodule MykonosBiennaleWeb.Admin.FestivalLive.FormComponent do
                     <% "upload" -> %>
                       <%= if link.media.source_path do %>
                         <img
-                          src={"/uploads/#{link.media.source_path}"}
+                          src={MykonosBiennale.Uploads.media_url(link.media, size: "thumb")}
                           alt={link.media.alt_text || link.media.caption}
                           class="w-full h-full object-cover"
                         />

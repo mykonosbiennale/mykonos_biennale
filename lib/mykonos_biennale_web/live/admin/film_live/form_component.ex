@@ -146,7 +146,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
             <div class="aspect-[2/3] bg-gray-100 flex items-center justify-center">
               <%= if @poster_link.media.source_path do %>
                 <img
-                  src={"/uploads/#{@poster_link.media.source_path}"}
+                  src={MykonosBiennale.Uploads.media_url(@poster_link.media, size: "card")}
                   alt="Poster"
                   class="w-full h-full object-cover"
                 />
@@ -214,7 +214,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
                 <div class="aspect-video bg-gray-100 flex items-center justify-center">
                   <%= if link.media.source_path do %>
                     <img
-                      src={"/uploads/#{link.media.source_path}"}
+                      src={MykonosBiennale.Uploads.media_url(link.media, size: "thumb")}
                       alt={link.media.caption || "Still"}
                       class="w-full h-full object-cover"
                     />
@@ -812,23 +812,24 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
   end
 
   defp consume_upload(film, socket, upload_key, metadata) do
-    uploaded_files =
+uploaded_files =
       consume_uploaded_entries(socket, upload_key, fn %{path: path}, entry ->
         ext = Path.extname(entry.client_name)
         filename = "#{Ecto.UUID.generate()}#{ext}"
         dest = MykonosBiennale.Uploads.uploads_path(filename)
         MykonosBiennale.Uploads.ensure_uploads_dir()
         File.cp!(path, dest)
-        {:ok, %{path: filename, mime_type: entry.client_type, client_name: entry.client_name}}
+        {:ok, %{path: filename, mime_type: entry.client_type, original_name: entry.client_name}}
       end)
 
-    for %{path: path, mime_type: mime_type, client_name: client_name} <- uploaded_files do
+    for %{path: path, mime_type: mime_type, original_name: original_name} <- uploaded_files do
       {:ok, media} =
         Content.create_media(%{
-          caption: Path.basename(client_name, Path.extname(client_name)),
+          caption: Path.basename(original_name, Path.extname(original_name)),
           source_type: "upload",
           source_path: path,
-          mime_type: mime_type
+          mime_type: mime_type,
+          original_name: original_name
         })
 
       Content.attach_media_to_entity(film, media, metadata: metadata)

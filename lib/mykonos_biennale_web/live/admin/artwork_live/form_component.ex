@@ -100,7 +100,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
                   <div class="aspect-video bg-gray-100 flex items-center justify-center">
                     <%= if link.media.source_path do %>
                       <img
-                        src={"/uploads/#{link.media.source_path}"}
+                        src={MykonosBiennale.Uploads.media_url(link.media, size: "thumb")}
                         alt={link.media.alt_text || link.media.caption}
                         class="w-full h-full object-cover"
                       />
@@ -611,16 +611,17 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
         dest = MykonosBiennale.Uploads.uploads_path(filename)
         MykonosBiennale.Uploads.ensure_uploads_dir()
         File.cp!(path, dest)
-        {:ok, %{path: filename, mime_type: entry.client_type}}
+        {:ok, %{path: filename, mime_type: entry.client_type, original_name: entry.client_name}}
       end)
 
-    for %{path: path, mime_type: mime_type} <- uploaded_files do
+    for %{path: path, mime_type: mime_type, original_name: original_name} <- uploaded_files do
       {:ok, media} =
         Content.create_media(%{
-          caption: Path.basename(path, Path.extname(path)),
+          caption: original_name,
           source_type: "upload",
           source_path: path,
-          mime_type: mime_type
+          mime_type: mime_type,
+          original_name: original_name
         })
 
       Content.attach_media_to_entity(artwork, media)

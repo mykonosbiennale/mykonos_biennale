@@ -192,24 +192,23 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
     if media_params["source_type"] == "upload" do
       uploaded_files =
         consume_uploaded_entries(socket, :media_file, fn %{path: path}, entry ->
-          # Generate unique filename
           ext = Path.extname(entry.client_name)
           filename = "#{Ecto.UUID.generate()}#{ext}"
           dest = MykonosBiennale.Uploads.uploads_path(filename)
 
           MykonosBiennale.Uploads.ensure_uploads_dir()
 
-          # Copy file to destination
           File.cp!(path, dest)
 
-          {:ok, %{path: filename, mime_type: entry.client_type}}
+          {:ok, %{path: filename, mime_type: entry.client_type, original_name: entry.client_name}}
         end)
 
       case uploaded_files do
-        [%{path: path, mime_type: mime_type}] ->
+        [%{path: path, mime_type: mime_type, original_name: original_name}] ->
           media_params
           |> Map.put("source_path", path)
           |> Map.put("mime_type", mime_type)
+          |> Map.put("original_name", original_name)
 
         [] ->
           media_params

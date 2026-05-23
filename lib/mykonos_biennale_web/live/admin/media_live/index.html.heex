@@ -18,7 +18,8 @@
             <%= case media.source_type do %>
               <% "upload" -> %>
                 <%= if media.source_path do %>
-                  <img src={"/uploads/#{media.source_path}"} alt={media.alt_text || media.caption || "Uploaded media"} class="w-full h-full object-cover" />
+                  <% thumb = MykonosBiennale.Uploads.media_url(media, size: "card") %>
+                  <.picture webp={thumb} original={"/uploads/#{media.source_path}"} alt={media.alt_text || media.caption || "Uploaded media"} />
                 <% else %>
                   <.icon name="hero-photo" class="w-16 h-16 text-gray-400" />
                 <% end %>

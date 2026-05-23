@@ -257,6 +257,12 @@ defmodule MykonosBiennale.Content do
 
   defp tap_ok(other, _fun), do: other
 
+  defp enqueue_media_process(%Media{source_type: "upload"} = media) do
+    MykonosBiennale.Workers.MediaProcess.enqueue_all(media.id)
+  end
+
+  defp enqueue_media_process(_media), do: :ok
+
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking entity changes.
   """
@@ -375,6 +381,10 @@ defmodule MykonosBiennale.Content do
   """
   def get_media!(id), do: Repo.get!(Media, id)
 
+  def get_media_by_slug(slug) do
+    Repo.get_by(Media, slug: slug)
+  end
+
   @doc """
   Creates a media.
   """
@@ -382,8 +392,24 @@ defmodule MykonosBiennale.Content do
     %Media{}
     |> Media.changeset(attrs)
     |> Repo.insert()
+    |> set_slug_if_needed()
     |> tap_ok(&SearchReindex.enqueue_media(&1.id))
+    |> tap_ok(&enqueue_media_process(&1))
   end
+
+  defp set_slug_if_needed({:ok, %Media{slug: nil, id: id} = media}) when not is_nil(id) do
+    slug = MykonosBiennale.MediaSlug.generate(id, media.caption, media.original_name)
+
+    media
+    |> Media.changeset(%{slug: slug})
+    |> Repo.update()
+    |> case do
+      {:ok, updated} -> {:ok, updated}
+      {:error, changeset} -> {:error, changeset}
+    end
+  end
+
+  defp set_slug_if_needed(result), do: result
 
   @doc """
   Updates a media.

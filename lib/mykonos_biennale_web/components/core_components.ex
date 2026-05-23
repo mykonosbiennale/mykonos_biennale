@@ -637,6 +637,26 @@ defmodule MykonosBiennaleWeb.CoreComponents do
   attr :show_creators, :boolean, default: true
   attr :show_description, :boolean, default: false
   attr :show_statement, :boolean, default: false
+@doc """
+  Renders a responsive `<picture>` element with WebP source and original fallback.
+
+  Browsers that support WebP (97%+) will load the smaller thumbnail;
+  others fall back to the original file.
+  """
+  attr :webp, :string, default: nil, doc: "URL to the WebP thumbnail"
+  attr :original, :string, required: true, doc: "Fallback image URL"
+  attr :alt, :string, default: ""
+  attr :class, :string, default: "w-full h-full object-cover"
+
+  def picture(assigns) do
+    ~H"""
+    <picture>
+      <source :if={@webp} type="image/webp" srcset={@webp} />
+      <img src={@original} alt={@alt} class={@class} />
+    </picture>
+    """
+  end
+
   attr :show_edit_link, :boolean, default: false
   attr :class, :string, default: ""
 
@@ -657,12 +677,8 @@ defmodule MykonosBiennaleWeb.CoreComponents do
     <div class={"card bg-base-100 shadow-sm border border-base-300 #{@class}"}>
       <figure class="bg-base-200 aspect-video flex items-center justify-center">
         <%= case first_image(@resolved_media) do %>
-          <% %{source_type: "upload", source_path: path} -> %>
-            <img
-              src={"/uploads/#{path}"}
-              alt={artwork_field(@artwork, "title")}
-              class="w-full h-full object-cover"
-            />
+          <% %{source_type: "upload", source_path: _path} = media -> %>
+            <.picture webp={MykonosBiennale.Uploads.media_url(media, size: "card")} original={"/uploads/#{media.source_path}"} alt={artwork_field(@artwork, "title")} />
           <% %{source_type: "url", source_url: url} -> %>
             <img src={url} alt={artwork_field(@artwork, "title")} class="w-full h-full object-cover" />
           <% _ -> %>

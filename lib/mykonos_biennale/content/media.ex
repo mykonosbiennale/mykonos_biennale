@@ -1,6 +1,7 @@
 defmodule MykonosBiennale.Content.Media do
   use Ecto.Schema
   import Ecto.Changeset
+  alias MykonosBiennale.MediaSlug
 
   schema "media" do
     field :caption, :string
@@ -8,6 +9,8 @@ defmodule MykonosBiennale.Content.Media do
     field :source_url, :string
     field :source_embed, :string
     field :source_path, :string
+    field :original_name, :string
+    field :slug, :string
     field :mime_type, :string
     field :alt_text, :string
     field :metadata, :map
@@ -31,6 +34,8 @@ defmodule MykonosBiennale.Content.Media do
       :source_url,
       :source_embed,
       :source_path,
+      :original_name,
+      :slug,
       :mime_type,
       :alt_text,
       :metadata,
@@ -39,7 +44,36 @@ defmodule MykonosBiennale.Content.Media do
     ])
     |> validate_required([:source_type])
     |> validate_inclusion(:source_type, ["upload", "url", "embed"])
+    |> maybe_generate_slug()
     |> validate_source_fields()
+  end
+
+  defp maybe_generate_slug(changeset) do
+    case get_field(changeset, :slug) do
+      nil ->
+        case get_field(changeset, :source_type) do
+          "upload" ->
+            source_path = get_field(changeset, :source_path)
+
+            if source_path do
+              id = get_field(changeset, :id)
+              # For new records, id is nil — slug will be set after insert
+              if id do
+                put_change(changeset, :slug, MediaSlug.generate(id, get_field(changeset, :caption), get_field(changeset, :original_name)))
+              else
+                changeset
+              end
+            else
+              changeset
+            end
+
+          _ ->
+            changeset
+        end
+
+      _ ->
+        changeset
+    end
   end
 
   defp validate_source_fields(changeset) do

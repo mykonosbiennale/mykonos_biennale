@@ -11,6 +11,7 @@ config :mykonos_biennale, MykonosBiennale.Repo,
   ssl: System.get_env("DATABASE_SSL") == "true" && [verify: :verify_none] || false
 
 config :mykonos_biennale, :uploads_dir, Path.expand("../priv/static/uploads", __DIR__)
+config :mykonos_biennale, :media_dir, Path.expand("../priv/static/media", __DIR__)
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

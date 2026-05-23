@@ -55,7 +55,7 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Show do
   defp entity_link(%Entity{type: "project"} = e), do: "/admin/projects/#{e.id}"
   defp entity_link(%Entity{} = e), do: "/admin"
 
-  defp media_source_url(%Media{source_type: "upload", source_path: path}) when is_binary(path), do: "/uploads/#{path}"
+  defp media_source_url(%Media{source_type: "upload"} = media), do: MykonosBiennale.Uploads.media_url(media, size: "hero")
   defp media_source_url(%Media{source_type: "url", source_url: url}) when is_binary(url), do: url
   defp media_source_url(_), do: nil
 end
