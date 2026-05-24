@@ -28,6 +28,46 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     end
   end
 
+  def festival(conn, %{"slug" => slug}) do
+    case Content.get_entity_by_slug(slug) do
+      %{type: "biennale", visible: true} = biennale ->
+        events = load_events(biennale)
+        biennales = Content.list_biennales()
+
+        biennale_media_map =
+          biennales
+          |> Enum.map(fn b -> {b.id, Content.list_media_for_entity(b)} end)
+          |> Enum.into(%{})
+
+        event_media_map =
+          events
+          |> Enum.map(fn event ->
+            entity = Content.get_entity!(event.id)
+            {event.id, Content.list_media_for_entity(entity)}
+          end)
+          |> Enum.into(%{})
+
+        conn
+        |> assign(:biennale, biennale)
+        |> assign(:events, events)
+        |> assign(:biennale_media, Content.list_media_for_entity(biennale))
+        |> assign(:biennales, biennales)
+        |> assign(:biennale_media_map, biennale_media_map)
+        |> assign(:event_media, event_media_map)
+        |> assign(:page_title, "Festival — Mykonos Biennale #{biennale.fields["year"]}")
+        |> render(:festival)
+
+      %{visible: false} ->
+        not_found(conn)
+
+      nil ->
+        not_found(conn)
+
+      _ ->
+        not_found(conn)
+    end
+  end
+
   defp load_events(biennale) do
     year = parse_year(biennale.fields["year"])
     Content.list_events_for_biennale(year) |> Enum.map(&present_event/1)

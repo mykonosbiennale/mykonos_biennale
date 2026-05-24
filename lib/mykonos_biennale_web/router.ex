@@ -31,6 +31,7 @@ defmodule MykonosBiennaleWeb.Router do
     live "/search", PublicSearchLive
     get "/page/:slug", SitePageController, :show
     get "/biennale/:slug", BiennaleController, :show
+    get "/biennale/:slug/festival", BiennaleController, :festival
   end
 
   # Other scopes may use custom stacks.

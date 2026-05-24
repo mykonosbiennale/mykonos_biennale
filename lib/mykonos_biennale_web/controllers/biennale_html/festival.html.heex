@@ -1,0 +1,149 @@
+<div class="min-h-screen bg-black text-white">
+  <%!-- Hero Section --%>
+  <div class="relative min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat px-4"
+       :if={@biennale_media != []}
+       style={if media_url(List.first(@biennale_media), size: "hero"), do: "background-image: url('#{media_url(List.first(@biennale_media), size: "hero")}');", else: ""}>
+    <div class="bg-black/40 p-8 text-center text-white">
+      <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4">{@biennale.fields["theme"]}</h1>
+      <p class="text-2xl md:text-3xl text-gray-300 font-light">{@biennale.fields["year"]}</p>
+      <%= if @biennale.fields["start_date"] && @biennale.fields["end_date"] do %>
+        <p class="text-lg text-gray-400 mt-4">{format_date(@biennale.fields["start_date"])} – {format_date(@biennale.fields["end_date"])}</p>
+      <% end %>
+    </div>
+  </div>
+
+  <%!-- Fallback hero when no media --%>
+  <div :if={@biennale_media == []} class="min-h-[60vh] flex items-center justify-center px-4">
+    <div class="text-center">
+      <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4">{@biennale.fields["theme"]}</h1>
+      <p class="text-2xl md:text-3xl text-gray-300 font-light">{@biennale.fields["year"]}</p>
+      <%= if @biennale.fields["start_date"] && @biennale.fields["end_date"] do %>
+        <p class="text-lg text-gray-400 mt-4">{format_date(@biennale.fields["start_date"])} – {format_date(@biennale.fields["end_date"])}</p>
+      <% end %>
+    </div>
+  </div>
+
+  <%!-- Statement Section --%>
+  <%= if @biennale.fields["statement"] do %>
+    <div class="bg-[#222] text-white py-20 px-6">
+      <div class="mx-auto max-w-5xl">
+        <h2 class="text-3xl font-light italic mb-10 text-center">{@biennale.fields["theme"]}</h2>
+        <p class="text-sm leading-relaxed text-gray-300">{@biennale.fields["statement"]}</p>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Program Preview Section (from home page) --%>
+  <div class="px-6 py-20 md:py-32 max-w-7xl mx-auto">
+    <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
+      Program {@biennale.fields["year"]}
+    </h2>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <%= for event <- @events do %>
+        <%
+          media_list = Map.get(@event_media, event.id, [])
+          first_media = List.first(media_list)
+          bg_style = if first_media do
+            "background-image: url('#{media_url(first_media, size: "card")}'); background-size: cover; background-position: center;"
+          else
+            ""
+          end
+        %>
+        <div class="group cursor-pointer">
+          <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
+            <%= if first_media do %>
+              <div class="absolute inset-0 group-hover:scale-105 transition-transform duration-500" style={bg_style}></div>
+            <% else %>
+              <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-black group-hover:scale-105 transition-transform duration-500"></div>
+            <% end %>
+          </div>
+          <h3 class="text-xl font-bold uppercase mb-2">
+            {event.title}
+          </h3>
+          <%= if event.type do %>
+            <p class="text-gray-500 text-xs uppercase tracking-wider mb-1">
+              {Phoenix.Naming.humanize(event.type)}
+            </p>
+          <% end %>
+          <%= if event.description do %>
+            <p class="text-gray-400 text-sm line-clamp-2">
+              {event.description}
+            </p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%!-- Archive Teaser Section --%>
+  <div class="px-6 py-20 md:py-32 bg-gray-950">
+    <div class="max-w-7xl mx-auto">
+      <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
+        Archive
+      </h2>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <%= for biennale <- @biennales do %>
+          <%
+            media_list = Map.get(@biennale_media_map, biennale.id, [])
+            first_media = List.first(media_list)
+            bg_style = if first_media do
+              "background-image: url('#{media_url(first_media, size: "thumb")}'); background-size: cover; background-position: center;"
+            else
+              ""
+            end
+          %>
+          <a
+            href={~p"/biennale/#{biennale.slug}"}
+            class="aspect-square bg-black border border-gray-800 flex items-center justify-center hover:bg-gray-900 transition-colors relative overflow-hidden"
+            style={bg_style}
+          >
+            <div class="absolute inset-0 bg-black/30"></div>
+            <div class="relative text-center">
+              <span class="text-3xl font-bold text-red-700 hover:text-red-500 transition-colors">{biennale.fields["year"]}</span>
+              <span class="block text-sm font-bold text-red-700 mt-1">{biennale.fields["theme"]}</span>
+            </div>
+          </a>
+        <% end %>
+      </div>
+
+      <%= if length(@biennales) > 8 do %>
+        <div class="text-center mt-12">
+          <a
+            href={~p"/archive"}
+            class="px-8 py-4 border-2 border-white text-white font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-colors inline-block"
+          >
+            View All Editions
+          </a>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%!-- Footer --%>
+  <div class="px-6 py-12 border-t border-gray-800">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="text-center md:text-left">
+        <p class="text-sm text-gray-400 uppercase tracking-wider">
+          Mykonos Biennale &copy; {@biennale.fields["year"]}
+        </p>
+      </div>
+
+      <div class="flex gap-6">
+        <a
+          href={~p"/about"}
+          class="text-sm text-gray-400 hover:text-white uppercase tracking-wider"
+        >
+          About
+        </a>
+        <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
+          Contact
+        </a>
+        <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
+          Press
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
