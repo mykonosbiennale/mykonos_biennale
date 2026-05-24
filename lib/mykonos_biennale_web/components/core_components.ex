@@ -778,4 +778,123 @@ defmodule MykonosBiennaleWeb.CoreComponents do
   end
 
   defp first_image(_), do: nil
+
+  attr :base_path, :string, required: true
+  attr :sort_by, :atom, required: true
+  attr :current_sort, :atom, default: nil
+  attr :current_dir, :atom, default: nil
+  attr :class, :string, default: ""
+
+  def sort_header(assigns) do
+    ~H"""
+    <.link patch={sort_url(@base_path, @sort_by, @current_sort, @current_dir)} class={"cursor-pointer select-none inline-flex items-center gap-0.5 #{@class}"}>
+      {render_slot(@inner_block)}
+      <%= if @current_sort == @sort_by do %>
+        <.icon name={if @current_dir == :asc, do: "hero-chevron-up", else: "hero-chevron-down"} class="w-3 h-3" />
+      <% end %>
+    </.link>
+    """
+  end
+
+  defp sort_url(base_path, sort_by, current_sort, current_dir) do
+    dir = if current_sort == sort_by and current_dir == :asc, do: :desc, else: :asc
+    "#{base_path}?#{URI.encode_query(%{page: 1, sort_by: sort_by, sort_dir: dir})}"
+  end
+
+  attr :current_page, :integer, required: true
+  attr :total_pages, :integer, required: true
+  attr :total_count, :integer, default: nil
+  attr :base_path, :string, required: true
+  attr :sort_by, :atom, default: nil
+  attr :sort_dir, :atom, default: nil
+
+  def pagination(assigns) do
+    ~H"""
+    <nav class="flex items-center justify-between px-1 py-1.5 mt-2" aria-label="Pagination">
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <p class="text-xs text-gray-700 dark:text-gray-300">
+          Page <span class="font-medium"><%= @current_page %></span> of <span class="font-medium"><%= @total_pages %></span><%= if @total_count do %>, <%= @total_count %> records<% end %>
+        </p>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <%= if @current_page > 1 do %>
+              <.link patch={page_url(@base_path, @current_page - 1, assigns)} class="relative inline-flex items-center px-1.5 py-1 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <span class="sr-only">Previous</span>
+                <.icon name="hero-chevron-left" class="w-4 h-4" />
+              </.link>
+            <% else %>
+              <span class="relative inline-flex items-center px-1.5 py-1 rounded-l-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-900 text-sm font-medium text-gray-400 dark:text-gray-600 cursor-not-allowed">
+                <span class="sr-only">Previous</span>
+                <.icon name="hero-chevron-left" class="w-4 h-4" />
+              </span>
+            <% end %>
+
+            <%= for page <- page_range(@current_page, @total_pages) do %>
+              <%= if page == :ellipsis do %>
+                <span class="relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300">…</span>
+              <% else %>
+                <.link patch={page_url(@base_path, page, assigns)} class={"relative inline-flex items-center px-3 py-1 border text-xs font-medium #{if page == @current_page, do: "z-10 border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-200", else: "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"}"}>
+                  <%= page %>
+                </.link>
+              <% end %>
+            <% end %>
+
+            <%= if @current_page < @total_pages do %>
+              <.link patch={page_url(@base_path, @current_page + 1, assigns)} class="relative inline-flex items-center px-1.5 py-1 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <span class="sr-only">Next</span>
+                <.icon name="hero-chevron-right" class="w-4 h-4" />
+              </.link>
+            <% else %>
+              <span class="relative inline-flex items-center px-1.5 py-1 rounded-r-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-900 text-sm font-medium text-gray-400 dark:text-gray-600 cursor-not-allowed">
+                <span class="sr-only">Next</span>
+                <.icon name="hero-chevron-right" class="w-4 h-4" />
+              </span>
+            <% end %>
+          </nav>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between sm:hidden w-full">
+        <%= if @current_page > 1 do %>
+          <.link patch={page_url(@base_path, @current_page - 1, assigns)} class="relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+            Previous
+          </.link>
+        <% else %>
+          <span class="relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-600 cursor-not-allowed">
+            Previous
+          </span>
+        <% end %>
+        <span class="text-xs text-gray-700 dark:text-gray-300"><%= @current_page %> / <%= @total_pages %></span>
+        <%= if @current_page < @total_pages do %>
+          <.link patch={page_url(@base_path, @current_page + 1, assigns)} class="relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+            Next
+          </.link>
+        <% else %>
+          <span class="relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-600 cursor-not-allowed">
+            Next
+          </span>
+        <% end %>
+      </div>
+    </nav>
+    """
+  end
+
+  defp page_url(base_path, page, assigns) do
+    params = %{page: page}
+    params = if assigns[:sort_by], do: Map.put(params, :sort_by, assigns.sort_by), else: params
+    params = if assigns[:sort_dir], do: Map.put(params, :sort_dir, assigns.sort_dir), else: params
+    "#{base_path}?#{URI.encode_query(params)}"
+  end
+
+  defp page_range(current, total) when total <= 7 do
+    Enum.to_list(1..total)
+  end
+
+  defp page_range(current, total) do
+    cond do
+      current <= 3 -> [1, 2, 3, 4, :ellipsis, total]
+      current >= total - 2 -> [1, :ellipsis, total - 3, total - 2, total - 1, total]
+      true -> [1, :ellipsis, current - 1, current, current + 1, :ellipsis, total]
+    end
+  end
 end

@@ -6,8 +6,8 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
-  alias MykonosBiennale.Search
 
+  @per_page 24
   @film_types ["Short Film", "Video", "Dance", "Animation", "Documentary"]
 
   @impl true
@@ -16,6 +16,11 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
      socket
      |> assign(:page_title, "Films & Videos")
      |> assign(:search, "")
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, 1)
+     |> assign(:total_count, 0)
+     |> assign(:sort_by, :ref)
+     |> assign(:sort_dir, :asc)
      |> assign(:poster_map, %{})
      |> assign(:events_map, %{})
      |> assign(:film, nil)
@@ -24,30 +29,27 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
 
   @impl true
   def handle_params(params, _url, socket) do
-    socket = load_films(socket)
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-  end
+    page = String.to_integer(params["page"] || "1")
+    search = socket.assigns.search
+    sort_by = (params["sort_by"] || "ref") |> String.to_atom()
+    sort_dir = (params["sort_dir"] || "asc") |> String.to_atom()
 
-  defp load_films(socket) do
-    films = list_films_filtered(socket.assigns.search)
+    {films, total_count} = Content.list_films_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
     film_ids = Enum.map(films, & &1.id)
 
-    socket
-    |> assign(:poster_map, batch_load_posters(film_ids))
-    |> assign(:events_map, batch_load_events(film_ids))
-    |> stream(:films, films, reset: true)
-  end
+    socket =
+      socket
+      |> assign(:current_page, page)
+      |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+      |> assign(:sort_by, sort_by)
+      |> assign(:sort_dir, sort_dir)
+      |> assign(:poster_map, batch_load_posters(film_ids))
+      |> assign(:events_map, batch_load_events(film_ids))
+      |> stream(:films, films, reset: true)
 
-  defp list_films_filtered(""), do: Content.Film.list()
-  defp list_films_filtered(term) do
-    pattern = Search.entity_search_pattern(term)
-
-    Repo.all(
-      from e in Entity,
-        where: e.type in ^@film_types,
-        where: not is_nil(e.search_index) and like(e.search_index, ^pattern),
-        order_by: [asc: fragment("? ->> ?", e.fields, "ref")]
-    )
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
@@ -69,27 +71,80 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
 
   @impl true
   def handle_info({MykonosBiennaleWeb.Admin.FilmLive.FormComponent, {:saved, _film}}, socket) do
-    {:noreply, load_films(socket)}
+    page = socket.assigns.current_page
+    {films, total_count} = Content.list_films_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+    film_ids = Enum.map(films, & &1.id)
+
+    {:noreply,
+     socket
+     |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+     |> assign(:poster_map, batch_load_posters(film_ids))
+     |> assign(:events_map, batch_load_events(film_ids))
+     |> stream(:films, films, reset: true)}
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     film = Content.Film.get!(id)
     {:ok, _} = Content.Film.delete(film)
-    {:noreply, load_films(socket)}
+
+    page = socket.assigns.current_page
+    {films, total_count} = Content.list_films_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+    film_ids = Enum.map(films, & &1.id)
+
+    {:noreply,
+     socket
+     |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+     |> assign(:poster_map, batch_load_posters(film_ids))
+     |> assign(:events_map, batch_load_events(film_ids))
+     |> stream(:films, films, reset: true)}
   end
 
   @impl true
   def handle_event("search", %{"search" => term}, socket) do
-    {:noreply, socket |> assign(:search, term) |> load_films()}
+    {films, total_count} = Content.list_films_paginated(1, @per_page, term, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+    film_ids = Enum.map(films, & &1.id)
+
+    {:noreply,
+     socket
+     |> assign(:search, term)
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+     |> assign(:poster_map, batch_load_posters(film_ids))
+     |> assign(:events_map, batch_load_events(film_ids))
+     |> stream(:films, films, reset: true)
+     |> push_patch(to: patch_path("/admin/films", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
   end
 
   @impl true
   def handle_event("clear_search", _params, socket) do
-    {:noreply, socket |> assign(:search, "") |> load_films()}
+    {films, total_count} = Content.list_films_paginated(1, @per_page, "", sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+    film_ids = Enum.map(films, & &1.id)
+
+    {:noreply,
+     socket
+     |> assign(:search, "")
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+     |> assign(:poster_map, batch_load_posters(film_ids))
+     |> assign(:events_map, batch_load_events(film_ids))
+     |> stream(:films, films, reset: true)
+     |> push_patch(to: patch_path("/admin/films", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
   end
 
-  defp batch_load_posters([]), do: %{}
+  defp patch_path([]), do: %{}
+  defp patch_path(base, page, sort_by, sort_dir) do
+    "#{base}?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
+  end
+
   defp batch_load_posters(film_ids) do
     Repo.all(
       from em in EntityMedia,

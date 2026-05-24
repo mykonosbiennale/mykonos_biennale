@@ -12,6 +12,8 @@
         </div>
       </.link>
 
+      <.pagination :if={@total_pages > 1} current_page={@current_page} total_pages={@total_pages} total_count={@total_count} base_path="/admin/media" sort_by={@sort_by} sort_dir={@sort_dir} />
+
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="media-grid" phx-update="stream">
         <div :for={{dom_id, media} <- @streams.media_collection} id={dom_id} class="group relative bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
           <div class="aspect-video bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
@@ -52,6 +54,8 @@
       </div>
 
       
+
+      <.pagination :if={@total_pages > 1} current_page={@current_page} total_pages={@total_pages} total_count={@total_count} base_path="/admin/media" sort_by={@sort_by} sort_dir={@sort_dir} />
 
       <%= if @streams.media_collection.inserts == [] do %>
         <div class="text-center py-12">

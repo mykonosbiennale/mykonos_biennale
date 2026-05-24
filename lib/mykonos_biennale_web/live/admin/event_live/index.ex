@@ -1,12 +1,9 @@
 defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
   use MykonosBiennaleWeb, :live_view
 
-  import Ecto.Query, warn: false
-
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
-  alias MykonosBiennale.Search
+
+  @per_page 24
 
   @impl true
   def mount(_params, _session, socket) do
@@ -14,11 +11,33 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
      socket
      |> assign(:page_title, "Manage Events")
      |> assign(:search, "")
-     |> stream(:events, list_events_filtered(""))}
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, 1)
+     |> assign(:total_count, 0)
+     |> assign(:sort_by, :date)
+     |> assign(:sort_dir, :asc)
+     |> stream(:events, [])}
   end
 
   @impl true
   def handle_params(params, _url, socket) do
+    page = String.to_integer(params["page"] || "1")
+    search = socket.assigns.search
+    sort_by = (params["sort_by"] || "date") |> String.to_atom()
+    sort_dir = (params["sort_dir"] || "asc") |> String.to_atom()
+
+    {events, total_count} = Content.list_events_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
+    socket =
+      socket
+      |> assign(:current_page, page)
+      |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+      |> assign(:sort_by, sort_by)
+      |> assign(:sort_dir, sort_dir)
+      |> stream(:events, events, reset: true)
+
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
@@ -39,62 +58,78 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
   end
 
   @impl true
-  def handle_info({MykonosBiennaleWeb.Admin.EventLive.FormComponent, {:saved, event}}, socket) do
-    event = Content.get_event_for_admin!(event.id)
-    {:noreply, stream_insert(socket, :events, event)}
+  def handle_info({MykonosBiennaleWeb.Admin.EventLive.FormComponent, {:saved, _event}}, socket) do
+    page = socket.assigns.current_page
+    {events, total_count} = Content.list_events_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
+    {:noreply,
+     socket
+     |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+     |> stream(:events, events, reset: true)}
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     event = Content.get_event!(id)
     {:ok, _} = Content.delete_event(event)
-    {:noreply, stream_delete(socket, :events, event)}
+
+    page = socket.assigns.current_page
+    {events, total_count} = Content.list_events_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
+    {:noreply,
+     socket
+     |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+     |> stream(:events, events, reset: true)}
   end
 
   @impl true
   def handle_event("search", %{"search" => term}, socket) do
-    {:noreply, socket |> assign(:search, term) |> stream(:events, list_events_filtered(term), reset: true)}
+    {events, total_count} = Content.list_events_paginated(1, @per_page, term, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
+    {:noreply,
+     socket
+     |> assign(:search, term)
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+     |> stream(:events, events, reset: true)
+     |> push_patch(to: patch_path("/admin/events", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
   end
 
   @impl true
   def handle_event("clear_search", _params, socket) do
-    {:noreply, socket |> assign(:search, "") |> stream(:events, list_events_filtered(""), reset: true)}
-  end
+    {events, total_count} = Content.list_events_paginated(1, @per_page, "", sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
 
-  defp list_events_filtered(""), do: Content.list_events_for_admin()
-  defp list_events_filtered(term) do
-    pattern = Search.entity_search_pattern(term)
-    rel_query = admin_relationship_query()
-
-    Repo.all(
-      from e in Entity,
-        where: e.type == "event",
-        where: not is_nil(e.search_index) and like(e.search_index, ^pattern),
-        order_by: [asc: fragment("? ->> ?", e.fields, "date")],
-        preload: [as_subject: ^rel_query]
-    )
-  end
-
-  defp admin_relationship_query do
-    rt_ids =
-      from rt in RelationshipType,
-        where: rt.slug in ^["biennale_event", "event_festival", "event_project"],
-        select: rt.id
-
-    from r in Relationship,
-      where: r.relationship_type_id in subquery(rt_ids),
-      preload: [:object, :relationship_type]
+    {:noreply,
+     socket
+     |> assign(:search, "")
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+     |> stream(:events, events, reset: true)
+     |> push_patch(to: patch_path("/admin/events", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
   end
 
   defp field(entity, key, default \\ nil)
   defp field(%Content.Entity{fields: fields}, key, default) when is_map(fields) do
     Map.get(fields, to_string(key), Map.get(fields, key, default))
   end
+
+  defp patch_path(base, page, sort_by, sort_dir) do
+    "#{base}?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
+  end
+
   defp field(%Content.Entity{}, _key, default), do: default
 
   defp event_biennale(%Content.Entity{as_subject: rels}) when is_list(rels) do
     case Enum.find(rels, &rel_type_slug?(&1, "biennale_event")) do
-      %Relationship{object: %Content.Entity{} = biennale} -> biennale
+      %Content.Relationship{object: %Content.Entity{} = biennale} -> biennale
       _ -> nil
     end
   end
@@ -102,13 +137,13 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
 
   defp event_project(%Content.Entity{as_subject: rels}) when is_list(rels) do
     case Enum.find(rels, &rel_type_slug?(&1, "event_project")) do
-      %Relationship{object: %Content.Entity{} = project} -> project
+      %Content.Relationship{object: %Content.Entity{} = project} -> project
       _ -> nil
     end
   end
   defp event_project(%Content.Entity{}), do: nil
 
-  defp rel_type_slug?(%Relationship{relationship_type: %RelationshipType{slug: slug}}, slug), do: true
+  defp rel_type_slug?(%Content.Relationship{relationship_type: %Content.RelationshipType{slug: slug}}, slug), do: true
   defp rel_type_slug?(_, _), do: false
 
   defp parse_date(%Date{} = date), do: {:ok, date}
