@@ -1,13 +1,14 @@
 <Layouts.app flash={@flash}>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <.pagination :if={@total_pages > 1} current_page={@current_page} total_pages={@total_pages} total_count={@total_count} base_path="/admin/films" sort_by={@sort_by} sort_dir={@sort_dir} />
       <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 overflow-hidden">
         <table class="w-full">
           <thead class="bg-gray-900/50 border-b border-purple-500/20">
             <tr>
               <th class="px-3 py-3 text-left text-xs font-semibold text-gray-400 w-14"></th>
-              <th class="px-3 py-3 text-left text-xs font-semibold text-gray-400 w-20">Ref</th>
-              <th class="px-3 py-3 text-left text-xs font-semibold text-gray-400">Title</th>
+              <th class="px-3 py-3 text-left text-xs font-semibold text-gray-400 w-20"><.sort_header base_path="/admin/films" sort_by={:ref} current_sort={@sort_by} current_dir={@sort_dir} class="text-gray-400 hover:text-gray-200">Ref</.sort_header></th>
+              <th class="px-3 py-3 text-left text-xs font-semibold text-gray-400"><.sort_header base_path="/admin/films" sort_by={:title} current_sort={@sort_by} current_dir={@sort_dir} class="text-gray-400 hover:text-gray-200">Title</.sort_header></th>
               <th class="px-3 py-3 text-left text-xs font-semibold text-gray-400 w-20">Runtime</th>
               <th class="px-3 py-3 text-left text-xs font-semibold text-gray-400">Log Line</th>
               <th class="px-3 py-3 text-left text-xs font-semibold text-gray-400 w-40">Event</th>
@@ -65,6 +66,7 @@
           </tbody>
         </table>
       </div>
+      <.pagination :if={@total_pages > 1} current_page={@current_page} total_pages={@total_pages} total_count={@total_count} base_path="/admin/films" sort_by={@sort_by} sort_dir={@sort_dir} />
     </div>
 
   <.modal :if={@live_action in [:new, :edit]} id="film-modal" show on_cancel={JS.patch("/admin/films")}>

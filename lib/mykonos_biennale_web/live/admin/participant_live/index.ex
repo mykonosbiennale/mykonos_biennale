@@ -1,12 +1,9 @@
 defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Index do
   use MykonosBiennaleWeb, :live_view
 
-  import Ecto.Query, warn: false
-
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.Entity
-  alias MykonosBiennale.Search
+
+  @per_page 24
 
   @impl true
   def mount(_params, _session, socket) do
@@ -14,11 +11,33 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Index do
      socket
      |> assign(:page_title, "Manage Participants")
      |> assign(:search, "")
-     |> stream(:participants, list_participants_filtered(""))}
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, 1)
+     |> assign(:total_count, 0)
+     |> assign(:sort_by, :name)
+     |> assign(:sort_dir, :asc)
+     |> stream(:participants, [])}
   end
 
   @impl true
   def handle_params(params, _url, socket) do
+    page = String.to_integer(params["page"] || "1")
+    search = socket.assigns.search
+    sort_by = (params["sort_by"] || "name") |> String.to_atom()
+    sort_dir = (params["sort_dir"] || "asc") |> String.to_atom()
+
+    {participants, total_count} = Content.list_participants_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
+    socket =
+      socket
+      |> assign(:current_page, page)
+      |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
+      |> assign(:sort_by, sort_by)
+      |> assign(:sort_dir, sort_dir)
+      |> stream(:participants, participants, reset: true)
+
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
@@ -39,37 +58,66 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Index do
   end
 
   @impl true
-  def handle_info({MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent, {:saved, participant}}, socket) do
-    {:noreply, stream_insert(socket, :participants, participant)}
+  def handle_info({MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent, {:saved, _participant}}, socket) do
+    page = socket.assigns.current_page
+    {participants, total_count} = Content.list_participants_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
+    {:noreply,
+     socket
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
+     |> stream(:participants, participants, reset: true)}
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     participant = Content.get_participant!(id)
     {:ok, _} = Content.delete_participant(participant)
-    {:noreply, stream_delete(socket, :participants, participant)}
+
+    page = socket.assigns.current_page
+    {participants, total_count} = Content.list_participants_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
+    {:noreply,
+     socket
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
+     |> stream(:participants, participants, reset: true)}
   end
 
   @impl true
   def handle_event("search", %{"search" => term}, socket) do
-    {:noreply, socket |> assign(:search, term) |> stream(:participants, list_participants_filtered(term), reset: true)}
+    {participants, total_count} = Content.list_participants_paginated(1, @per_page, term, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
+    {:noreply,
+     socket
+     |> assign(:search, term)
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
+     |> stream(:participants, participants, reset: true)
+     |> push_patch(to: patch_path("/admin/participants", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
   end
 
   @impl true
   def handle_event("clear_search", _params, socket) do
-    {:noreply, socket |> assign(:search, "") |> stream(:participants, list_participants_filtered(""), reset: true)}
+    {participants, total_count} = Content.list_participants_paginated(1, @per_page, "", sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
+    {:noreply,
+     socket
+     |> assign(:search, "")
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
+     |> stream(:participants, participants, reset: true)
+     |> push_patch(to: patch_path("/admin/participants", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
   end
 
-  defp list_participants_filtered(""), do: Content.list_participants()
-  defp list_participants_filtered(term) do
-    pattern = Search.entity_search_pattern(term)
-
-    Repo.all(
-      from e in Entity,
-        where: e.type == "participant",
-        where: not is_nil(e.search_index) and like(e.search_index, ^pattern),
-        order_by: [asc: fragment("? ->> ?", e.fields, "last_name")]
-    )
+  defp patch_path(base, page, sort_by, sort_dir) do
+    "#{base}?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
   end
 
   defp field(entity, key, default \\ nil)

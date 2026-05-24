@@ -1,12 +1,13 @@
 <Layouts.app flash={@flash}>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <.pagination :if={@total_pages > 1} current_page={@current_page} total_pages={@total_pages} total_count={@total_count} base_path="/admin/artworks" sort_by={@sort_by} sort_dir={@sort_dir} />
       <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 overflow-hidden">
         <table class="w-full">
           <thead class="bg-gray-900/50 border-b border-purple-500/20">
             <tr>
               <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 w-12"></th>
-              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400">Title</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400"><.sort_header base_path="/admin/artworks" sort_by={:title} current_sort={@sort_by} current_dir={@sort_dir} class="text-gray-400 hover:text-gray-200">Title</.sort_header></th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400">Creator(s)</th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400">Event(s)</th>
               <th class="px-4 py-3 text-right"><span class="flex items-center justify-end gap-2"><.link patch="/admin/artworks/merge" class="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-medium rounded transition-colors">Merge</.link><.link patch="/admin/artworks/new" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors">+ New</.link></span></th>
@@ -67,6 +68,7 @@
           </tbody>
         </table>
       </div>
+      <.pagination :if={@total_pages > 1} current_page={@current_page} total_pages={@total_pages} total_count={@total_count} base_path="/admin/artworks" sort_by={@sort_by} sort_dir={@sort_dir} />
     </div>
 
   <.modal :if={@live_action == :show} id="artwork-show-modal" show on_cancel={JS.patch("/admin/artworks")}>

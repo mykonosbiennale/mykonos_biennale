@@ -8,12 +8,19 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
   alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
   alias MykonosBiennale.Search
 
+  @per_page 24
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      socket
      |> assign(:page_title, "Manage Artworks")
      |> assign(:search, "")
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, 1)
+     |> assign(:total_count, 0)
+     |> assign(:sort_by, :date)
+     |> assign(:sort_dir, :desc)
      |> assign(:creators_map, %{})
      |> assign(:events_map, %{})
      |> assign(:media_map, %{})
@@ -23,42 +30,41 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
 
   @impl true
   def handle_params(params, _url, socket) do
+    page = String.to_integer(params["page"] || "1")
+    search = socket.assigns.search
+    sort_by = (params["sort_by"] || "date") |> String.to_atom()
+    sort_dir = (params["sort_dir"] || "desc") |> String.to_atom()
+
+    {artworks, total_count} = Content.list_artworks_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+    artwork_ids = Enum.map(artworks, & &1.id)
+
     socket =
       if !socket.assigns.artworks_loaded do
-        socket |> assign(:artworks_loaded, true) |> load_artworks()
+        socket |> assign(:artworks_loaded, true)
       else
         socket
       end
 
+    socket =
+      socket
+      |> assign(:current_page, page)
+      |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+      |> assign(:sort_by, sort_by)
+      |> assign(:sort_dir, sort_dir)
+      |> assign(:creators_map, batch_load_creators(artwork_ids))
+      |> assign(:events_map, batch_load_events(artwork_ids))
+      |> assign(:media_map, batch_load_first_media(artwork_ids))
+      |> stream(:artworks, artworks, reset: true)
+
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp load_artworks(socket) do
-    artworks = list_artworks_filtered(socket.assigns.search)
-    artwork_ids = Enum.map(artworks, & &1.id)
-
-    socket
-    |> assign(:creators_map, batch_load_creators(artwork_ids))
-    |> assign(:events_map, batch_load_events(artwork_ids))
-    |> assign(:media_map, batch_load_first_media(artwork_ids))
-    |> stream(:artworks, artworks, reset: true)
-  end
-
-  defp list_artworks_filtered(""), do: Content.list_artworks()
-  defp list_artworks_filtered(term) do
-    pattern = Search.entity_search_pattern(term)
-
-    Repo.all(
-      from e in Entity,
-        where: e.type == "artwork",
-        where: not is_nil(e.search_index) and like(e.search_index, ^pattern),
-        order_by: [desc: fragment("? ->> ?", e.fields, "date")]
-    )
-  end
-
+  defp batch_load_creators([]), do: %{}
   defp batch_load_creators(artwork_ids) do
     rt = Repo.get_by(RelationshipType, slug: "artwork_participant")
-    if rt == nil or artwork_ids == [], do: %{}, else: do_batch_load_creators(rt.id, artwork_ids)
+    if rt == nil, do: %{}, else: do_batch_load_creators(rt.id, artwork_ids)
   end
 
   defp do_batch_load_creators(rt_id, artwork_ids) do
@@ -76,9 +82,10 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
     end)
   end
 
+  defp batch_load_events([]), do: %{}
   defp batch_load_events(artwork_ids) do
     rt = Repo.get_by(RelationshipType, slug: "artwork_event")
-    if rt == nil or artwork_ids == [], do: %{}, else: do_batch_load_events(rt.id, artwork_ids)
+    if rt == nil, do: %{}, else: do_batch_load_events(rt.id, artwork_ids)
   end
 
   defp do_batch_load_events(rt_id, artwork_ids) do
@@ -128,24 +135,81 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
 
   @impl true
   def handle_info({MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent, {:saved, _artwork}}, socket) do
-    {:noreply, load_artworks(socket)}
+    page = socket.assigns.current_page
+    {artworks, total_count} = Content.list_artworks_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+    artwork_ids = Enum.map(artworks, & &1.id)
+
+    {:noreply,
+     socket
+     |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+     |> assign(:creators_map, batch_load_creators(artwork_ids))
+     |> assign(:events_map, batch_load_events(artwork_ids))
+     |> assign(:media_map, batch_load_first_media(artwork_ids))
+     |> stream(:artworks, artworks, reset: true)}
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     artwork = Content.get_artwork!(id)
     {:ok, _} = Content.delete_artwork(artwork)
-    {:noreply, load_artworks(socket)}
+
+    page = socket.assigns.current_page
+    {artworks, total_count} = Content.list_artworks_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+    artwork_ids = Enum.map(artworks, & &1.id)
+
+    {:noreply,
+     socket
+     |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+     |> assign(:creators_map, batch_load_creators(artwork_ids))
+     |> assign(:events_map, batch_load_events(artwork_ids))
+     |> assign(:media_map, batch_load_first_media(artwork_ids))
+     |> stream(:artworks, artworks, reset: true)}
   end
 
   @impl true
   def handle_event("search", %{"search" => term}, socket) do
-    {:noreply, socket |> assign(:search, term) |> load_artworks()}
-  end
+    {artworks, total_count} = Content.list_artworks_paginated(1, @per_page, term, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+    artwork_ids = Enum.map(artworks, & &1.id)
+
+    {:noreply,
+     socket
+     |> assign(:search, term)
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+     |> assign(:creators_map, batch_load_creators(artwork_ids))
+     |> assign(:events_map, batch_load_events(artwork_ids))
+|> assign(:media_map, batch_load_first_media(artwork_ids))
+     |> stream(:artworks, artworks, reset: true)
+      |> push_patch(to: patch_path("/admin/artworks", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
+   end
 
   @impl true
   def handle_event("clear_search", _params, socket) do
-    {:noreply, socket |> assign(:search, "") |> load_artworks()}
+    {artworks, total_count} = Content.list_artworks_paginated(1, @per_page, "", sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+    artwork_ids = Enum.map(artworks, & &1.id)
+
+    {:noreply,
+     socket
+     |> assign(:search, "")
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, total_pages)
+      |> assign(:total_count, total_count)
+     |> assign(:creators_map, batch_load_creators(artwork_ids))
+     |> assign(:events_map, batch_load_events(artwork_ids))
+     |> assign(:media_map, batch_load_first_media(artwork_ids))
+     |> stream(:artworks, artworks, reset: true)
+     |> push_patch(to: patch_path("/admin/artworks", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
+  end
+
+  defp patch_path(base, page, sort_by, sort_dir) do
+    "#{base}?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
   end
 
   defp field(entity, key, default \\ nil)

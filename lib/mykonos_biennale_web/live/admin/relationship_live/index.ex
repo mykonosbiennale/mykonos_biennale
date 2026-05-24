@@ -1,12 +1,9 @@
 defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
   use MykonosBiennaleWeb, :live_view
 
-  import Ecto.Query, warn: false
-
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Relationship, RelationshipType, Entity}
-  alias MykonosBiennale.Search
+
+  @per_page 24
 
   @impl true
   def mount(_params, _session, socket) do
@@ -18,11 +15,33 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
      |> assign(:relationship_types, relationship_types)
      |> assign(:relationship, nil)
      |> assign(:search, "")
-     |> stream(:relationships, list_relationships_filtered(""))}
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, 1)
+     |> assign(:total_count, 0)
+     |> assign(:sort_by, :inserted_at)
+     |> assign(:sort_dir, :desc)
+     |> stream(:relationships, [])}
   end
 
   @impl true
   def handle_params(params, _url, socket) do
+    page = String.to_integer(params["page"] || "1")
+    search = socket.assigns.search
+    sort_by = (params["sort_by"] || "inserted_at") |> String.to_atom()
+    sort_dir = (params["sort_dir"] || "desc") |> String.to_atom()
+
+    {relationships, total_count} = Content.list_relationships_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
+    socket =
+      socket
+      |> assign(:current_page, page)
+      |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
+      |> assign(:sort_by, sort_by)
+      |> assign(:sort_dir, sort_dir)
+      |> stream(:relationships, relationships, reset: true)
+
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
@@ -32,7 +51,7 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
   end
 
   defp apply_action(socket, :new, _params) do
-    socket |> assign(:page_title, "New Relationship") |> assign(:relationship, %Relationship{})
+    socket |> assign(:page_title, "New Relationship") |> assign(:relationship, %Content.Relationship{})
   end
 
   defp apply_action(socket, :index, _params) do
@@ -44,62 +63,65 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
         {MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent, {:saved, _rel}},
         socket
       ) do
-    {:noreply, stream(socket, :relationships, list_relationships_filtered(socket.assigns.search), reset: true)}
+    page = socket.assigns.current_page
+    {relationships, total_count} = Content.list_relationships_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
+    {:noreply,
+     socket
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
+     |> stream(:relationships, relationships, reset: true)}
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    rel = Repo.get!(Relationship, String.to_integer(id))
+    rel = Content.get_relationship!(id)
     {:ok, _} = Content.delete_relationship(rel)
-    {:noreply, stream_delete(socket, :relationships, rel)}
+
+    page = socket.assigns.current_page
+    {relationships, total_count} = Content.list_relationships_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
+    {:noreply,
+     socket
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
+     |> stream(:relationships, relationships, reset: true)}
   end
 
   @impl true
   def handle_event("search", %{"search" => term}, socket) do
+    {relationships, total_count} = Content.list_relationships_paginated(1, @per_page, term, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
     {:noreply,
      socket
      |> assign(:search, term)
-     |> stream(:relationships, list_relationships_filtered(term), reset: true)}
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
+     |> stream(:relationships, relationships, reset: true)
+     |> push_patch(to: path_url("/admin/relationships", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
   end
 
   @impl true
   def handle_event("clear_search", _params, socket) do
+    {relationships, total_count} = Content.list_relationships_paginated(1, @per_page, "", sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    total_pages = max(1, ceil(total_count / @per_page))
+
     {:noreply,
      socket
      |> assign(:search, "")
-     |> stream(:relationships, list_relationships_filtered(""), reset: true)}
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
+     |> stream(:relationships, relationships, reset: true)
+     |> push_patch(to: path_url("/admin/relationships", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
   end
 
-  defp list_relationships_filtered(""), do: list_relationships_preloaded()
-  defp list_relationships_filtered(term) do
-    pattern = Search.entity_search_pattern(term)
-
-    # Match relationships where the subject's search_index, the object's
-    # search_index, or the relationship_type slug/label matches.
-    Repo.all(
-      from r in Relationship,
-        join: s in Entity,
-        on: s.id == r.subject_id,
-        join: o in Entity,
-        on: o.id == r.object_id,
-        join: rt in RelationshipType,
-        on: rt.id == r.relationship_type_id,
-        where:
-          like(s.search_index, ^pattern) or
-            like(o.search_index, ^pattern) or
-            like(rt.slug, ^pattern) or
-            like(rt.label, ^pattern),
-        preload: [:subject, :object, :relationship_type],
-        order_by: [desc: r.inserted_at]
-    )
-  end
-
-  defp list_relationships_preloaded do
-    Repo.all(
-      from r in Relationship,
-        preload: [:subject, :object, :relationship_type],
-        order_by: [desc: r.inserted_at]
-    )
+  defp path_url(base, page, sort_by, sort_dir) do
+    "#{base}?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
   end
 
   defp entity_label(%Content.Entity{identity: identity}) when is_binary(identity) and identity != "",

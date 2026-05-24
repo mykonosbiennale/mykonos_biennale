@@ -377,6 +377,264 @@ defmodule MykonosBiennale.Content do
   end
 
   @doc """
+  Returns a paginated list of media matching an optional search pattern.
+  Returns `{items, total_count}`.
+
+  Options:
+    - `:sort_by` - field to sort by (`:inserted_at`, `:caption`). Default `:inserted_at`.
+    - `:sort_dir` - `:asc` or `:desc`. Default `:desc`.
+  """
+  def list_media_paginated(page \\ 1, per_page \\ 24, search \\ "", opts \\ []) do
+    offset = (page - 1) * per_page
+    sort_by = Keyword.get(opts, :sort_by, :inserted_at)
+    sort_dir = Keyword.get(opts, :sort_dir, :desc)
+
+    order = media_sort_clause(sort_by, sort_dir)
+    base_query = from(m in Media, order_by: ^order)
+
+    filtered_query =
+      if search != "" do
+        pattern = MykonosBiennale.Search.entity_search_pattern(search)
+        from(m in base_query, where: not is_nil(m.search_index) and like(m.search_index, ^pattern))
+      else
+        base_query
+      end
+
+    items =
+      from(m in filtered_query, limit: ^per_page, offset: ^offset)
+      |> Repo.all()
+
+    total_count = filtered_query |> exclude(:order_by) |> Repo.aggregate(:count, :id)
+
+    {items, total_count}
+  end
+
+  defp media_sort_clause(:inserted_at, :asc), do: [asc: :inserted_at]
+  defp media_sort_clause(:inserted_at, :desc), do: [desc: :inserted_at]
+  defp media_sort_clause(:caption, :asc), do: [asc: :caption]
+  defp media_sort_clause(:caption, :desc), do: [desc: :caption]
+  defp media_sort_clause(_, _), do: [desc: :inserted_at]
+
+  @doc """
+  Returns a paginated list of artworks matching an optional search pattern.
+  Returns `{items, total_count}`.
+
+  Options:
+    - `:sort_by` - `:title`, `:date`. Default `:date`.
+    - `:sort_dir` - `:asc` or `:desc`. Default `:desc`.
+  """
+  def list_artworks_paginated(page \\ 1, per_page \\ 24, search \\ "", opts \\ []) do
+    offset = (page - 1) * per_page
+    sort_by = Keyword.get(opts, :sort_by, :date)
+    sort_dir = Keyword.get(opts, :sort_dir, :desc)
+
+    order = entity_sort_clause("artwork", sort_by, sort_dir)
+    base_query = from(e in Entity, where: e.type == "artwork", order_by: ^order)
+
+    filtered_query =
+      if search != "" do
+        pattern = MykonosBiennale.Search.entity_search_pattern(search)
+        from(e in base_query, where: not is_nil(e.search_index) and like(e.search_index, ^pattern))
+      else
+        base_query
+      end
+
+    items = from(e in filtered_query, limit: ^per_page, offset: ^offset) |> Repo.all()
+    total_count = filtered_query |> exclude(:order_by) |> Repo.aggregate(:count, :id)
+    {items, total_count}
+  end
+
+  @doc """
+  Returns a paginated list of participants matching an optional search pattern.
+  Returns `{items, total_count}`.
+
+  Options:
+    - `:sort_by` - `:name`, `:country`, `:email`. Default `:name`.
+    - `:sort_dir` - `:asc` or `:desc`. Default `:asc`.
+  """
+  def list_participants_paginated(page \\ 1, per_page \\ 24, search \\ "", opts \\ []) do
+    offset = (page - 1) * per_page
+    sort_by = Keyword.get(opts, :sort_by, :name)
+    sort_dir = Keyword.get(opts, :sort_dir, :asc)
+
+    order = entity_sort_clause("participant", sort_by, sort_dir)
+    base_query = from(e in Entity, where: e.type == "participant", order_by: ^order)
+
+    filtered_query =
+      if search != "" do
+        pattern = MykonosBiennale.Search.entity_search_pattern(search)
+        from(e in base_query, where: not is_nil(e.search_index) and like(e.search_index, ^pattern))
+      else
+        base_query
+      end
+
+    items = from(e in filtered_query, limit: ^per_page, offset: ^offset) |> Repo.all()
+    total_count = filtered_query |> exclude(:order_by) |> Repo.aggregate(:count, :id)
+    {items, total_count}
+  end
+
+  @doc """
+  Returns a paginated list of films matching an optional search pattern.
+  Returns `{items, total_count}`.
+
+  Options:
+    - `:sort_by` - `:ref`, `:title`, `:type`. Default `:ref`.
+    - `:sort_dir` - `:asc` or `:desc`. Default `:asc`.
+  """
+  def list_films_paginated(page \\ 1, per_page \\ 24, search \\ "", opts \\ []) do
+    offset = (page - 1) * per_page
+    film_types = ["Short Film", "Video", "Dance", "Animation", "Documentary"]
+    sort_by = Keyword.get(opts, :sort_by, :ref)
+    sort_dir = Keyword.get(opts, :sort_dir, :asc)
+
+    order = entity_sort_clause("film", sort_by, sort_dir)
+    base_query = from(e in Entity, where: e.type in ^film_types, order_by: ^order)
+
+    filtered_query =
+      if search != "" do
+        pattern = MykonosBiennale.Search.entity_search_pattern(search)
+        from(e in base_query, where: not is_nil(e.search_index) and like(e.search_index, ^pattern))
+      else
+        base_query
+      end
+
+    items = from(e in filtered_query, limit: ^per_page, offset: ^offset) |> Repo.all()
+    total_count = filtered_query |> exclude(:order_by) |> Repo.aggregate(:count, :id)
+    {items, total_count}
+  end
+
+  @doc """
+  Returns a paginated list of events for the admin view.
+  Returns `{items, total_count}`.
+
+  Options:
+    - `:sort_by` - `:title`, `:date`, `:type`. Default `:date`.
+    - `:sort_dir` - `:asc` or `:desc`. Default `:asc`.
+  """
+  def list_events_paginated(page \\ 1, per_page \\ 24, search \\ "", opts \\ []) do
+    offset = (page - 1) * per_page
+    sort_by = Keyword.get(opts, :sort_by, :date)
+    sort_dir = Keyword.get(opts, :sort_dir, :asc)
+
+    order = entity_sort_clause("event", sort_by, sort_dir)
+    base_query = from(e in Entity, where: e.type == "event", order_by: ^order)
+
+    filtered_query =
+      if search != "" do
+        pattern = MykonosBiennale.Search.entity_search_pattern(search)
+        from(e in base_query, where: not is_nil(e.search_index) and like(e.search_index, ^pattern))
+      else
+        base_query
+      end
+
+    rt_ids =
+      from(rt in RelationshipType,
+        where: rt.slug in ^["biennale_event", "event_festival", "event_project"],
+        select: rt.id
+      )
+
+    rel_query =
+      from(r in Relationship,
+        where: r.relationship_type_id in subquery(rt_ids),
+        preload: [:object, :relationship_type]
+      )
+
+    items =
+      from(e in filtered_query, limit: ^per_page, offset: ^offset)
+      |> Repo.all()
+      |> Repo.preload(as_subject: rel_query)
+
+    total_count = filtered_query |> exclude(:order_by) |> Repo.aggregate(:count, :id)
+    {items, total_count}
+  end
+
+  @doc """
+  Returns a paginated list of relationships matching an optional search pattern.
+  Returns `{items, total_count}`.
+
+  Options:
+    - `:sort_by` - `:inserted_at`, `:type`. Default `:inserted_at`.
+    - `:sort_dir` - `:asc` or `:desc`. Default `:desc`.
+  """
+  def list_relationships_paginated(page \\ 1, per_page \\ 24, search \\ "", opts \\ []) do
+    offset = (page - 1) * per_page
+    sort_by = Keyword.get(opts, :sort_by, :inserted_at)
+    sort_dir = Keyword.get(opts, :sort_dir, :desc)
+
+    order = relationship_sort_clause(sort_by, sort_dir)
+
+    base_query =
+      from(r in Relationship,
+        preload: [:subject, :object, :relationship_type],
+        order_by: ^order
+      )
+
+    {items, total_count} =
+      if search != "" do
+        pattern = MykonosBiennale.Search.entity_search_pattern(search)
+
+        filtered =
+          from(r in Relationship,
+            join: s in Entity, on: s.id == r.subject_id,
+            join: o in Entity, on: o.id == r.object_id,
+            join: rt in RelationshipType, on: rt.id == r.relationship_type_id,
+            where:
+              like(s.search_index, ^pattern) or
+                like(o.search_index, ^pattern) or
+                like(rt.slug, ^pattern) or
+                like(rt.label, ^pattern),
+            preload: [:subject, :object, :relationship_type],
+            order_by: ^order
+          )
+
+        count_query =
+          from(r in Relationship,
+            join: s in Entity, on: s.id == r.subject_id,
+            join: o in Entity, on: o.id == r.object_id,
+            join: rt in RelationshipType, on: rt.id == r.relationship_type_id,
+            where:
+              like(s.search_index, ^pattern) or
+                like(o.search_index, ^pattern) or
+                like(rt.slug, ^pattern) or
+                like(rt.label, ^pattern),
+            select: count(r.id)
+          )
+
+        items = from(r in filtered, limit: ^per_page, offset: ^offset) |> Repo.all()
+        total_count = Repo.one(count_query)
+        {items, total_count}
+      else
+        items = from(r in base_query, limit: ^per_page, offset: ^offset) |> Repo.all()
+        total_count = Repo.one(from(r in Relationship, select: count(r.id)))
+        {items, total_count}
+      end
+
+    {items, total_count}
+  end
+
+  defp relationship_sort_clause(:inserted_at, :asc), do: [asc: :inserted_at]
+  defp relationship_sort_clause(:inserted_at, :desc), do: [desc: :inserted_at]
+  defp relationship_sort_clause(:type, :asc), do: [asc: :relationship_type_id]
+  defp relationship_sort_clause(:type, :desc), do: [desc: :relationship_type_id]
+  defp relationship_sort_clause(_, _), do: [desc: :inserted_at]
+
+  defp entity_sort_clause("artwork", :title, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "title"))}]
+  defp entity_sort_clause("artwork", :date, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "date"))}]
+  defp entity_sort_clause("participant", :name, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "last_name"))}]
+  defp entity_sort_clause("participant", :country, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "country"))}]
+  defp entity_sort_clause("participant", :email, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "email"))}]
+  defp entity_sort_clause("film", :ref, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "ref"))}]
+  defp entity_sort_clause("film", :title, dir), do: [{dir, dynamic([e], e.identity)}]
+  defp entity_sort_clause("film", :type, dir), do: [{dir, dynamic([e], e.type)}]
+  defp entity_sort_clause("event", :title, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "title"))}]
+  defp entity_sort_clause("event", :date, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "date"))}]
+  defp entity_sort_clause("event", :type, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "type"))}]
+  defp entity_sort_clause("artwork", _, _), do: [desc: dynamic([e], fragment("? ->> ?", e.fields, "date"))]
+  defp entity_sort_clause("participant", _, _), do: [asc: dynamic([e], fragment("? ->> ?", e.fields, "last_name"))]
+  defp entity_sort_clause("film", _, _), do: [asc: dynamic([e], fragment("? ->> ?", e.fields, "ref"))]
+  defp entity_sort_clause("event", _, _), do: [asc: dynamic([e], fragment("? ->> ?", e.fields, "date"))]
+
+  @doc """
   Gets a single media.
   """
   def get_media!(id), do: Repo.get!(Media, id)
