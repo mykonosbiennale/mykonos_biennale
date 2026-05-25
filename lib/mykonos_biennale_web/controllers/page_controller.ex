@@ -4,27 +4,36 @@ defmodule MykonosBiennaleWeb.PageController do
 
   def home(conn, _params) do
     current_biennale_year =
-      Application.get_env(:mykonos_biennale, :current_biennale_year, 2025)
+      Application.get_env(:mykonos_biennale, :current_biennale_year, 2021)
 
     current_biennale = Content.get_biennale_by_year(current_biennale_year)
 
-    events =
+    raw_events =
       if current_biennale do
         Content.list_events_for_biennale(current_biennale.fields["year"])
       else
         []
       end
 
+    event_media =
+      raw_events
+      |> Enum.map(fn e -> {e.id, Content.list_media_for_entity(e)} end)
+      |> Enum.into(%{})
+
+    events = Enum.map(raw_events, &present_event/1)
+
     biennales = Content.list_biennales()
 
     biennale_media =
+      if current_biennale do
+        Content.list_media_for_entity(current_biennale)
+      else
+        []
+      end
+
+    biennale_media_map =
       biennales
       |> Enum.map(fn b -> {b.id, Content.list_media_for_entity(b)} end)
-      |> Enum.into(%{})
-
-    event_media =
-      events
-      |> Enum.map(fn e -> {e.id, Content.list_media_for_entity(e)} end)
       |> Enum.into(%{})
 
     conn
@@ -33,8 +42,36 @@ defmodule MykonosBiennaleWeb.PageController do
     |> assign(:events, events)
     |> assign(:biennales, biennales)
     |> assign(:biennale_media, biennale_media)
+    |> assign(:biennale_media_map, biennale_media_map)
     |> assign(:event_media, event_media)
-    |> render(:home)
+    |> put_view(MykonosBiennaleWeb.BiennaleHTML)
+    |> render(:festival)
+  end
+
+  defp present_event(%MykonosBiennale.Content.Entity{} = entity) do
+    media = Content.list_media_for_entity(entity)
+
+    background =
+      case List.last(media) do
+        %{source_type: "upload"} = m ->
+          MykonosBiennale.Uploads.media_url(m, size: "card")
+
+        %{source_type: "url", source_url: url} when is_binary(url) ->
+          url
+
+        _ ->
+          nil
+      end
+
+    %{
+      id: entity.id,
+      title: entity.fields["title"],
+      type: entity.fields["type"],
+      date: entity.fields["date"],
+      description: entity.fields["description"],
+      slug: entity.slug,
+      background_image: background
+    }
   end
 
   defp page_title(nil), do: "Mykonos Biennale"

@@ -1,11 +1,11 @@
 <div class="min-h-screen bg-black text-white">
   <%!-- Hero Section --%>
-  <div class="relative min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat px-4"
+  <div class="relative min-h-screen flex items-center justify-center bg-cover bg-bottom bg-no-repeat px-4"
        :if={@biennale_media != []}
        style={if media_url(List.first(@biennale_media), size: "hero"), do: "background-image: url('#{media_url(List.first(@biennale_media), size: "hero")}');", else: ""}>
-    <div class="bg-black/40 p-8 text-center text-white">
-      <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4">{@biennale.fields["theme"]}</h1>
-      <p class="text-2xl md:text-3xl text-gray-300 font-light">{@biennale.fields["year"]}</p>
+    <div class="p-8 text-center text-red-600">
+      <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4">MYKONOS BEINNALE<br />{@biennale.fields["theme"]}</h1>
+      <p class="text-2xl md:text-3xl text-red-600 ">{@biennale.fields["year"]}</p>
       <%= if @biennale.fields["start_date"] && @biennale.fields["end_date"] do %>
         <p class="text-lg text-gray-400 mt-4">{format_date(@biennale.fields["start_date"])} – {format_date(@biennale.fields["end_date"])}</p>
       <% end %>
@@ -25,10 +25,17 @@
 
   <%!-- Statement Section --%>
   <%= if @biennale.fields["statement"] do %>
-    <div class="bg-[#222] text-white py-20 px-6">
-      <div class="mx-auto max-w-5xl">
-        <h2 class="text-3xl font-light italic mb-10 text-center">{@biennale.fields["theme"]}</h2>
-        <p class="text-sm leading-relaxed text-gray-300">{@biennale.fields["statement"]}</p>
+    <% statement_media = Enum.at(@biennale_media, 1) %>
+    <% hero_url = if statement_media, do: media_url(statement_media, size: :hero), else: nil %>
+    <% stmt_class = if hero_url, do: "h-[80vh] relative text-white py-20 px-6", else: "relative text-white py-20 px-6 bg-[#222]" %>
+    <% inner_class = if hero_url, do: "mx-auto max-w-5xl relative z-10", else: "mx-auto max-w-5xl" %>
+    <div class={stmt_class} style={if hero_url do "background-image: url('" <> hero_url <> "'); background-size: cover; background-position: center;" else nil end}>
+      <%= if hero_url do %>
+        <div class="absolute inset-0 "></div>
+      <% end %>
+      <div class={inner_class}>
+        <h2 class="text-3xl text-black   font-bold mb-10 text-center">{@biennale.fields["theme"]}</h2>
+        <p class="leading-relaxed text-black">{@biennale.fields["statement"]}</p>
       </div>
     </div>
   <% end %>
@@ -39,18 +46,18 @@
       Program {@biennale.fields["year"]}
     </h2>
 
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div class="flex flex-wrap justify-center gap-8">
       <%= for event <- @events do %>
         <%
           media_list = Map.get(@event_media, event.id, [])
           first_media = List.first(media_list)
           bg_style = if first_media do
-            "background-image: url('#{media_url(first_media, size: "card")}'); background-size: cover; background-position: center;"
+            "background-image: url('" <> media_url(first_media, size: :card) <> "'); background-size: cover; background-position: center;"
           else
             ""
           end
         %>
-        <div class="group cursor-pointer">
+        <div class="group cursor-pointer w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.375rem)]">
           <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
             <%= if first_media do %>
               <div class="absolute inset-0 group-hover:scale-105 transition-transform duration-500" style={bg_style}></div>
@@ -83,20 +90,20 @@
         Archive
       </h2>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="flex flex-wrap justify-center gap-4">
         <%= for biennale <- @biennales do %>
           <%
             media_list = Map.get(@biennale_media_map, biennale.id, [])
             first_media = List.first(media_list)
             bg_style = if first_media do
-              "background-image: url('#{media_url(first_media, size: "thumb")}'); background-size: cover; background-position: center;"
+              "background-image: url('" <> media_url(first_media, size: :thumb) <> "'); background-size: cover; background-position: center;"
             else
               ""
             end
           %>
           <a
             href={~p"/biennale/#{biennale.slug}"}
-            class="aspect-square bg-black border border-gray-800 flex items-center justify-center hover:bg-gray-900 transition-colors relative overflow-hidden"
+            class="aspect-square bg-black border border-gray-800 flex items-center justify-center hover:bg-gray-900 transition-colors relative overflow-hidden w-[calc(50%-0.5rem)] md:w-[calc(25%-0.75rem)]"
             style={bg_style}
           >
             <div class="absolute inset-0 bg-black/30"></div>

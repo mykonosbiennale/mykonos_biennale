@@ -12,6 +12,7 @@ defmodule MykonosBiennale.Content do
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
   alias MykonosBiennale.Workers.SearchReindex
+  alias MykonosBiennale.Thumbnail
 
   ## Delegates - Biennale
 
@@ -673,16 +674,37 @@ defmodule MykonosBiennale.Content do
   Updates a media.
   """
   def update_media(%Media{} = media, attrs) do
-    media
-    |> Media.changeset(attrs)
-    |> Repo.update()
-    |> tap_ok(&SearchReindex.enqueue_media(&1.id))
+    if media.slug && media.source_type == "upload" do
+      Thumbnail.invalidate_slug_cache(media.slug)
+    end
+
+    result =
+      media
+      |> Media.changeset(attrs)
+      |> Repo.update()
+
+    case result do
+      {:ok, updated} ->
+        if updated.slug && updated.source_type == "upload" do
+          MykonosBiennale.Workers.MediaProcess.enqueue_all(updated.id)
+        end
+
+        SearchReindex.enqueue_media(updated.id)
+        {:ok, updated}
+
+      error ->
+        error
+    end
   end
 
   @doc """
   Deletes a media.
   """
   def delete_media(%Media{} = media) do
+    if media.slug && media.source_type == "upload" do
+      Thumbnail.invalidate_slug_cache(media.slug)
+    end
+
     Repo.delete(media)
   end
 
