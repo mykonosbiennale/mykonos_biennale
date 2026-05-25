@@ -138,6 +138,23 @@ defmodule MykonosBiennale.Thumbnail do
     end
   end
 
+  @doc """
+  Deletes all cached thumbnail variants (WebP, AVIF, JPEG) for a slug.
+  Called when a media record is updated or deleted so stale cached files
+  are regenerated on the next request.
+  """
+  @spec invalidate_slug_cache(String.t()) :: :ok
+  def invalidate_slug_cache(slug) when is_binary(slug) do
+    exts = [".webp", ".avif", ".jpg"]
+
+    for size <- Map.keys(MediaDir.sizes()) ++ ["press"], ext <- exts do
+      path = MediaDir.path(slug, size, ext)
+      File.rm(path)
+    end
+
+    :ok
+  end
+
   defp image_ext?(filename) do
     ext = filename |> Path.extname() |> String.downcase()
     ext in [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff", ".tif"]
