@@ -29,7 +29,7 @@ config :mykonos_biennale, :scopes,
 config :mykonos_biennale,
   ecto_repos: [MykonosBiennale.Repo],
   generators: [timestamp_type: :utc_datetime],
-  current_biennale_year: 2021,
+  current_biennale_year: 2025,
   uploads_dir: "/data/uploads"
 
 # Configures the endpoint

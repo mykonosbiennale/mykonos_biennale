@@ -40,16 +40,16 @@
     </div>
   <% end %>
 
-  <%!-- Program Preview Section (from home page) --%>
+  <%!-- Project Preview Section (from home page) --%>
   <div class="px-6 py-20 md:py-32 max-w-7xl mx-auto">
     <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
-      Program {@biennale.fields["year"]}
+      Projects {@biennale.fields["year"]}
     </h2>
 
     <div class="flex flex-wrap justify-center gap-8">
-      <%= for event <- @events do %>
+      <%= for project <- @projects do %>
         <%
-          media_list = Map.get(@event_media, event.id, [])
+          media_list = Map.get(@project_media, project.id, [])
           first_media = List.first(media_list)
           bg_style = if first_media do
             "background-image: url('" <> media_url(first_media, size: :card) <> "'); background-size: cover; background-position: center;"
@@ -66,16 +66,11 @@
             <% end %>
           </div>
           <h3 class="text-xl font-bold uppercase mb-2">
-            {event.title}
+            {project.title}
           </h3>
-          <%= if event.type do %>
-            <p class="text-gray-500 text-xs uppercase tracking-wider mb-1">
-              {Phoenix.Naming.humanize(event.type)}
-            </p>
-          <% end %>
-          <%= if event.description do %>
+          <%= if project.description do %>
             <p class="text-gray-400 text-sm line-clamp-2">
-              {event.description}
+              {project.description}
             </p>
           <% end %>
         </div>

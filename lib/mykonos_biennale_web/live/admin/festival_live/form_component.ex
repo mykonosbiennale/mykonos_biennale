@@ -42,6 +42,7 @@ defmodule MykonosBiennaleWeb.Admin.FestivalLive.FormComponent do
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
+        novalidate
       >
         <div class="space-y-4">
           <.input field={@form[:year]} type="number" label="Year" required />

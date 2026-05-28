@@ -6,7 +6,7 @@ defmodule MykonosBiennale.Content.Project do
   import Ecto.Query, warn: false
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
 
   def list do
     Repo.all(
@@ -14,6 +14,33 @@ defmodule MykonosBiennale.Content.Project do
         where: e.type == "project",
         order_by: [desc: e.inserted_at]
     )
+  end
+
+  def list_for_biennale(biennale_year) do
+    biennale_entity = Content.Biennale.get_by_year(biennale_year)
+
+    if biennale_entity do
+      biennale_event_rt_id =
+        Repo.one(from rt in RelationshipType, where: rt.slug == "biennale_event", select: rt.id, limit: 1)
+
+      event_project_rt_id =
+        Repo.one(from rt in RelationshipType, where: rt.slug == "event_project", select: rt.id, limit: 1)
+
+      Repo.all(
+        from p in Entity,
+          join: ep in Relationship,
+            on: ep.relationship_type_id == ^event_project_rt_id and
+                ep.object_id == p.id,
+          join: be in Relationship,
+            on: be.relationship_type_id == ^biennale_event_rt_id and
+                be.subject_id == ep.subject_id,
+          where: p.type == "project" and be.object_id == ^biennale_entity.id,
+          distinct: p.id,
+          order_by: [asc: p.identity]
+      )
+    else
+      []
+    end
   end
 
   def get!(id), do: Repo.get!(Entity, id)

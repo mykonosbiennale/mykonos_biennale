@@ -159,6 +159,9 @@ defmodule MykonosBiennale.Content do
   ## Delegates - Project
 
   defdelegate list_projects, to: MykonosBiennale.Content.Project, as: :list
+  defdelegate list_projects_for_biennale(year),
+    to: MykonosBiennale.Content.Project,
+    as: :list_for_biennale
   defdelegate get_project!(id), to: MykonosBiennale.Content.Project, as: :get!
   defdelegate create_project(attrs \\ %{}), to: MykonosBiennale.Content.Project, as: :create
   defdelegate update_project(entity, attrs), to: MykonosBiennale.Content.Project, as: :update
