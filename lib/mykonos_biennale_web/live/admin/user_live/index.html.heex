@@ -23,7 +23,11 @@
           </tr>
         </thead>
         <tbody id="users" phx-update="stream" class="divide-y divide-gray-700/50">
-          <tr :for={{id, user} <- @streams.users} id={id} class="hover:bg-gray-700/20 transition-colors">
+          <tr
+            :for={{id, user} <- @streams.users}
+            id={id}
+            class="hover:bg-gray-700/20 transition-colors"
+          >
             <td class="px-6 py-4 text-sm text-white">{user.email}</td>
             <td class="px-6 py-4">
               <span class={
@@ -45,11 +49,25 @@
               <% end %>
             </td>
             <td class="px-6 py-4 text-right space-x-2">
-              <.link patch={"/admin/users/#{user.id}/edit"} class="text-purple-400 hover:text-purple-300 text-sm">Edit</.link>
-              <button phx-click="send_magic_link" phx-value-id={user.id} class="text-blue-400 hover:text-blue-300 text-sm">
+              <.link
+                patch={"/admin/users/#{user.id}/edit"}
+                class="text-purple-400 hover:text-purple-300 text-sm"
+              >
+                Edit
+              </.link>
+              <button
+                phx-click="send_magic_link"
+                phx-value-id={user.id}
+                class="text-blue-400 hover:text-blue-300 text-sm"
+              >
                 Send Login Link
               </button>
-              <button phx-click="delete" phx-value-id={user.id} data-confirm="Are you sure?" class="text-red-400 hover:text-red-300 text-sm">
+              <button
+                phx-click="delete"
+                phx-value-id={user.id}
+                data-confirm="Are you sure?"
+                class="text-red-400 hover:text-red-300 text-sm"
+              >
                 Delete
               </button>
             </td>

@@ -34,7 +34,9 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
     sort_by = (params["sort_by"] || "ref") |> String.to_atom()
     sort_dir = (params["sort_dir"] || "asc") |> String.to_atom()
 
-    {films, total_count} = Content.list_films_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
+    {films, total_count} =
+      Content.list_films_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
+
     total_pages = max(1, ceil(total_count / @per_page))
     film_ids = Enum.map(films, & &1.id)
 
@@ -58,7 +60,11 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
 
   defp apply_action(socket, :new, params) do
     default_event_id = Map.get(params, "event_id", "")
-    socket |> assign(:page_title, "New Film") |> assign(:film, %Entity{type: "Short Film", fields: %{}}) |> assign(:default_event_id, default_event_id)
+
+    socket
+    |> assign(:page_title, "New Film")
+    |> assign(:film, %Entity{type: "Short Film", fields: %{}})
+    |> assign(:default_event_id, default_event_id)
   end
 
   defp apply_action(socket, :show, %{"id" => id}) do
@@ -72,14 +78,20 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
   @impl true
   def handle_info({MykonosBiennaleWeb.Admin.FilmLive.FormComponent, {:saved, _film}}, socket) do
     page = socket.assigns.current_page
-    {films, total_count} = Content.list_films_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+
+    {films, total_count} =
+      Content.list_films_paginated(page, @per_page, socket.assigns.search,
+        sort_by: socket.assigns.sort_by,
+        sort_dir: socket.assigns.sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
     film_ids = Enum.map(films, & &1.id)
 
     {:noreply,
      socket
      |> assign(:total_pages, total_pages)
-      |> assign(:total_count, total_count)
+     |> assign(:total_count, total_count)
      |> assign(:poster_map, batch_load_posters(film_ids))
      |> assign(:events_map, batch_load_events(film_ids))
      |> stream(:films, films, reset: true)}
@@ -91,14 +103,20 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
     {:ok, _} = Content.Film.delete(film)
 
     page = socket.assigns.current_page
-    {films, total_count} = Content.list_films_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+
+    {films, total_count} =
+      Content.list_films_paginated(page, @per_page, socket.assigns.search,
+        sort_by: socket.assigns.sort_by,
+        sort_dir: socket.assigns.sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
     film_ids = Enum.map(films, & &1.id)
 
     {:noreply,
      socket
      |> assign(:total_pages, total_pages)
-      |> assign(:total_count, total_count)
+     |> assign(:total_count, total_count)
      |> assign(:poster_map, batch_load_posters(film_ids))
      |> assign(:events_map, batch_load_events(film_ids))
      |> stream(:films, films, reset: true)}
@@ -106,7 +124,12 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
 
   @impl true
   def handle_event("search", %{"search" => term}, socket) do
-    {films, total_count} = Content.list_films_paginated(1, @per_page, term, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    {films, total_count} =
+      Content.list_films_paginated(1, @per_page, term,
+        sort_by: socket.assigns.sort_by,
+        sort_dir: socket.assigns.sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
     film_ids = Enum.map(films, & &1.id)
 
@@ -115,16 +138,23 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
      |> assign(:search, term)
      |> assign(:current_page, 1)
      |> assign(:total_pages, total_pages)
-      |> assign(:total_count, total_count)
+     |> assign(:total_count, total_count)
      |> assign(:poster_map, batch_load_posters(film_ids))
      |> assign(:events_map, batch_load_events(film_ids))
      |> stream(:films, films, reset: true)
-     |> push_patch(to: patch_path("/admin/films", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
+     |> push_patch(
+       to: patch_path("/admin/films", 1, socket.assigns.sort_by, socket.assigns.sort_dir)
+     )}
   end
 
   @impl true
   def handle_event("clear_search", _params, socket) do
-    {films, total_count} = Content.list_films_paginated(1, @per_page, "", sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    {films, total_count} =
+      Content.list_films_paginated(1, @per_page, "",
+        sort_by: socket.assigns.sort_by,
+        sort_dir: socket.assigns.sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
     film_ids = Enum.map(films, & &1.id)
 
@@ -133,14 +163,17 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
      |> assign(:search, "")
      |> assign(:current_page, 1)
      |> assign(:total_pages, total_pages)
-      |> assign(:total_count, total_count)
+     |> assign(:total_count, total_count)
      |> assign(:poster_map, batch_load_posters(film_ids))
      |> assign(:events_map, batch_load_events(film_ids))
      |> stream(:films, films, reset: true)
-     |> push_patch(to: patch_path("/admin/films", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
+     |> push_patch(
+       to: patch_path("/admin/films", 1, socket.assigns.sort_by, socket.assigns.sort_dir)
+     )}
   end
 
   defp patch_path([]), do: %{}
+
   defp patch_path(base, page, sort_by, sort_dir) do
     "#{base}?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
   end
@@ -149,10 +182,21 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
     Repo.all(
       from em in EntityMedia,
         where: em.entity_id in ^film_ids,
-        join: m in Media, on: m.id == em.media_id,
-        where: fragment("? ->> 'is_poster' = 'true' or ? ->> 'role' = 'poster'", em.metadata, em.metadata),
+        join: m in Media,
+        on: m.id == em.media_id,
+        where:
+          fragment(
+            "? ->> 'is_poster' = 'true' or ? ->> 'role' = 'poster'",
+            em.metadata,
+            em.metadata
+          ),
         order_by: [em.entity_id, em.position],
-        select: %{entity_id: em.entity_id, source_type: m.source_type, source_path: m.source_path, source_url: m.source_url}
+        select: %{
+          entity_id: em.entity_id,
+          source_type: m.source_type,
+          source_path: m.source_path,
+          source_url: m.source_url
+        }
     )
     |> Enum.group_by(& &1.entity_id)
     |> Enum.into(%{}, fn {eid, items} -> {eid, hd(items)} end)
@@ -178,8 +222,10 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
   end
 
   defp field(entity, key, default \\ nil)
+
   defp field(%Content.Entity{fields: fields}, key, default) when is_map(fields) do
     Map.get(fields, to_string(key), Map.get(fields, key, default))
   end
+
   defp field(%Content.Entity{}, _key, default), do: default
 end

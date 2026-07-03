@@ -30,7 +30,9 @@ defmodule Mix.Tasks.Mb.Reindex do
     entity_ids = Repo.all(from e in Entity, select: e.id)
     media_ids = Repo.all(from m in Media, select: m.id)
 
-    Mix.shell().info("Reindexing #{length(entity_ids)} entities and #{length(media_ids)} media...")
+    Mix.shell().info(
+      "Reindexing #{length(entity_ids)} entities and #{length(media_ids)} media..."
+    )
 
     if opts[:async] do
       Enum.each(entity_ids, &SearchReindex.enqueue_entity/1)

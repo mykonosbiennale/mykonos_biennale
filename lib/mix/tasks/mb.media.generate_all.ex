@@ -54,6 +54,7 @@ defmodule Mix.Tasks.Mb.Media.GenerateAll do
       Enum.reduce(media, {0, 0, 0}, fn {id, slug, source_path}, {gen, skip, fail} ->
         if image_ext?(source_path) do
           result = generate_thumbnails(slug, source_path, force?)
+
           case result do
             :generated ->
               if rem(gen + 1, 50) == 0 do
@@ -86,6 +87,7 @@ defmodule Mix.Tasks.Mb.Media.GenerateAll do
       do_generate(slug, source_path)
     else
       card_path = MediaDir.path(slug, "card", ".webp")
+
       if File.exists?(card_path) do
         :skipped
       else

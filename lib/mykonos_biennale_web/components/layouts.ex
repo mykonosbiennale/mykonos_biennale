@@ -30,7 +30,9 @@ defmodule MykonosBiennaleWeb.Layouts do
 
         if view_module && template do
           case source_path(view_module) do
-            nil -> nil
+            nil ->
+              nil
+
             view_source ->
               basename = Path.basename(view_source, ".ex")
               dir = Path.join(Path.dirname(view_source), basename)

@@ -33,7 +33,12 @@ defmodule MykonosBiennaleWeb.Endpoint do
 
   plug Plug.Static,
     at: "/media",
-    from: Application.get_env(:mykonos_biennale, :media_dir, Path.join([:code.priv_dir(:mykonos_biennale), "static", "media"])),
+    from:
+      Application.get_env(
+        :mykonos_biennale,
+        :media_dir,
+        Path.join([:code.priv_dir(:mykonos_biennale), "static", "media"])
+      ),
     gzip: not code_reloading?
 
   if Mix.env() == :dev do

@@ -46,7 +46,10 @@ defmodule MykonosBiennale.MediaSlug do
   end
 
   defp pick_base(caption, _original_name) when is_binary(caption) and caption != "", do: caption
-  defp pick_base(_caption, original_name) when is_binary(original_name) and original_name != "", do: original_name
+
+  defp pick_base(_caption, original_name) when is_binary(original_name) and original_name != "",
+    do: original_name
+
   defp pick_base(_, _), do: "media"
 
   defp ensure_nonempty(""), do: "media"
@@ -59,6 +62,7 @@ defmodule MykonosBiennale.MediaSlug do
   end
 
   defp encode_base62(0, acc), do: [Enum.at(@chars, 0) | acc]
+
   defp encode_base62(id, acc) do
     encode_base62(div(id, 62), [Enum.at(@chars, rem(id, 62)) | acc])
   end

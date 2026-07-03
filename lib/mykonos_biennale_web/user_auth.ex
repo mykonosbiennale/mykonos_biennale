@@ -180,6 +180,20 @@ defmodule MykonosBiennaleWeb.UserAuth do
   defp user_session_topic(token), do: "users_sessions:#{Base.url_encode64(token)}"
 
   @doc """
+  Plug that requires the user to be an admin.
+  """
+  def require_admin(conn, _opts) do
+    if conn.assigns.current_scope && Scope.admin?(conn.assigns.current_scope) do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You do not have permission to access this page.")
+      |> redirect(to: ~p"/users/log-in")
+      |> halt()
+    end
+  end
+
+  @doc """
   Handles mounting and authenticating the current_scope in LiveViews.
 
   ## `on_mount` arguments

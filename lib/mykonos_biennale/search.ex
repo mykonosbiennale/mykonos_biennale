@@ -59,7 +59,9 @@ defmodule MykonosBiennale.Search do
     media_owner_by_id = build_media_owner_lookup(media)
 
     entity_hits = Enum.map(entities, &entity_to_hit(&1, biennale_year_by_id, normalized))
-    media_hits = Enum.map(media, &media_to_hit(&1, media_owner_by_id, biennale_year_by_id, normalized))
+
+    media_hits =
+      Enum.map(media, &media_to_hit(&1, media_owner_by_id, biennale_year_by_id, normalized))
 
     %{
       entities: entity_hits,
@@ -183,7 +185,8 @@ defmodule MykonosBiennale.Search do
     }
   end
 
-  defp entity_title(%Entity{type: "biennale", fields: %{"year" => y}}), do: "Mykonos Biennale #{y}"
+  defp entity_title(%Entity{type: "biennale", fields: %{"year" => y}}),
+    do: "Mykonos Biennale #{y}"
 
   defp entity_title(%Entity{identity: id}) when is_binary(id) and id != "", do: id
 
@@ -205,6 +208,7 @@ defmodule MykonosBiennale.Search do
   defp entity_subtitle(%Entity{type: type} = entity, year_lookup) do
     base = humanize_type(type)
     year = Map.get(year_lookup, entity.id)
+
     cond do
       type == "biennale" -> "Biennale Edition"
       year -> "#{base} · #{year}"
@@ -290,7 +294,8 @@ defmodule MykonosBiennale.Search do
     snippet = String.slice(text, start, @snippet_window)
     prefix = if start > 0, do: "…", else: ""
     suffix = if start + @snippet_window < String.length(text), do: "…", else: ""
-    prefix <> snippet <> suffix
+
+    (prefix <> snippet <> suffix)
     |> String.trim()
     |> elide_unrelated()
     |> ensure_match_visible(len)

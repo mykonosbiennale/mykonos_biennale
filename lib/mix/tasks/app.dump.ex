@@ -51,20 +51,55 @@ defmodule Mix.Tasks.App.Dump do
   defp serialize_record(record) do
     record
     |> Map.from_struct()
-    |> Map.drop([:__meta__, :as_subject, :as_object, :media, :sections, :entities, :page, :user, :relationship_type, :subject, :object])
+    |> Map.drop([
+      :__meta__,
+      :as_subject,
+      :as_object,
+      :media,
+      :sections,
+      :entities,
+      :page,
+      :user,
+      :relationship_type,
+      :subject,
+      :object
+    ])
     |> Enum.map(fn
-      {:inserted_at, %NaiveDateTime{} = dt} -> {:inserted_at, NaiveDateTime.to_iso8601(dt)}
-      {:updated_at, %NaiveDateTime{} = dt} -> {:updated_at, NaiveDateTime.to_iso8601(dt)}
-      {:inserted_at, nil} -> {:inserted_at, nil}
-      {:updated_at, nil} -> {:updated_at, nil}
-      {:search_indexed_at, %NaiveDateTime{} = dt} -> {:search_indexed_at, NaiveDateTime.to_iso8601(dt)}
-      {:search_indexed_at, nil} -> {:search_indexed_at, nil}
-      {:fields, val} when is_map(val) -> {:fields, val}
-      {:metadata, val} when is_map(val) -> {:metadata, val}
-      {:hashed_password, bin} when is_binary(bin) -> {:hashed_password, Base.encode64(bin)}
-      {:token, bin} when is_binary(bin) -> {:token, Base.encode64(bin)}
-      {_k, %Ecto.Association.NotLoaded{}} -> nil
-      other -> other
+      {:inserted_at, %NaiveDateTime{} = dt} ->
+        {:inserted_at, NaiveDateTime.to_iso8601(dt)}
+
+      {:updated_at, %NaiveDateTime{} = dt} ->
+        {:updated_at, NaiveDateTime.to_iso8601(dt)}
+
+      {:inserted_at, nil} ->
+        {:inserted_at, nil}
+
+      {:updated_at, nil} ->
+        {:updated_at, nil}
+
+      {:search_indexed_at, %NaiveDateTime{} = dt} ->
+        {:search_indexed_at, NaiveDateTime.to_iso8601(dt)}
+
+      {:search_indexed_at, nil} ->
+        {:search_indexed_at, nil}
+
+      {:fields, val} when is_map(val) ->
+        {:fields, val}
+
+      {:metadata, val} when is_map(val) ->
+        {:metadata, val}
+
+      {:hashed_password, bin} when is_binary(bin) ->
+        {:hashed_password, Base.encode64(bin)}
+
+      {:token, bin} when is_binary(bin) ->
+        {:token, Base.encode64(bin)}
+
+      {_k, %Ecto.Association.NotLoaded{}} ->
+        nil
+
+      other ->
+        other
     end)
     |> Enum.reject(&is_nil/1)
     |> Map.new()

@@ -28,7 +28,17 @@ defmodule MykonosBiennale.Content.Entity do
   @doc false
   def changeset(entity, attrs, _meta \\ []) do
     entity
-    |> cast(attrs, [:identity, :type, :slug, :visible, :template, :fields, :search_index, :search_indexed_at, :created_by_id])
+    |> cast(attrs, [
+      :identity,
+      :type,
+      :slug,
+      :visible,
+      :template,
+      :fields,
+      :search_index,
+      :search_indexed_at,
+      :created_by_id
+    ])
     |> validate_required([:identity, :type, :slug, :visible])
   end
 end

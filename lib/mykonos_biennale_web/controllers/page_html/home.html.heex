@@ -52,21 +52,26 @@
 
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         <%= for event <- @events do %>
-          <%
-            media_list = Map.get(@event_media, event.id, [])
-            first_media = List.first(media_list)
-bg_style = if first_media do
-               "background-image: url('#{media_url(first_media, size: "card")}'); background-size: cover; background-position: center;"
-             else
-               ""
-             end
-           %>
-           <div class="group cursor-pointer">
-             <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
-               <%= if first_media do %>
-                 <div class="absolute inset-0 group-hover:scale-105 transition-transform duration-500" style={bg_style}></div>
+          <% media_list = Map.get(@event_media, event.id, [])
+          first_media = List.first(media_list)
+
+          bg_style =
+            if first_media do
+              "background-image: url('#{media_url(first_media, size: "card")}'); background-size: cover; background-position: center;"
+            else
+              ""
+            end %>
+          <div class="group cursor-pointer">
+            <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
+              <%= if first_media do %>
+                <div
+                  class="absolute inset-0 group-hover:scale-105 transition-transform duration-500"
+                  style={bg_style}
+                >
+                </div>
               <% else %>
-                <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-black group-hover:scale-105 transition-transform duration-500"></div>
+                <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-black group-hover:scale-105 transition-transform duration-500">
+                </div>
               <% end %>
             </div>
             <h3 class="text-xl font-bold uppercase mb-2">
@@ -96,15 +101,15 @@ bg_style = if first_media do
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <%= for biennale <- @biennales do %>
-            <%
-              media_list = Map.get(@biennale_media, biennale.id, [])
-              first_media = List.first(media_list)
-bg_style = if first_media do
-                 "background-image: url('#{media_url(first_media, size: "thumb")}'); background-size: cover; background-position: center;"
-               else
-                 ""
-               end
-            %>
+            <% media_list = Map.get(@biennale_media, biennale.id, [])
+            first_media = List.first(media_list)
+
+            bg_style =
+              if first_media do
+                "background-image: url('#{media_url(first_media, size: "thumb")}'); background-size: cover; background-position: center;"
+              else
+                ""
+              end %>
             <a
               href={~p"/biennale/#{biennale.slug}"}
               class="aspect-square bg-black border border-gray-800 flex items-center justify-center hover:bg-gray-900 transition-colors relative overflow-hidden"
@@ -112,8 +117,12 @@ bg_style = if first_media do
             >
               <div class="absolute inset-0 bg-black/30"></div>
               <div class="relative text-center">
-                <span class="text-3xl font-bold text-red-700 hover:text-red-500 transition-colors">{biennale.fields["year"]}</span>
-                <span class="block text-sm font-bold text-red-700 mt-1">{biennale.fields["theme"]}</span>
+                <span class="text-3xl font-bold text-red-700 hover:text-red-500 transition-colors">
+                  {biennale.fields["year"]}
+                </span>
+                <span class="block text-sm font-bold text-red-700 mt-1">
+                  {biennale.fields["theme"]}
+                </span>
               </div>
             </a>
           <% end %>

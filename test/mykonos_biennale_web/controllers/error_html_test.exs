@@ -9,6 +9,7 @@ defmodule MykonosBiennaleWeb.ErrorHTMLTest do
   end
 
   test "renders 500.html" do
-    assert render_to_string(MykonosBiennaleWeb.ErrorHTML, "500", "html", []) == "Internal Server Error"
+    assert render_to_string(MykonosBiennaleWeb.ErrorHTML, "500", "html", []) ==
+             "Internal Server Error"
   end
 end

@@ -26,6 +26,14 @@ defmodule MykonosBiennale.Uploads do
     File.mkdir_p!(uploads_dir())
   end
 
+  def media_host do
+    Application.get_env(:mykonos_biennale, :media_host, "")
+  end
+
+  def prefix_url(path) when is_binary(path) do
+    media_host() <> path
+  end
+
   @doc """
   Returns the media URL for a given media struct, size, and format.
 
@@ -52,10 +60,10 @@ defmodule MykonosBiennale.Uploads do
         fmt when fmt in ["webp", "avif"] -> MediaDir.url(slug, size, ".#{fmt}")
         "jpg" -> MediaDir.url(slug, size, ".jpg")
         "jpeg" -> MediaDir.url(slug, size, ".jpg")
-        _ -> "/uploads/#{path}"
+        _ -> prefix_url("/uploads/#{path}")
       end
     else
-      "/uploads/#{path}"
+      prefix_url("/uploads/#{path}")
     end
   end
 
@@ -71,10 +79,10 @@ defmodule MykonosBiennale.Uploads do
         "avif" -> Thumbnail.thumbnail_url(path, width, height) |> String.replace(".webp", ".avif")
         "jpg" -> Thumbnail.thumbnail_url(path, width, height) |> String.replace(".webp", ".jpg")
         "jpeg" -> Thumbnail.thumbnail_url(path, width, height) |> String.replace(".webp", ".jpg")
-        _ -> "/uploads/#{path}"
+        _ -> prefix_url("/uploads/#{path}")
       end
     else
-      "/uploads/#{path}"
+      prefix_url("/uploads/#{path}")
     end
   end
 

@@ -28,7 +28,8 @@ if config_env() == :prod do
       For example: ecto://USER:PASS@HOST/DATABASE
       """
 
-  ssl_options = if System.get_env("DATABASE_SSL") == "true", do: [verify: :verify_none], else: false
+  ssl_options =
+    if System.get_env("DATABASE_SSL") == "true", do: [verify: :verify_none], else: false
 
   config :mykonos_biennale, MykonosBiennale.Repo,
     url: database_url,
@@ -37,15 +38,21 @@ if config_env() == :prod do
 
   config :mykonos_biennale, :uploads_dir, "/data/uploads"
   config :mykonos_biennale, :media_dir, "/data/media"
+
+  config :mykonos_biennale,
+         :media_host,
+         System.get_env("MEDIA_HOST") || "https://admin.mykonosbiennale.com"
+
   File.mkdir_p("/data/uploads")
   File.mkdir_p("/data/media")
   File.mkdir_p("/data/thumbnails")
 
   config :mykonos_biennale, MykonosBiennale.Mailer,
-    api_key: System.get_env("SENDGRID_API_KEY") ||
-      raise """
-      environment variable SENDGRID_API_KEY is missing.
-      """
+    api_key:
+      System.get_env("SENDGRID_API_KEY") ||
+        raise("""
+        environment variable SENDGRID_API_KEY is missing.
+        """)
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you

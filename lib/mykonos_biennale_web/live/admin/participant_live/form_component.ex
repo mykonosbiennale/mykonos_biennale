@@ -479,7 +479,9 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
     end)
   end
 
-  defp headshot_url(%Media{source_type: "upload"} = media), do: MykonosBiennale.Uploads.media_url(media, size: "admin")
+  defp headshot_url(%Media{source_type: "upload"} = media),
+    do: MykonosBiennale.Uploads.media_url(media, size: "admin")
+
   defp headshot_url(%Media{source_type: "url", source_url: url}) when is_binary(url), do: url
   defp headshot_url(_), do: ""
 

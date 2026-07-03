@@ -26,7 +26,7 @@ defmodule MykonosBiennale.MediaDir do
   end
 
   def media_url(filename) when is_binary(filename) do
-    "/media/#{filename}"
+    MykonosBiennale.Uploads.prefix_url("/media/#{filename}")
   end
 
   def ensure_media_dir do

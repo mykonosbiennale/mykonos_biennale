@@ -161,7 +161,8 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(%{changeset | action: :validate}, as: :relationship))}
+        {:noreply,
+         assign(socket, form: to_form(%{changeset | action: :validate}, as: :relationship))}
     end
   end
 
@@ -176,7 +177,8 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(%{changeset | action: :validate}, as: :relationship))}
+        {:noreply,
+         assign(socket, form: to_form(%{changeset | action: :validate}, as: :relationship))}
     end
   end
 
@@ -198,8 +200,12 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent do
 
   defp parse_fields(params) do
     case Map.get(params, "fields") do
-      nil -> Map.put(params, "fields", nil)
-      "" -> Map.put(params, "fields", nil)
+      nil ->
+        Map.put(params, "fields", nil)
+
+      "" ->
+        Map.put(params, "fields", nil)
+
       raw ->
         case Jason.decode(raw) do
           {:ok, decoded} -> Map.put(params, "fields", decoded)

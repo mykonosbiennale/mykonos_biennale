@@ -1,132 +1,212 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>2023 - Orphic Mysteries - Mykonos Biennale</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap');
-        body { font-family: 'Open Sans', sans-serif; }
+      @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap');
+      body { font-family: 'Open Sans', sans-serif; }
     </style>
-</head>
-<body class="bg-white text-[#444]">
-        <!-- given biennale id -->
+  </head>
+  <body class="bg-white text-[#444]">
+    <!-- given biennale id -->
 
-    <div class="relative min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat px-4"
-         style="background-image: url('https://mykonosbiennale.com/static/images/mykonos-biennale-2023-film_festival.webp');">
-        <div class="bg-black/40 p-8 text-center text-white">
-            <!-- show the biennale title -->
+    <div
+      class="relative min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat px-4"
+      style="background-image: url('https://mykonosbiennale.com/static/images/mykonos-biennale-2023-film_festival.webp');"
+    >
+      <div class="bg-black/40 p-8 text-center text-white">
+        <!-- show the biennale title -->
             <!-- show the biennale dates -->
-            {@page_content}
-        </div>
+        {@page_content}
+      </div>
     </div>
 
     <div class="bg-black text-white py-16 px-6">
-
-        <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 text-[14px]">
-            <div>
-             <!-- program -->
-                <h2 class="text-3xl font-bold mb-8 italic uppercase">ΠΡΟΓΡΑΜΜΑ</h2>
-                <div class="space-y-4">
-                    <p><strong>ΤΕΤΑΡΤΗ, 27 ΣΕΠΤ. 2023, ΚΙΤΡΙΝΟΣ ΠΥΡΓΟΣ, ΑΝΩ ΜΕΡΑ</strong><br>ΠΡΕΛΟΥΔΙΟ ΣΤΟΝ ΚΗΠΟ ΤΩΝ ΜΥΣΤΗΡΙΩΝ, 18:00<br>ΠΡΟΒΟΛΗ DRAMATIC NIGHTS ΗΜΕΡΑ 1, 21:00</p>
-                    <p><strong>ΠΕΜΠΤΗ, 28 ΣΕΠΤ. 2023, ΚΙΤΡΙΝΟΣ ΠΥΡΓΟΣ, ΑΝΩ ΜΕΡΑ</strong><br>ΓΙΟΡΤΗ ΤΟΥ ΔΙΟΝΥΣΙΑΚΟΥ ΣΤΟΙΧΕΙΟΥ, 18:00<br>ΠΡΟΒΟΛΗ: ΑΣΤΙΚΕΣ ΣΚΗΝΕΣ ΚΑΙ ΨΥΧΗ, 21:00</p>
-                    <p><strong>ΠΑΡΑΣΚΕΥΗ, 29 ΣΕΠΤ. 2023, ΝΗΣΟΣ ΔΗΛΟΣ</strong><br>ΘΗΣΑΥΡΟΣ ΑΝΤΙΔΟΤΟΥ, 16:00</p>
-                    <p><strong>ΣΑΒΒΑΤΟ, 30 ΣΕΠΤ. 2023, ΚΙΤΡΙΝΟΣ ΠΥΡΓΟΣ, ΑΝΩ ΜΕΡΑ</strong><br>ΒΑΠΤΙΣΜΑ ΤΟΥ ΟΡΦΕΑ/ΠΑΤΗΜΑ ΣΤΑΦΥΛΙΩΝ, 18:00<br>ANIMATION SCREENING, 20:00<br>ΜΥΣΤΙΚΟ ΔΕΙΠΝΟ / ΧΟΡΟΣ ΤΗΣ ΑΛΛΗΓΟΡΙΑΣ, 21:00</p>
-                </div>
-            </div>
-            <div>
-                <h2 class="text-3xl font-bold mb-8 italic uppercase">PROGRAM</h2>
-                <div class="space-y-4">
-                    <p><strong>WEDNESDAY, 27 SEPT. 2023, YELLOW TOWER, ANO MERA</strong><br>PRELUDE AT THE GARDEN OF MYSTERIES, 18:00<br>DRAMATIC NIGHTS SCREENING DAY 1, 21:00</p>
-                    <p><strong>THURSDAY, 28 SEPT. 2023, YELLOW TOWER, ANO MERA</strong><br>CELEBRATING THE DIONYSIAN, 18:00<br>SCREENING: URBAN SCENES AND SOUL, 21:00</p>
-                    <p><strong>FRIDAY, 29 SEPT. 2023, DELOS ISLAND</strong><br>ANTIDOTE TREASURE HUNT, 16:00</p>
-                    <p><strong>SATURDAY, 30 SEPT. 2023, YELLOW TOWER, ANO MERA</strong><br>BAPTISM OF ORPHEUS/GRAPE STOMPING, 18:00<br>ANIMATION SCREENING, 20:00<br>MYSTIC DINNER / PARTY OF ALLEGORIA, 21:00</p>
-                </div>
-            </div>
+      <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 text-[14px]">
+        <div>
+          <!-- program -->
+          <h2 class="text-3xl font-bold mb-8 italic uppercase">ΠΡΟΓΡΑΜΜΑ</h2>
+          <div class="space-y-4">
+            <p>
+              <strong>ΤΕΤΑΡΤΗ, 27 ΣΕΠΤ. 2023, ΚΙΤΡΙΝΟΣ ΠΥΡΓΟΣ, ΑΝΩ ΜΕΡΑ</strong>
+              <br />ΠΡΕΛΟΥΔΙΟ ΣΤΟΝ ΚΗΠΟ ΤΩΝ ΜΥΣΤΗΡΙΩΝ, 18:00<br />ΠΡΟΒΟΛΗ DRAMATIC NIGHTS ΗΜΕΡΑ 1, 21:00
+            </p>
+            <p>
+              <strong>ΠΕΜΠΤΗ, 28 ΣΕΠΤ. 2023, ΚΙΤΡΙΝΟΣ ΠΥΡΓΟΣ, ΑΝΩ ΜΕΡΑ</strong>
+              <br />ΓΙΟΡΤΗ ΤΟΥ ΔΙΟΝΥΣΙΑΚΟΥ ΣΤΟΙΧΕΙΟΥ, 18:00<br />ΠΡΟΒΟΛΗ: ΑΣΤΙΚΕΣ ΣΚΗΝΕΣ ΚΑΙ ΨΥΧΗ, 21:00
+            </p>
+            <p>
+              <strong>ΠΑΡΑΣΚΕΥΗ, 29 ΣΕΠΤ. 2023, ΝΗΣΟΣ ΔΗΛΟΣ</strong>
+              <br />ΘΗΣΑΥΡΟΣ ΑΝΤΙΔΟΤΟΥ, 16:00
+            </p>
+            <p>
+              <strong>ΣΑΒΒΑΤΟ, 30 ΣΕΠΤ. 2023, ΚΙΤΡΙΝΟΣ ΠΥΡΓΟΣ, ΑΝΩ ΜΕΡΑ</strong>
+              <br />ΒΑΠΤΙΣΜΑ ΤΟΥ ΟΡΦΕΑ/ΠΑΤΗΜΑ ΣΤΑΦΥΛΙΩΝ, 18:00<br />ANIMATION SCREENING, 20:00<br />ΜΥΣΤΙΚΟ ΔΕΙΠΝΟ / ΧΟΡΟΣ ΤΗΣ ΑΛΛΗΓΟΡΙΑΣ, 21:00
+            </p>
+          </div>
         </div>
+        <div>
+          <h2 class="text-3xl font-bold mb-8 italic uppercase">PROGRAM</h2>
+          <div class="space-y-4">
+            <p>
+              <strong>WEDNESDAY, 27 SEPT. 2023, YELLOW TOWER, ANO MERA</strong>
+              <br />PRELUDE AT THE GARDEN OF MYSTERIES, 18:00<br />DRAMATIC NIGHTS SCREENING DAY 1, 21:00
+            </p>
+            <p>
+              <strong>THURSDAY, 28 SEPT. 2023, YELLOW TOWER, ANO MERA</strong>
+              <br />CELEBRATING THE DIONYSIAN, 18:00<br />SCREENING: URBAN SCENES AND SOUL, 21:00
+            </p>
+            <p>
+              <strong>FRIDAY, 29 SEPT. 2023, DELOS ISLAND</strong>
+              <br />ANTIDOTE TREASURE HUNT, 16:00
+            </p>
+            <p>
+              <strong>SATURDAY, 30 SEPT. 2023, YELLOW TOWER, ANO MERA</strong>
+              <br />BAPTISM OF ORPHEUS/GRAPE STOMPING, 18:00<br />ANIMATION SCREENING, 20:00<br />MYSTIC DINNER / PARTY OF ALLEGORIA, 21:00
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="bg-[#222] text-white py-20 px-6">
-        <div class="mx-auto">
-                  <div class="h-[48rem] bg-cover bg-center" style="background-image: url('https://mykonosbiennale.com/static/images/mykonos-beinnale-2023-orphic-mysteries-2.webp');"></div>
-            <h2 class="text-3xl font-light italic mb-10 text-center">Φ, Orphic Mysteries</h2>       <!-- show the biennale title -->
-            <div class="grid md:grid-cols-2 gap-10 text-sm leading-relaxed text-gray-300">
-               <!-- statement -->
-                <p>Φ is the child of one and two, of the unit and its binary hypostasis. It is the magical number that never ends: the eternal hermaphrodite, son of Rhea and Cronus, of the sphere and time. The Logos of the Golden Ratio, the eternal division of the genetic amoeba, the dance of the cosmic DNA, the endless fermentation...</p>
-                <p>Το Φ είναι το παιδί του ένα και του δύο, της μονάδας και της δυαδικής της υπόστασης. Είναι ο μαγικός αριθμός που ποτέ δεν τελειώνει: ο αιώνιος ερμαφρόδιτος, γιος της Ρέας και του Κρόνου, της σπείρας και του χρόνου. Ο Λόγος του Χρυσού Κανόνα, η αέναη διάσπαση της γενετικής αμοιβάδας, ο χορός του συμπαντικού DNA, η ατέρμονη ζύμωση...</p>
-            </div>
-            <div class="mt-12 text-center italic text-xs uppercase tracking-[0.3em]">Lydia Venieri — May 2023</div>
+      <div class="mx-auto">
+        <div
+          class="h-[48rem] bg-cover bg-center"
+          style="background-image: url('https://mykonosbiennale.com/static/images/mykonos-beinnale-2023-orphic-mysteries-2.webp');"
+        >
         </div>
+        <h2 class="text-3xl font-light italic mb-10 text-center">Φ, Orphic Mysteries</h2>
+        <!-- show the biennale title -->
+        <div class="grid md:grid-cols-2 gap-10 text-sm leading-relaxed text-gray-300">
+          <!-- statement -->
+          <p>
+            Φ is the child of one and two, of the unit and its binary hypostasis. It is the magical number that never ends: the eternal hermaphrodite, son of Rhea and Cronus, of the sphere and time. The Logos of the Golden Ratio, the eternal division of the genetic amoeba, the dance of the cosmic DNA, the endless fermentation...
+          </p>
+          <p>
+            Το Φ είναι το παιδί του ένα και του δύο, της μονάδας και της δυαδικής της υπόστασης. Είναι ο μαγικός αριθμός που ποτέ δεν τελειώνει: ο αιώνιος ερμαφρόδιτος, γιος της Ρέας και του Κρόνου, της σπείρας και του χρόνου. Ο Λόγος του Χρυσού Κανόνα, η αέναη διάσπαση της γενετικής αμοιβάδας, ο χορός του συμπαντικού DNA, η ατέρμονη ζύμωση...
+          </p>
+        </div>
+        <div class="mt-12 text-center italic text-xs uppercase tracking-[0.3em]">
+          Lydia Venieri — May 2023
+        </div>
+      </div>
     </div>
-
-        <!-- grid of events -->
+    
+<!-- grid of events -->
     <div class="">
- <!-- event -->
-        <div class="flex flex-col h-full border-b border-r border-gray-100">
-
-                    <div class="h-[75vh] bg-cover bg-center" style="background-image: url('https://mykonosbiennale.com/static/images/mykonos_biennale-antidote-2021-delos-960.webp');"></div>
-
-            <div class="bg-gray-50 flex-grow p-8">
-                <h3 class="text-xl font-bold uppercase mb-4">Treasure Hunt - Antidote</h3>
-                <p class="text-sm leading-relaxed text-gray-600 mb-4">Boxes with the label “Antidote” have been sent to artists from around the world. The artists returned the boxes with a piece of art inspired by the theme - Antidote. The boxes were hidden on the sacred island of Delos.</p>
-                <a href="#" class="text-xs font-bold uppercase text-[#f2ba49] hover:underline">View Artists</a>
-            </div>
-        </div>
- <!-- event -->
-        <div class="flex flex-col h-full border-b border-r border-gray-100">
-            <div class="h-[75vh] bg-cover bg-center" style="background-image: url('https://mykonosbiennale.com/static/images/mykonos_biennale-garden_of_mysteries-2023.webp');"></div>
-            <div class="bg-white flex-grow p-8">
-                <h3 class="text-xl font-bold uppercase mb-4">GARDEN OF MYSTERIES</h3>
-                <p class="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">Participating Artists</p>
-                <div class="grid grid-cols-2 gap-2 text-[10px] uppercase text-gray-500">
-                    <span>Dimitris Andreadis</span><span>Mohamed Bahbir</span><span>Fotini Charatsi</span><span>Maria Diamantidou</span><span>Alexis Fidetzis</span><span>Zois Geros</span><span>Gabriela von Habsburg</span><span>Lydia Venieri</span>
-                </div>
-            </div>
-        </div>
- <!-- event -->
-        <div class="flex flex-col h-full border-b border-gray-100">
-            <div class="h-[75vh] bg-cover bg-center" style="background-image: url('https://mykonosbiennale.com/static/images/mykonos-biennale-2021-dramatic-nights-x.webp');"></div>
-            <div class="bg-gray-50 flex-grow p-8">
-                <h3 class="text-xl font-bold uppercase mb-4">Dramatic Nights</h3>
-                <p class="text-sm leading-relaxed text-gray-600 mb-4">A short film festival held at the Venieri house of Ano Mera, screening the Official 2023 Selection selection from around the world.</p>
-                <a href="#" class="text-xs font-bold uppercase text-[#f2ba49] hover:underline">See Festival Selections</a>
-            </div>
-        </div>
- <!-- event -->
-        <div class="flex flex-col h-full border-b border-r border-gray-100">
-            <div class="h-[75vh] bg-cover bg-center" style="background-image: url('https://mykonosbiennale.com/static/images/mykonos-biennale-2021-video-graffiti-x.webp');"></div>
-            <div class="bg-white flex-grow p-8">
-                <h3 class="text-xl font-bold uppercase mb-4">Video Graffiti</h3>
-                <p class="text-sm leading-relaxed text-gray-600 mb-4">Official selections projected on the walls of houses and garden walls in the old town, transforming Chora into a living theatre.</p>
-                <a href="#" class="text-xs font-bold uppercase text-[#f2ba49] hover:underline">Previous Selections</a>
-            </div>
-        </div>
- <!-- event -->
-        <div class="flex flex-col h-full border-b border-r border-gray-100">
-            <div class="h-[75vh] bg-cover bg-center" style="background-image: url('https://mykonosbiennale.com/static/images/mykonos-biennale-2019-film-festival-embraces-the-touch-of-skin-embraces-the-touch-of-skin-sara-koppel-Screenshot-1.webp');"></div>
-            <div class="bg-gray-50 flex-grow p-8">
-                <h3 class="text-xl font-bold uppercase mb-4">Animation</h3>
-                <p class="text-sm leading-relaxed text-gray-600">In the garden of the Venieri Tower in Ann Mera, the official Animation Official 2023 selection will be projected.</p>
-            </div>
-        </div>
- <!-- event -->
-        <div class="flex flex-col h-full border-b border-gray-100">
-            <div class="h-[75vh] bg-cover bg-center" style="background-image: url('https://mykonosbiennale.com/static/images/mykonos-biennale-2021-film-festival-numbness-numbness-1-hamid-nezamzadeh-Screenshot-13.webp');"></div>
-            <div class="bg-white flex-grow p-8">
-                <h3 class="text-xl font-bold uppercase mb-4">Urban</h3>
-                <p class="text-sm leading-relaxed text-gray-600">In the garden of the Venieri Tower in Ann Mera, the official Urban Official 2023 selection will be projected.</p>
-            </div>
+      <!-- event -->
+      <div class="flex flex-col h-full border-b border-r border-gray-100">
+        <div
+          class="h-[75vh] bg-cover bg-center"
+          style="background-image: url('https://mykonosbiennale.com/static/images/mykonos_biennale-antidote-2021-delos-960.webp');"
+        >
         </div>
 
+        <div class="bg-gray-50 flex-grow p-8">
+          <h3 class="text-xl font-bold uppercase mb-4">Treasure Hunt - Antidote</h3>
+          <p class="text-sm leading-relaxed text-gray-600 mb-4">
+            Boxes with the label “Antidote” have been sent to artists from around the world. The artists returned the boxes with a piece of art inspired by the theme - Antidote. The boxes were hidden on the sacred island of Delos.
+          </p>
+          <a href="#" class="text-xs font-bold uppercase text-[#f2ba49] hover:underline">
+            View Artists
+          </a>
+        </div>
+      </div>
+      <!-- event -->
+      <div class="flex flex-col h-full border-b border-r border-gray-100">
+        <div
+          class="h-[75vh] bg-cover bg-center"
+          style="background-image: url('https://mykonosbiennale.com/static/images/mykonos_biennale-garden_of_mysteries-2023.webp');"
+        >
+        </div>
+        <div class="bg-white flex-grow p-8">
+          <h3 class="text-xl font-bold uppercase mb-4">GARDEN OF MYSTERIES</h3>
+          <p class="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">
+            Participating Artists
+          </p>
+          <div class="grid grid-cols-2 gap-2 text-[10px] uppercase text-gray-500">
+            <span>Dimitris Andreadis</span><span>Mohamed Bahbir</span><span>Fotini Charatsi</span><span>Maria Diamantidou</span><span>Alexis Fidetzis</span><span>Zois Geros</span><span>Gabriela von Habsburg</span><span>Lydia Venieri</span>
+          </div>
+        </div>
+      </div>
+      <!-- event -->
+      <div class="flex flex-col h-full border-b border-gray-100">
+        <div
+          class="h-[75vh] bg-cover bg-center"
+          style="background-image: url('https://mykonosbiennale.com/static/images/mykonos-biennale-2021-dramatic-nights-x.webp');"
+        >
+        </div>
+        <div class="bg-gray-50 flex-grow p-8">
+          <h3 class="text-xl font-bold uppercase mb-4">Dramatic Nights</h3>
+          <p class="text-sm leading-relaxed text-gray-600 mb-4">
+            A short film festival held at the Venieri house of Ano Mera, screening the Official 2023 Selection selection from around the world.
+          </p>
+          <a href="#" class="text-xs font-bold uppercase text-[#f2ba49] hover:underline">
+            See Festival Selections
+          </a>
+        </div>
+      </div>
+      <!-- event -->
+      <div class="flex flex-col h-full border-b border-r border-gray-100">
+        <div
+          class="h-[75vh] bg-cover bg-center"
+          style="background-image: url('https://mykonosbiennale.com/static/images/mykonos-biennale-2021-video-graffiti-x.webp');"
+        >
+        </div>
+        <div class="bg-white flex-grow p-8">
+          <h3 class="text-xl font-bold uppercase mb-4">Video Graffiti</h3>
+          <p class="text-sm leading-relaxed text-gray-600 mb-4">
+            Official selections projected on the walls of houses and garden walls in the old town, transforming Chora into a living theatre.
+          </p>
+          <a href="#" class="text-xs font-bold uppercase text-[#f2ba49] hover:underline">
+            Previous Selections
+          </a>
+        </div>
+      </div>
+      <!-- event -->
+      <div class="flex flex-col h-full border-b border-r border-gray-100">
+        <div
+          class="h-[75vh] bg-cover bg-center"
+          style="background-image: url('https://mykonosbiennale.com/static/images/mykonos-biennale-2019-film-festival-embraces-the-touch-of-skin-embraces-the-touch-of-skin-sara-koppel-Screenshot-1.webp');"
+        >
+        </div>
+        <div class="bg-gray-50 flex-grow p-8">
+          <h3 class="text-xl font-bold uppercase mb-4">Animation</h3>
+          <p class="text-sm leading-relaxed text-gray-600">
+            In the garden of the Venieri Tower in Ann Mera, the official Animation Official 2023 selection will be projected.
+          </p>
+        </div>
+      </div>
+      <!-- event -->
+      <div class="flex flex-col h-full border-b border-gray-100">
+        <div
+          class="h-[75vh] bg-cover bg-center"
+          style="background-image: url('https://mykonosbiennale.com/static/images/mykonos-biennale-2021-film-festival-numbness-numbness-1-hamid-nezamzadeh-Screenshot-13.webp');"
+        >
+        </div>
+        <div class="bg-white flex-grow p-8">
+          <h3 class="text-xl font-bold uppercase mb-4">Urban</h3>
+          <p class="text-sm leading-relaxed text-gray-600">
+            In the garden of the Venieri Tower in Ann Mera, the official Urban Official 2023 selection will be projected.
+          </p>
+        </div>
+      </div>
     </div>
 
     <footer class="bg-[#222] text-gray-500 py-12 px-6 text-center">
-        <img src="https://mykonosbiennale.com/static/images/mykonos-biennale-logo-85.webp" alt="Logo" class="h-12 mx-auto mb-6">
-        <p class="text-xs uppercase tracking-widest">&copy; 2023 Mykonos Biennale - All Rights Reserved</p>
+      <img
+        src="https://mykonosbiennale.com/static/images/mykonos-biennale-logo-85.webp"
+        alt="Logo"
+        class="h-12 mx-auto mb-6"
+      />
+      <p class="text-xs uppercase tracking-widest">
+        &copy; 2023 Mykonos Biennale - All Rights Reserved
+      </p>
     </footer>
-
-</body>
+  </body>
 </html>

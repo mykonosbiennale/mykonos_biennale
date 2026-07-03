@@ -47,6 +47,7 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Show do
     last = fields["last_name"] || ""
     "#{first} #{last}" |> String.trim()
   end
+
   defp entity_display_name(%Entity{fields: fields}), do: fields["title"] || "Untitled"
   defp entity_link(%Entity{type: "participant"} = e), do: "/admin/participants/#{e.id}"
   defp entity_link(%Entity{type: "artwork"} = e), do: "/admin/artworks/#{e.id}"
@@ -55,7 +56,9 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Show do
   defp entity_link(%Entity{type: "project"} = e), do: "/admin/projects/#{e.id}"
   defp entity_link(%Entity{} = e), do: "/admin"
 
-  defp media_source_url(%Media{source_type: "upload"} = media), do: MykonosBiennale.Uploads.media_url(media, size: "hero")
+  defp media_source_url(%Media{source_type: "upload"} = media),
+    do: MykonosBiennale.Uploads.media_url(media, size: "hero")
+
   defp media_source_url(%Media{source_type: "url", source_url: url}) when is_binary(url), do: url
   defp media_source_url(_), do: nil
 end

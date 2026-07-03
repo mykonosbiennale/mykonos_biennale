@@ -39,4 +39,9 @@ defmodule MykonosBiennale.Application do
     # By default, sqlite migrations are run when using a release
     System.get_env("RELEASE_NAME") == nil
   end
+
+  def project_version do
+    {:ok, version} = :application.get_key(:mykonos_biennale, :vsn)
+    to_string(version)
+  end
 end

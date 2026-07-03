@@ -637,7 +637,8 @@ defmodule MykonosBiennaleWeb.CoreComponents do
   attr :show_creators, :boolean, default: true
   attr :show_description, :boolean, default: false
   attr :show_statement, :boolean, default: false
-@doc """
+
+  @doc """
   Renders a responsive `<picture>` element with AVIF, WebP sources, and JPEG fallback.
 
   Browsers negotiate the best format they support: AVIF (best compression),
@@ -656,9 +657,18 @@ defmodule MykonosBiennaleWeb.CoreComponents do
   def picture(%{record: media} = assigns) when not is_nil(media) and media != %{} do
     assigns =
       assigns
-      |> assign(:avif_url, MykonosBiennale.Uploads.media_url(media, size: assigns[:size], format: "avif"))
-      |> assign(:webp_url, MykonosBiennale.Uploads.media_url(media, size: assigns[:size], format: "webp"))
-      |> assign(:jpg_url, MykonosBiennale.Uploads.media_url(media, size: assigns[:size], format: "jpg"))
+      |> assign(
+        :avif_url,
+        MykonosBiennale.Uploads.media_url(media, size: assigns[:size], format: "avif")
+      )
+      |> assign(
+        :webp_url,
+        MykonosBiennale.Uploads.media_url(media, size: assigns[:size], format: "webp")
+      )
+      |> assign(
+        :jpg_url,
+        MykonosBiennale.Uploads.media_url(media, size: assigns[:size], format: "jpg")
+      )
 
     ~H"""
     <picture>
@@ -787,10 +797,16 @@ defmodule MykonosBiennaleWeb.CoreComponents do
 
   def sort_header(assigns) do
     ~H"""
-    <.link patch={sort_url(@base_path, @sort_by, @current_sort, @current_dir)} class={"cursor-pointer select-none inline-flex items-center gap-0.5 #{@class}"}>
+    <.link
+      patch={sort_url(@base_path, @sort_by, @current_sort, @current_dir)}
+      class={"cursor-pointer select-none inline-flex items-center gap-0.5 #{@class}"}
+    >
       {render_slot(@inner_block)}
       <%= if @current_sort == @sort_by do %>
-        <.icon name={if @current_dir == :asc, do: "hero-chevron-up", else: "hero-chevron-down"} class="w-3 h-3" />
+        <.icon
+          name={if @current_dir == :asc, do: "hero-chevron-up", else: "hero-chevron-down"}
+          class="w-3 h-3"
+        />
       <% end %>
     </.link>
     """
@@ -813,12 +829,22 @@ defmodule MykonosBiennaleWeb.CoreComponents do
     <nav class="flex items-center justify-between px-1 py-1.5 mt-2" aria-label="Pagination">
       <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
         <p class="text-xs text-gray-700 dark:text-gray-300">
-          Page <span class="font-medium"><%= @current_page %></span> of <span class="font-medium"><%= @total_pages %></span><%= if @total_count do %>, <%= @total_count %> records<% end %>
+          Page <span class="font-medium">{@current_page}</span>
+          of <span class="font-medium">{@total_pages}</span>
+          <%= if @total_count do %>
+            , {@total_count} records
+          <% end %>
         </p>
         <div>
-          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+          <nav
+            class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+            aria-label="Pagination"
+          >
             <%= if @current_page > 1 do %>
-              <.link patch={page_url(@base_path, @current_page - 1, assigns)} class="relative inline-flex items-center px-1.5 py-1 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+              <.link
+                patch={page_url(@base_path, @current_page - 1, assigns)}
+                class="relative inline-flex items-center px-1.5 py-1 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
                 <span class="sr-only">Previous</span>
                 <.icon name="hero-chevron-left" class="w-4 h-4" />
               </.link>
@@ -831,16 +857,24 @@ defmodule MykonosBiennaleWeb.CoreComponents do
 
             <%= for page <- page_range(@current_page, @total_pages) do %>
               <%= if page == :ellipsis do %>
-                <span class="relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300">…</span>
+                <span class="relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300">
+                  …
+                </span>
               <% else %>
-                <.link patch={page_url(@base_path, page, assigns)} class={"relative inline-flex items-center px-3 py-1 border text-xs font-medium #{if page == @current_page, do: "z-10 border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-200", else: "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"}"}>
-                  <%= page %>
+                <.link
+                  patch={page_url(@base_path, page, assigns)}
+                  class={"relative inline-flex items-center px-3 py-1 border text-xs font-medium #{if page == @current_page, do: "z-10 border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-200", else: "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"}"}
+                >
+                  {page}
                 </.link>
               <% end %>
             <% end %>
 
             <%= if @current_page < @total_pages do %>
-              <.link patch={page_url(@base_path, @current_page + 1, assigns)} class="relative inline-flex items-center px-1.5 py-1 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+              <.link
+                patch={page_url(@base_path, @current_page + 1, assigns)}
+                class="relative inline-flex items-center px-1.5 py-1 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
                 <span class="sr-only">Next</span>
                 <.icon name="hero-chevron-right" class="w-4 h-4" />
               </.link>
@@ -856,7 +890,10 @@ defmodule MykonosBiennaleWeb.CoreComponents do
 
       <div class="flex items-center justify-between sm:hidden w-full">
         <%= if @current_page > 1 do %>
-          <.link patch={page_url(@base_path, @current_page - 1, assigns)} class="relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+          <.link
+            patch={page_url(@base_path, @current_page - 1, assigns)}
+            class="relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
             Previous
           </.link>
         <% else %>
@@ -864,9 +901,12 @@ defmodule MykonosBiennaleWeb.CoreComponents do
             Previous
           </span>
         <% end %>
-        <span class="text-xs text-gray-700 dark:text-gray-300"><%= @current_page %> / <%= @total_pages %></span>
+        <span class="text-xs text-gray-700 dark:text-gray-300">{@current_page} / {@total_pages}</span>
         <%= if @current_page < @total_pages do %>
-          <.link patch={page_url(@base_path, @current_page + 1, assigns)} class="relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+          <.link
+            patch={page_url(@base_path, @current_page + 1, assigns)}
+            class="relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
             Next
           </.link>
         <% else %>

@@ -25,7 +25,9 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Index do
     sort_by = (params["sort_by"] || "inserted_at") |> String.to_atom()
     sort_dir = (params["sort_dir"] || "desc") |> String.to_atom()
 
-    {items, total_count} = Content.list_media_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
+    {items, total_count} =
+      Content.list_media_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
+
     total_pages = max(1, ceil(total_count / @per_page))
 
     socket =
@@ -55,13 +57,19 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Index do
   @impl true
   def handle_info({MykonosBiennaleWeb.Admin.MediaLive.FormComponent, {:saved, media}}, socket) do
     page = socket.assigns.current_page
-    {_items, total_count} = Content.list_media_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+
+    {_items, total_count} =
+      Content.list_media_paginated(page, @per_page, socket.assigns.search,
+        sort_by: socket.assigns.sort_by,
+        sort_dir: socket.assigns.sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
 
     {:noreply,
      socket
      |> assign(:total_pages, total_pages)
-      |> assign(:total_count, total_count)
+     |> assign(:total_count, total_count)
      |> stream_insert(:media_collection, media)}
   end
 
@@ -71,20 +79,31 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Index do
     {:ok, _} = Content.delete_media(media)
 
     page = socket.assigns.current_page
-    {items, total_count} = Content.list_media_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+
+    {items, total_count} =
+      Content.list_media_paginated(page, @per_page, socket.assigns.search,
+        sort_by: socket.assigns.sort_by,
+        sort_dir: socket.assigns.sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
 
     {:noreply,
      socket
      |> assign(:total_pages, total_pages)
-      |> assign(:total_count, total_count)
+     |> assign(:total_count, total_count)
      |> stream_delete(:media_collection, media)
      |> stream(:media_collection, items, reset: true)}
   end
 
   @impl true
   def handle_event("search", %{"search" => term}, socket) do
-    {items, total_count} = Content.list_media_paginated(1, @per_page, term, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    {items, total_count} =
+      Content.list_media_paginated(1, @per_page, term,
+        sort_by: socket.assigns.sort_by,
+        sort_dir: socket.assigns.sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
 
     {:noreply,
@@ -92,14 +111,21 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Index do
      |> assign(:search, term)
      |> assign(:current_page, 1)
      |> assign(:total_pages, total_pages)
-      |> assign(:total_count, total_count)
+     |> assign(:total_count, total_count)
      |> stream(:media_collection, items, reset: true)
-     |> push_patch(to: patch_path("/admin/media", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
+     |> push_patch(
+       to: patch_path("/admin/media", 1, socket.assigns.sort_by, socket.assigns.sort_dir)
+     )}
   end
 
   @impl true
   def handle_event("clear_search", _params, socket) do
-    {items, total_count} = Content.list_media_paginated(1, @per_page, "", sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    {items, total_count} =
+      Content.list_media_paginated(1, @per_page, "",
+        sort_by: socket.assigns.sort_by,
+        sort_dir: socket.assigns.sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
 
     {:noreply,
@@ -107,9 +133,11 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Index do
      |> assign(:search, "")
      |> assign(:current_page, 1)
      |> assign(:total_pages, total_pages)
-      |> assign(:total_count, total_count)
+     |> assign(:total_count, total_count)
      |> stream(:media_collection, items, reset: true)
-     |> push_patch(to: patch_path("/admin/media", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
+     |> push_patch(
+       to: patch_path("/admin/media", 1, socket.assigns.sort_by, socket.assigns.sort_dir)
+     )}
   end
 
   defp patch_path(base, page, sort_by, sort_dir) do

@@ -7,12 +7,14 @@ defmodule MykonosBiennaleWeb.BiennaleHTML do
   def media_url(media, opts), do: MykonosBiennale.Uploads.media_url(media, opts)
 
   def format_date(nil), do: nil
+
   def format_date(date) when is_binary(date) do
     case Date.from_iso8601(date) do
       {:ok, d} -> Calendar.strftime(d, "%B %d, %Y")
       _ -> date
     end
   end
+
   def format_date(%Date{} = d), do: Calendar.strftime(d, "%B %d, %Y")
 
   def render_content(nil, _assigns), do: Phoenix.HTML.raw("")

@@ -2,8 +2,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.Relationship
-  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.{Relationship, Media, Entity}
   alias Ecto.Changeset
 
   defmodule EventForm do
@@ -218,6 +217,53 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
             </select>
           </form>
         </div>
+
+        <%= if @event.id do %>
+          <div class="mt-4 space-y-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Upload Images
+            </label>
+            <.live_file_input upload={@uploads.images} class="hidden" />
+            <button
+              type="button"
+              onclick={"document.getElementById('event-form_images').click()"}
+              class="w-full rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-purple-500 px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400 transition-colors"
+            >
+              Click to select images
+            </button>
+
+            <%= for entry <- @uploads.images.entries do %>
+              <div class="flex items-center gap-3 mt-2">
+                <%= if entry.done? do %>
+                  <.icon name="hero-check-circle" class="w-5 h-5 text-green-500" />
+                <% else %>
+                  <div class="w-5 h-5 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
+                <% end %>
+                <span class="text-xs text-gray-600 dark:text-gray-300 flex-1 truncate">{entry.client_name}</span>
+                <button
+                  type="button"
+                  phx-click="cancel-upload"
+                  phx-value-ref={entry.ref}
+                  phx-target={@myself}
+                  class="text-red-500 hover:text-red-700"
+                >
+                  <.icon name="hero-x-mark" class="w-4 h-4" />
+                </button>
+              </div>
+            <% end %>
+
+            <%= if @uploads.images.entries != [] and Enum.all?(@uploads.images.entries, & &1.done?) do %>
+              <button
+                type="button"
+                phx-click="save_uploads"
+                phx-target={@myself}
+                class="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700"
+              >
+                Save {length(@uploads.images.entries)} image(s)
+              </button>
+            <% end %>
+          </div>
+        <% end %>
       </div>
     </div>
     """
@@ -239,10 +285,17 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     {:ok,
      socket
      |> assign(assigns)
-|> assign(:biennales, Content.list_biennales())
-      |> assign(:projects, Content.list_projects())
+     |> assign(:biennales, Content.list_biennales())
+     |> assign(:projects, Content.list_projects())
      |> assign(:current_media_links, current_media_links)
      |> assign(:available_media, available_media)
+     |> allow_upload(:images,
+       accept: ~w(.jpg .jpeg .png .gif .webp),
+       max_entries: 20,
+       max_file_size: 20_000_000,
+       auto_upload: true,
+       progress: &handle_progress/3
+     )
      |> assign_new(:form, fn ->
        changeset = EventForm.changeset(%EventForm{}, event_form_attrs(event))
        to_form(changeset, as: :event)
@@ -332,6 +385,99 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     event_params = extract_event_params(params)
     save_event(socket, socket.assigns.action, event_params)
   end
+
+  def handle_event("cancel-upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :images, ref)}
+  end
+
+  def handle_event("save_uploads", _params, socket) do
+    event = socket.assigns.event
+    title = event.fields["title"] || "Untitled"
+
+    biennale_year =
+      case event_biennale_year(event) do
+        nil -> ""
+        year -> " #{year}"
+      end
+
+    caption = String.trim("#{title}#{biennale_year}")
+
+    results =
+      consume_uploaded_entries(socket, :images, fn %{path: path}, entry ->
+        ext = Path.extname(entry.client_name)
+        filename = "#{Ecto.UUID.generate()}#{ext}"
+        dest = MykonosBiennale.Uploads.uploads_path(filename)
+
+        MykonosBiennale.Uploads.ensure_uploads_dir()
+        File.cp!(path, dest)
+
+        case Content.create_media(%{
+          source_type: "upload",
+          source_path: filename,
+          mime_type: entry.client_type,
+          original_name: entry.client_name,
+          caption: caption
+        }) do
+          {:ok, media} ->
+            Content.attach_media_to_entity(event, media)
+            {:ok, media}
+
+          {:error, _} = err ->
+            err
+        end
+      end)
+
+    success_count = Enum.count(results, fn {status, _} -> status == :ok end)
+    error_count = Enum.count(results, fn {status, _} -> status == :error end)
+
+    current_media_links = Content.list_entity_media_links_for_entity(event)
+    all_media = Content.list_media()
+    attached_ids = Enum.map(current_media_links, & &1.media_id)
+    available_media = Enum.reject(all_media, fn m -> m.id in attached_ids end)
+
+    flash =
+      cond do
+        error_count > 0 and success_count > 0 ->
+          "Uploaded #{success_count} image(s), #{error_count} failed"
+
+        error_count > 0 ->
+          "Upload failed for #{error_count} image(s)"
+
+        true ->
+          "Uploaded #{success_count} image(s) successfully"
+      end
+
+    flash_type = if error_count > 0 and success_count == 0, do: :error, else: :info
+
+    {:noreply,
+     socket
+     |> assign(:current_media_links, current_media_links)
+     |> assign(:available_media, available_media)
+     |> put_flash(flash_type, flash)}
+
+  end
+
+  defp handle_progress(:images, _entry, socket) do
+    {:noreply, socket}
+  end
+
+  defp event_biennale_year(%Entity{as_subject: rels}) when is_list(rels) do
+    case Enum.find(rels, fn
+      %Relationship{relationship_type: %Content.RelationshipType{slug: "biennale_event"}} -> true
+      _ -> false
+    end) do
+      %Relationship{object_id: biennale_id} when is_integer(biennale_id) ->
+        case Content.get_entity!(biennale_id) do
+          %Entity{fields: %{"year" => year}} -> year
+          _ -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp event_biennale_year(_), do: nil
 
   defp save_event(socket, :edit, event_params) do
     changeset = EventForm.changeset(socket.assigns.form.source.data, event_params)
