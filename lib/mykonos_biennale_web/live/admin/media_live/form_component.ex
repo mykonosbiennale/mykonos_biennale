@@ -18,6 +18,7 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
+        novalidate
       >
         <.input field={@form[:caption]} type="text" label="Caption" />
 

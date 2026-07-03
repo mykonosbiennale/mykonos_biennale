@@ -39,6 +39,7 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
+        novalidate
       >
         <div class="space-y-4">
           <.input field={@form[:title]} type="text" label="Title" required />

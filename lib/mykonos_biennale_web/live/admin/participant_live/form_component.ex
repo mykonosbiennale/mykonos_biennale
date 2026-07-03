@@ -84,6 +84,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
+        novalidate
       >
         <div class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

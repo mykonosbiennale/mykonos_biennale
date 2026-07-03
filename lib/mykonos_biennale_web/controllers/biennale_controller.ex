@@ -31,7 +31,8 @@ defmodule MykonosBiennaleWeb.BiennaleController do
   def festival(conn, %{"slug" => slug}) do
     case Content.get_entity_by_slug(slug) do
       %{type: "biennale", visible: true} = biennale ->
-        events = load_events(biennale)
+        _year = parse_year(biennale.fields["year"])
+        projects = load_projects(biennale)
         biennales = Content.list_biennales()
 
         biennale_media_map =
@@ -39,21 +40,22 @@ defmodule MykonosBiennaleWeb.BiennaleController do
           |> Enum.map(fn b -> {b.id, Content.list_media_for_entity(b)} end)
           |> Enum.into(%{})
 
-        event_media_map =
-          events
-          |> Enum.map(fn event ->
-            entity = Content.get_entity!(event.id)
-            {event.id, Content.list_media_for_entity(entity)}
+        project_media_map =
+          projects
+          |> Enum.map(fn project ->
+            entity = Content.get_entity!(project.id)
+            media = Content.list_media_for_entity(entity)
+            {project.id, if(media == [], do: Content.list_event_media_for_project(entity), else: media)}
           end)
           |> Enum.into(%{})
 
         conn
         |> assign(:biennale, biennale)
-        |> assign(:events, events)
+        |> assign(:projects, projects)
         |> assign(:biennale_media, Content.list_media_for_entity(biennale))
         |> assign(:biennales, biennales)
         |> assign(:biennale_media_map, biennale_media_map)
-        |> assign(:event_media, event_media_map)
+        |> assign(:project_media, project_media_map)
         |> assign(:page_title, "Festival — Mykonos Biennale #{biennale.fields["year"]}")
         |> render(:festival)
 
@@ -73,6 +75,11 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     Content.list_events_for_biennale(year) |> Enum.map(&present_event/1)
   end
 
+  defp load_projects(biennale) do
+    year = parse_year(biennale.fields["year"])
+    Content.list_projects_for_biennale(year) |> Enum.map(&present_project/1)
+  end
+
   defp render_template(conn, %{template: :none}) do
     biennale = conn.assigns.biennale
     content = BiennaleHTML.render_content(biennale.fields["content"], conn.assigns)
@@ -88,6 +95,32 @@ defmodule MykonosBiennaleWeb.BiennaleController do
 
   defp render_template(conn, _template) do
     render(conn, :biennale)
+  end
+
+  defp present_project(%MykonosBiennale.Content.Entity{} = entity) do
+    media = Content.list_media_for_entity(entity)
+    media = if media == [], do: Content.list_event_media_for_project(entity), else: media
+
+    background =
+      case List.last(media) do
+        %{source_type: "upload"} = m ->
+          MykonosBiennale.Uploads.media_url(m, size: "card")
+
+        %{source_type: "url", source_url: url} when is_binary(url) ->
+          url
+
+        _ ->
+          nil
+      end
+
+    %{
+      id: entity.id,
+      title: entity.fields["title"],
+      description: entity.fields["description"],
+      statement: entity.fields["statement"],
+      slug: entity.slug,
+      background_image: background
+    }
   end
 
   defp present_event(%MykonosBiennale.Content.Entity{} = entity) do

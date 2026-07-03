@@ -21,6 +21,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
       field :end_date, :date
       field :visible, :boolean, default: true
       field :template, Ecto.Enum, values: [:default, :none, :list], default: :default
+      field :show_program, :boolean, default: true
     end
 
     def changeset(%__MODULE__{} = form, attrs) when is_map(attrs) do
@@ -33,7 +34,8 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
         :start_date,
         :end_date,
         :visible,
-        :template
+        :template,
+        :show_program
       ])
       |> validate_required([:year, :theme])
     end
@@ -53,6 +55,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
+        novalidate
       >
         <div class="space-y-4">
           <.input field={@form[:year]} type="number" label="Year" required />
@@ -62,6 +65,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
           <.input field={@form[:description]} type="textarea" label="Description" rows="5" />
           <.input field={@form[:start_date]} type="date" label="Start Date" />
           <.input field={@form[:end_date]} type="date" label="End Date" />
+          <.input field={@form[:show_program]} type="checkbox" label="Show program" />
         </div>
 
         <div class="mt-6 flex items-center justify-end gap-x-6">
@@ -367,11 +371,12 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
       start_date: map_get_date(fields, "start_date"),
       end_date: map_get_date(fields, "end_date"),
       visible: true,
-      template: entity.template || :default
+      template: entity.template || :default,
+      show_program: Map.get(fields, "show_program", true)
     }
   end
 
-  defp biennale_form_attrs(%Content.Entity{}), do: %{visible: true}
+  defp biennale_form_attrs(%Content.Entity{}), do: %{visible: true, show_program: true}
 
   defp map_get_int(map, key) do
     case Map.get(map, key) do
@@ -416,7 +421,8 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
       start_date: form.start_date,
       end_date: form.end_date,
       visible: form.visible,
-      template: form.template
+      template: form.template,
+      show_program: form.show_program
     }
     |> Enum.reject(fn {_k, v} -> is_nil(v) end)
     |> Enum.into(%{})

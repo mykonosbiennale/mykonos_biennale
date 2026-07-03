@@ -18,6 +18,7 @@ defmodule MykonosBiennaleWeb.Admin.UserLive.FormComponent do
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
+        novalidate
       >
         <div class="space-y-4">
           <.input field={@form[:email]} type="email" label="Email" required />

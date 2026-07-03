@@ -200,12 +200,14 @@ defmodule MykonosBiennale.Content.Event do
   end
 
   defp maybe_upsert_relationship(event_entity, nil, _label, slug) do
-    rt = Repo.get_by!(RelationshipType, slug: slug)
-
-    Repo.delete_all(
-      from r in Relationship,
-        where: r.subject_id == ^event_entity.id and r.relationship_type_id == ^rt.id
-    )
+    case Repo.get_by(RelationshipType, slug: slug) do
+      nil -> :ok
+      rt ->
+        Repo.delete_all(
+          from r in Relationship,
+            where: r.subject_id == ^event_entity.id and r.relationship_type_id == ^rt.id
+        )
+    end
   end
 
   defp maybe_upsert_relationship(event_entity, entity_id, label, slug) do

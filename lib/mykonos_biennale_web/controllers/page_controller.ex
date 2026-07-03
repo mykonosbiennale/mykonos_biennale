@@ -8,19 +8,22 @@ defmodule MykonosBiennaleWeb.PageController do
 
     current_biennale = Content.get_biennale_by_year(current_biennale_year)
 
-    raw_events =
+    raw_projects =
       if current_biennale do
-        Content.list_events_for_biennale(current_biennale.fields["year"])
+        Content.list_projects_for_biennale(current_biennale.fields["year"])
       else
         []
       end
 
-    event_media =
-      raw_events
-      |> Enum.map(fn e -> {e.id, Content.list_media_for_entity(e)} end)
+    project_media =
+      raw_projects
+      |> Enum.map(fn p ->
+        media = Content.list_media_for_entity(p)
+        {p.id, if(media == [], do: Content.list_event_media_for_project(p), else: media)}
+      end)
       |> Enum.into(%{})
 
-    events = Enum.map(raw_events, &present_event/1)
+    projects = Enum.map(raw_projects, &present_project/1)
 
     biennales = Content.list_biennales()
 
@@ -39,13 +42,39 @@ defmodule MykonosBiennaleWeb.PageController do
     conn
     |> assign(:page_title, page_title(current_biennale))
     |> assign(:biennale, current_biennale)
-    |> assign(:events, events)
+    |> assign(:projects, projects)
     |> assign(:biennales, biennales)
     |> assign(:biennale_media, biennale_media)
     |> assign(:biennale_media_map, biennale_media_map)
-    |> assign(:event_media, event_media)
+    |> assign(:project_media, project_media)
     |> put_view(MykonosBiennaleWeb.BiennaleHTML)
     |> render(:festival)
+  end
+
+  defp present_project(%MykonosBiennale.Content.Entity{} = entity) do
+    media = Content.list_media_for_entity(entity)
+    media = if media == [], do: Content.list_event_media_for_project(entity), else: media
+
+    background =
+      case List.last(media) do
+        %{source_type: "upload"} = m ->
+          MykonosBiennale.Uploads.media_url(m, size: "card")
+
+        %{source_type: "url", source_url: url} when is_binary(url) ->
+          url
+
+        _ ->
+          nil
+      end
+
+    %{
+      id: entity.id,
+      title: entity.fields["title"],
+      description: entity.fields["description"],
+      statement: entity.fields["statement"],
+      slug: entity.slug,
+      background_image: background
+    }
   end
 
   defp present_event(%MykonosBiennale.Content.Entity{} = entity) do
