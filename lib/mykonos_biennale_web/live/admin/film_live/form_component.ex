@@ -813,7 +813,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
   end
 
   defp consume_upload(film, socket, upload_key, metadata) do
-uploaded_files =
+    uploaded_files =
       consume_uploaded_entries(socket, upload_key, fn %{path: path}, entry ->
         ext = Path.extname(entry.client_name)
         filename = "#{Ecto.UUID.generate()}#{ext}"

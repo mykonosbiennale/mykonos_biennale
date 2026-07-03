@@ -54,6 +54,7 @@ defmodule MykonosBiennaleWeb.ArchiveDetailLive do
 
   defp parse_year(nil), do: nil
   defp parse_year(y) when is_integer(y), do: y
+
   defp parse_year(y) when is_binary(y) do
     case Integer.parse(y) do
       {n, _} -> n
@@ -63,6 +64,7 @@ defmodule MykonosBiennaleWeb.ArchiveDetailLive do
 
   defp parse_date(nil), do: nil
   defp parse_date(%Date{} = d), do: d
+
   defp parse_date(s) when is_binary(s) do
     case Date.from_iso8601(s) do
       {:ok, d} -> d

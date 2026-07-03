@@ -211,7 +211,9 @@ defmodule MykonosBiennale.Search.Indexer do
   end
 
   defp field_section(k, map) when is_map(map) do
-    map |> Enum.map(fn {sk, sv} -> field_section("#{k}.#{sk}", sv) end) |> Enum.reject(&(&1 == ""))
+    map
+    |> Enum.map(fn {sk, sv} -> field_section("#{k}.#{sk}", sv) end)
+    |> Enum.reject(&(&1 == ""))
   end
 
   defp field_section(k, v), do: section("field.#{k}", v)
@@ -247,7 +249,8 @@ defmodule MykonosBiennale.Search.Indexer do
 
   defp build_rel_sections(_prefix, _r, _neighbor, _slug), do: []
 
-  defp neighbor_label_section(prefix, %Entity{identity: identity}) when is_binary(identity) and identity != "" do
+  defp neighbor_label_section(prefix, %Entity{identity: identity})
+       when is_binary(identity) and identity != "" do
     section(prefix, identity)
   end
 
@@ -293,7 +296,8 @@ defmodule MykonosBiennale.Search.Indexer do
 
   defp relationship_field_section(_prefix, %Relationship{fields: nil}, _key), do: ""
 
-  defp relationship_field_section(prefix, %Relationship{fields: fields}, key) when is_map(fields) do
+  defp relationship_field_section(prefix, %Relationship{fields: fields}, key)
+       when is_map(fields) do
     case Map.get(fields, key) do
       nil -> ""
       "" -> ""
@@ -304,11 +308,14 @@ defmodule MykonosBiennale.Search.Indexer do
 
   defp relationship_field_section(_prefix, _, _), do: ""
 
-  defp relationship_slug(%Relationship{relationship_type: %RelationshipType{slug: slug}}), do: slug
+  defp relationship_slug(%Relationship{relationship_type: %RelationshipType{slug: slug}}),
+    do: slug
+
   defp relationship_slug(_), do: nil
 
   # 2-hop: for entities whose direct events are linked to a biennale, expose the biennale year.
-  defp biennale_year_2hop(%Entity{type: type} = entity) when type in ["artwork", "Short Film", "Video", "Dance", "Animation", "Documentary"] do
+  defp biennale_year_2hop(%Entity{type: type} = entity)
+       when type in ["artwork", "Short Film", "Video", "Dance", "Animation", "Documentary"] do
     biennale_years = list_biennale_years_via_events(entity.id)
     Enum.map(biennale_years, &section("rel.biennale_year", &1))
   end
@@ -323,10 +330,14 @@ defmodule MykonosBiennale.Search.Indexer do
   defp list_biennale_years_via_events(entity_id) do
     Repo.all(
       from b in Entity,
-        join: r2 in Relationship, on: r2.object_id == b.id,
-        join: rt2 in RelationshipType, on: rt2.id == r2.relationship_type_id,
-        join: evt in Entity, on: evt.id == r2.subject_id,
-        join: r1 in Relationship, on: r1.object_id == evt.id,
+        join: r2 in Relationship,
+        on: r2.object_id == b.id,
+        join: rt2 in RelationshipType,
+        on: rt2.id == r2.relationship_type_id,
+        join: evt in Entity,
+        on: evt.id == r2.subject_id,
+        join: r1 in Relationship,
+        on: r1.object_id == evt.id,
         where:
           r1.subject_id == ^entity_id and rt2.slug == "biennale_event" and b.type == "biennale",
         distinct: true,
@@ -338,8 +349,10 @@ defmodule MykonosBiennale.Search.Indexer do
   defp list_biennale_years_directly(event_id) do
     Repo.all(
       from b in Entity,
-        join: r in Relationship, on: r.object_id == b.id,
-        join: rt in RelationshipType, on: rt.id == r.relationship_type_id,
+        join: r in Relationship,
+        on: r.object_id == b.id,
+        join: rt in RelationshipType,
+        on: rt.id == r.relationship_type_id,
         where: r.subject_id == ^event_id and rt.slug == "biennale_event" and b.type == "biennale",
         distinct: true,
         select: fragment("? ->> 'year'", b.fields)
@@ -356,7 +369,8 @@ defmodule MykonosBiennale.Search.Indexer do
   defp linked_entities_with_index(media_id) do
     Repo.all(
       from e in Entity,
-        join: em in EntityMedia, on: em.entity_id == e.id,
+        join: em in EntityMedia,
+        on: em.entity_id == e.id,
         where: em.media_id == ^media_id,
         select: %{id: e.id, search_index: e.search_index}
     )

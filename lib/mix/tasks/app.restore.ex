@@ -21,12 +21,17 @@ defmodule Mix.Tasks.App.Restore do
     relationship_types: ~w(id label slug inserted_at updated_at)a,
     users: ~w(id email hashed_password confirmed_at inserted_at updated_at)a,
     users_tokens: ~w(id token context sent_to authenticated_at user_id inserted_at)a,
-    entities: ~w(id identity type slug visible template fields search_index search_indexed_at inserted_at updated_at)a,
-    media: ~w(id caption source_type source_url source_embed source_path mime_type alt_text metadata search_index search_indexed_at inserted_at updated_at)a,
+    entities:
+      ~w(id identity type slug visible template fields search_index search_indexed_at inserted_at updated_at)a,
+    media:
+      ~w(id caption source_type source_url source_embed source_path mime_type alt_text metadata search_index search_indexed_at inserted_at updated_at)a,
     entity_media: ~w(entity_id media_id position metadata inserted_at updated_at)a,
-    relationships: ~w(id fields relationship_type_id subject_id object_id inserted_at updated_at)a,
-    pages: ~w(id position title slug description template content visible metadata inserted_at updated_at)a,
-    sections: ~w(id position title slug description template content visible metadata page_id inserted_at updated_at)a
+    relationships:
+      ~w(id fields relationship_type_id subject_id object_id inserted_at updated_at)a,
+    pages:
+      ~w(id position title slug description template content visible metadata inserted_at updated_at)a,
+    sections:
+      ~w(id position title slug description template content visible metadata page_id inserted_at updated_at)a
   }
 
   @impl Mix.Task
@@ -42,9 +47,10 @@ defmodule Mix.Tasks.App.Restore do
       exit(:shutdown)
     end
 
-    data = input
-           |> File.read!()
-           |> Jason.decode!()
+    data =
+      input
+      |> File.read!()
+      |> Jason.decode!()
 
     IO.puts("Restoring data from #{input}...")
 
@@ -54,7 +60,9 @@ defmodule Mix.Tasks.App.Restore do
     end)
 
     IO.puts("\nRestore complete!")
-    for key <- ~w(relationship_types users user_tokens entities media entity_media relationships pages sections) do
+
+    for key <-
+          ~w(relationship_types users user_tokens entities media entity_media relationships pages sections) do
       records = Map.get(data, key, [])
       IO.puts("  #{key}: #{length(records)} records")
     end

@@ -30,7 +30,7 @@ defmodule MykonosBiennaleWeb.Router do
     live "/about", AboutLive
     live "/search", PublicSearchLive
     get "/page/:slug", SitePageController, :show
-    get "/biennale/:slug", BiennaleController, :show
+    get "/biennale/:slug", BiennaleController, :festival
     get "/biennale/:slug/festival", BiennaleController, :festival
   end
 
@@ -39,30 +39,26 @@ defmodule MykonosBiennaleWeb.Router do
   #   pipe_through :api
   # end
 
-  # Enable LiveDashboard and Swoosh mailbox preview in development
+  import Phoenix.LiveDashboard.Router
+
+  # Admin-only dashboards (available in all environments)
+  scope "/admin", MykonosBiennaleWeb do
+    pipe_through [:browser, :require_authenticated_user, :require_admin]
+
+    live_dashboard "/dashboard",
+      metrics: MykonosBiennaleWeb.Telemetry,
+      ecto_repos: [MykonosBiennale.Repo],
+      ecto_psql_extras_options: [long_running_queries: [threshold: "200 milliseconds"]]
+
+    oban_dashboard("/oban")
+  end
+
+  # Enable Swoosh mailbox preview in development only
   if Application.compile_env(:mykonos_biennale, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
-    import Phoenix.LiveDashboard.Router
-
-    scope "/dev" do
-      pipe_through :browser
-
-      live_dashboard "/dashboard",
-        metrics: MykonosBiennaleWeb.Telemetry,
-        ecto_repos: [MykonosBiennale.Repo],
-        ecto_psql_extras_options: [long_running_queries: [threshold: "200 milliseconds"]]
+    scope "/admin" do
+      pipe_through [:browser, :require_authenticated_user, :require_admin]
 
       forward "/mailbox", Plug.Swoosh.MailboxPreview
-    end
-
-    scope "/" do
-      pipe_through :browser
-
-      oban_dashboard("/oban")
     end
   end
 

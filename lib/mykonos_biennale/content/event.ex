@@ -201,7 +201,9 @@ defmodule MykonosBiennale.Content.Event do
 
   defp maybe_upsert_relationship(event_entity, nil, _label, slug) do
     case Repo.get_by(RelationshipType, slug: slug) do
-      nil -> :ok
+      nil ->
+        :ok
+
       rt ->
         Repo.delete_all(
           from r in Relationship,

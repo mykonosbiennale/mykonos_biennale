@@ -146,13 +146,17 @@ defmodule MykonosBiennale.Content do
   ## Delegates - Project
 
   defdelegate list_projects, to: MykonosBiennale.Content.Project, as: :list
+
   defdelegate list_projects_for_biennale(year),
     to: MykonosBiennale.Content.Project,
     as: :list_for_biennale
+
   defdelegate get_project!(id), to: MykonosBiennale.Content.Project, as: :get!
+
   defdelegate list_event_media_for_project(project),
     to: MykonosBiennale.Content.Project,
     as: :list_event_media
+
   defdelegate create_project(attrs \\ %{}), to: MykonosBiennale.Content.Project, as: :create
   defdelegate update_project(entity, attrs), to: MykonosBiennale.Content.Project, as: :update
   defdelegate delete_project(entity), to: MykonosBiennale.Content.Project, as: :delete
@@ -389,7 +393,10 @@ defmodule MykonosBiennale.Content do
     filtered_query =
       if search != "" do
         pattern = MykonosBiennale.Search.entity_search_pattern(search)
-        from(m in base_query, where: not is_nil(m.search_index) and like(m.search_index, ^pattern))
+
+        from(m in base_query,
+          where: not is_nil(m.search_index) and like(m.search_index, ^pattern)
+        )
       else
         base_query
       end
@@ -428,7 +435,10 @@ defmodule MykonosBiennale.Content do
     filtered_query =
       if search != "" do
         pattern = MykonosBiennale.Search.entity_search_pattern(search)
-        from(e in base_query, where: not is_nil(e.search_index) and like(e.search_index, ^pattern))
+
+        from(e in base_query,
+          where: not is_nil(e.search_index) and like(e.search_index, ^pattern)
+        )
       else
         base_query
       end
@@ -457,7 +467,10 @@ defmodule MykonosBiennale.Content do
     filtered_query =
       if search != "" do
         pattern = MykonosBiennale.Search.entity_search_pattern(search)
-        from(e in base_query, where: not is_nil(e.search_index) and like(e.search_index, ^pattern))
+
+        from(e in base_query,
+          where: not is_nil(e.search_index) and like(e.search_index, ^pattern)
+        )
       else
         base_query
       end
@@ -487,7 +500,10 @@ defmodule MykonosBiennale.Content do
     filtered_query =
       if search != "" do
         pattern = MykonosBiennale.Search.entity_search_pattern(search)
-        from(e in base_query, where: not is_nil(e.search_index) and like(e.search_index, ^pattern))
+
+        from(e in base_query,
+          where: not is_nil(e.search_index) and like(e.search_index, ^pattern)
+        )
       else
         base_query
       end
@@ -516,7 +532,10 @@ defmodule MykonosBiennale.Content do
     filtered_query =
       if search != "" do
         pattern = MykonosBiennale.Search.entity_search_pattern(search)
-        from(e in base_query, where: not is_nil(e.search_index) and like(e.search_index, ^pattern))
+
+        from(e in base_query,
+          where: not is_nil(e.search_index) and like(e.search_index, ^pattern)
+        )
       else
         base_query
       end
@@ -569,9 +588,12 @@ defmodule MykonosBiennale.Content do
 
         filtered =
           from(r in Relationship,
-            join: s in Entity, on: s.id == r.subject_id,
-            join: o in Entity, on: o.id == r.object_id,
-            join: rt in RelationshipType, on: rt.id == r.relationship_type_id,
+            join: s in Entity,
+            on: s.id == r.subject_id,
+            join: o in Entity,
+            on: o.id == r.object_id,
+            join: rt in RelationshipType,
+            on: rt.id == r.relationship_type_id,
             where:
               like(s.search_index, ^pattern) or
                 like(o.search_index, ^pattern) or
@@ -583,9 +605,12 @@ defmodule MykonosBiennale.Content do
 
         count_query =
           from(r in Relationship,
-            join: s in Entity, on: s.id == r.subject_id,
-            join: o in Entity, on: o.id == r.object_id,
-            join: rt in RelationshipType, on: rt.id == r.relationship_type_id,
+            join: s in Entity,
+            on: s.id == r.subject_id,
+            join: o in Entity,
+            on: o.id == r.object_id,
+            join: rt in RelationshipType,
+            on: rt.id == r.relationship_type_id,
             where:
               like(s.search_index, ^pattern) or
                 like(o.search_index, ^pattern) or
@@ -612,21 +637,47 @@ defmodule MykonosBiennale.Content do
   defp relationship_sort_clause(:type, :desc), do: [desc: :relationship_type_id]
   defp relationship_sort_clause(_, _), do: [desc: :inserted_at]
 
-  defp entity_sort_clause("artwork", :title, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "title"))}]
-  defp entity_sort_clause("artwork", :date, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "date"))}]
-  defp entity_sort_clause("participant", :name, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "last_name"))}]
-  defp entity_sort_clause("participant", :country, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "country"))}]
-  defp entity_sort_clause("participant", :email, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "email"))}]
-  defp entity_sort_clause("film", :ref, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "ref"))}]
+  defp entity_sort_clause("artwork", :title, dir),
+    do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "title"))}]
+
+  defp entity_sort_clause("artwork", :date, dir),
+    do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "date"))}]
+
+  defp entity_sort_clause("participant", :name, dir),
+    do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "last_name"))}]
+
+  defp entity_sort_clause("participant", :country, dir),
+    do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "country"))}]
+
+  defp entity_sort_clause("participant", :email, dir),
+    do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "email"))}]
+
+  defp entity_sort_clause("film", :ref, dir),
+    do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "ref"))}]
+
   defp entity_sort_clause("film", :title, dir), do: [{dir, dynamic([e], e.identity)}]
   defp entity_sort_clause("film", :type, dir), do: [{dir, dynamic([e], e.type)}]
-  defp entity_sort_clause("event", :title, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "title"))}]
-  defp entity_sort_clause("event", :date, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "date"))}]
-  defp entity_sort_clause("event", :type, dir), do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "type"))}]
-  defp entity_sort_clause("artwork", _, _), do: [desc: dynamic([e], fragment("? ->> ?", e.fields, "date"))]
-  defp entity_sort_clause("participant", _, _), do: [asc: dynamic([e], fragment("? ->> ?", e.fields, "last_name"))]
-  defp entity_sort_clause("film", _, _), do: [asc: dynamic([e], fragment("? ->> ?", e.fields, "ref"))]
-  defp entity_sort_clause("event", _, _), do: [asc: dynamic([e], fragment("? ->> ?", e.fields, "date"))]
+
+  defp entity_sort_clause("event", :title, dir),
+    do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "title"))}]
+
+  defp entity_sort_clause("event", :date, dir),
+    do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "date"))}]
+
+  defp entity_sort_clause("event", :type, dir),
+    do: [{dir, dynamic([e], fragment("? ->> ?", e.fields, "type"))}]
+
+  defp entity_sort_clause("artwork", _, _),
+    do: [desc: dynamic([e], fragment("? ->> ?", e.fields, "date"))]
+
+  defp entity_sort_clause("participant", _, _),
+    do: [asc: dynamic([e], fragment("? ->> ?", e.fields, "last_name"))]
+
+  defp entity_sort_clause("film", _, _),
+    do: [asc: dynamic([e], fragment("? ->> ?", e.fields, "ref"))]
+
+  defp entity_sort_clause("event", _, _),
+    do: [asc: dynamic([e], fragment("? ->> ?", e.fields, "date"))]
 
   @doc """
   Gets a single media.

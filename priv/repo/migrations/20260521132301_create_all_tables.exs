@@ -95,6 +95,7 @@ defmodule MykonosBiennale.Repo.Migrations.CreateAllTables do
 
     create index(:relationships, [:subject_id])
     create index(:relationships, [:object_id])
+
     create unique_index(:relationships, [:subject_id, :relationship_type_id, :object_id],
              name: :relationship_index
            )

@@ -45,7 +45,9 @@ defmodule MykonosBiennaleWeb.BiennaleController do
           |> Enum.map(fn project ->
             entity = Content.get_entity!(project.id)
             media = Content.list_media_for_entity(entity)
-            {project.id, if(media == [], do: Content.list_event_media_for_project(entity), else: media)}
+
+            {project.id,
+             if(media == [], do: Content.list_event_media_for_project(entity), else: media)}
           end)
           |> Enum.into(%{})
 

@@ -50,7 +50,9 @@ defmodule MykonosBiennale.Workers.MediaProcess do
 
   def perform(%Oban.Job{args: %{"kind" => "all", "media_id" => id}}) do
     case Repo.get(Media, id) do
-      nil -> :ok
+      nil ->
+        :ok
+
       media ->
         generate_webp_sizes(media)
         enqueue_avif_and_press(media.id)
@@ -113,7 +115,8 @@ defmodule MykonosBiennale.Workers.MediaProcess do
 
     args = [
       webp_path,
-      "-quality", "65",
+      "-quality",
+      "65",
       "-strip",
       avif_path
     ]
@@ -143,8 +146,10 @@ defmodule MykonosBiennale.Workers.MediaProcess do
       else
         args = [
           original_path,
-          "-resize", "3508x3508>",
-          "-quality", "92",
+          "-resize",
+          "3508x3508>",
+          "-quality",
+          "92",
           "-strip",
           press_path
         ]

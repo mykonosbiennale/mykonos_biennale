@@ -184,7 +184,9 @@ defmodule MykonosBiennaleWeb.MediaController do
     args = [webp_path, "-quality", "65", "-strip", avif_path]
 
     case System.cmd(cmd, args, stderr_to_stdout: true) do
-      {_, 0} -> :ok
+      {_, 0} ->
+        :ok
+
       {error, _code} ->
         require Logger
         Logger.warning("AVIF generation failed for #{webp_path}: #{error}")
@@ -237,7 +239,9 @@ defmodule MykonosBiennaleWeb.MediaController do
 
   defp parse_dimensions(dim) do
     case Map.get(@sizes, dim) do
-      {w, h} -> {w, h}
+      {w, h} ->
+        {w, h}
+
       nil ->
         case String.split(dim, "x") do
           [w, h] -> {String.to_integer(w), String.to_integer(h)}

@@ -110,7 +110,7 @@ defmodule MykonosBiennale.Thumbnail do
   @spec thumbnail_url(String.t(), pos_integer(), pos_integer()) :: String.t()
   def thumbnail_url(original_filename, width, height) do
     basename = Path.basename(original_filename, Path.extname(original_filename))
-    "/media/#{width}x#{height}/#{basename}.webp"
+    Uploads.prefix_url("/media/#{width}x#{height}/#{basename}.webp")
   end
 
   @doc """
@@ -163,10 +163,14 @@ defmodule MykonosBiennale.Thumbnail do
   defp generate_thumbnail(original_path, thumb_path, width, height) do
     args = [
       original_path,
-      "-resize", "#{width}x#{height}^",
-      "-gravity", "center",
-      "-extent", "#{width}x#{height}",
-      "-quality", "80",
+      "-resize",
+      "#{width}x#{height}^",
+      "-gravity",
+      "center",
+      "-extent",
+      "#{width}x#{height}",
+      "-quality",
+      "80",
       "-strip",
       thumb_path
     ]
@@ -187,10 +191,14 @@ defmodule MykonosBiennale.Thumbnail do
   defp generate_jpeg(original_path, jpeg_path, width, height) do
     args = [
       original_path,
-      "-resize", "#{width}x#{height}^",
-      "-gravity", "center",
-      "-extent", "#{width}x#{height}",
-      "-quality", "85",
+      "-resize",
+      "#{width}x#{height}^",
+      "-gravity",
+      "center",
+      "-extent",
+      "#{width}x#{height}",
+      "-quality",
+      "85",
       "-strip",
       jpeg_path
     ]

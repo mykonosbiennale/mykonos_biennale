@@ -30,7 +30,8 @@
     </script>
   </head>
   <body class="bg-black text-white antialiased">
-    <%= if path = MykonosBiennaleWeb.Layouts.template_path(assigns), do: Phoenix.HTML.raw("<!-- template: #{path} -->") %>
+    {if path = MykonosBiennaleWeb.Layouts.template_path(assigns),
+      do: Phoenix.HTML.raw("<!-- template: #{path} -->")}
     <div class="w-full md:w-5/6 mx-auto">
       <header class="w-full relative z-10 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-3">
         <form action={~p"/search"} method="get" class="w-full max-w-xl">
@@ -42,17 +43,6 @@
             class="w-full bg-black border border-gray-700 text-white text-sm px-3 py-2 placeholder-gray-500 focus:outline-none focus:border-white rounded-full"
           />
         </form>
-        <ul class="menu menu-horizontal flex items-center gap-4 absolute right-4 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2">
-          <%= if @current_scope do %>
-            <li>
-              <.link href={~p"/users/log-out"} method="delete">Log out</.link>
-            </li>
-          <% else %>
-            <li>
-              <.link href={~p"/users/log-in"}>Log in</.link>
-            </li>
-          <% end %>
-        </ul>
       </header>
       {@inner_content}
     </div>

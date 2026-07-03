@@ -1,130 +1,133 @@
 <Layouts.app flash={@flash}>
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center gap-4">
-          <.link patch="/admin/artworks" class="text-gray-400 hover:text-white transition-colors">
-            <.icon name="hero-arrow-left" class="w-5 h-5" />
-          </.link>
-          <h1 class="text-3xl font-bold text-white">Merge Duplicate Artworks</h1>
-        </div>
-        <div class="flex items-center gap-4">
-          <span class="text-sm text-gray-400">{length(@duplicate_groups)} groups</span>
-          <%= if @merged_count > 0 do %>
-            <span class="text-sm text-green-400">{@merged_count} groups merged</span>
-          <% end %>
-          <div class="flex items-center gap-1 bg-gray-800 rounded-lg p-1">
-            <button
-              phx-click="set_group_mode"
-              phx-value-mode="broad"
-              class={"px-3 py-1.5 text-xs font-medium rounded-md transition-colors " <>
-                if(@group_mode == "broad", do: "bg-purple-600 text-white", else: "text-gray-400 hover:text-white")}
-            >
-              By Event + Artist
-            </button>
-            <button
-              phx-click="set_group_mode"
-              phx-value-mode="narrow"
-              class={"px-3 py-1.5 text-xs font-medium rounded-md transition-colors " <>
-                if(@group_mode == "narrow", do: "bg-purple-600 text-white", else: "text-gray-400 hover:text-white")}
-            >
-              By Title + Event + Artist
-            </button>
-          </div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <.link patch="/admin/artworks" class="text-gray-400 hover:text-white transition-colors">
+          <.icon name="hero-arrow-left" class="w-5 h-5" />
+        </.link>
+        <h1 class="text-3xl font-bold text-white">Merge Duplicate Artworks</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-sm text-gray-400">{length(@duplicate_groups)} groups</span>
+        <%= if @merged_count > 0 do %>
+          <span class="text-sm text-green-400">{@merged_count} groups merged</span>
+        <% end %>
+        <div class="flex items-center gap-1 bg-gray-800 rounded-lg p-1">
           <button
-            phx-click="merge_selected"
-            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+            phx-click="set_group_mode"
+            phx-value-mode="broad"
+            class={"px-3 py-1.5 text-xs font-medium rounded-md transition-colors " <>
+                if(@group_mode == "broad", do: "bg-purple-600 text-white", else: "text-gray-400 hover:text-white")}
           >
-            Merge Selected
+            By Event + Artist
+          </button>
+          <button
+            phx-click="set_group_mode"
+            phx-value-mode="narrow"
+            class={"px-3 py-1.5 text-xs font-medium rounded-md transition-colors " <>
+                if(@group_mode == "narrow", do: "bg-purple-600 text-white", else: "text-gray-400 hover:text-white")}
+          >
+            By Title + Event + Artist
           </button>
         </div>
+        <button
+          phx-click="merge_selected"
+          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          Merge Selected
+        </button>
       </div>
+    </div>
 
-      <%= if @duplicate_groups == [] do %>
-        <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-8 text-center">
-          <.icon name="hero-check-circle" class="w-12 h-12 text-green-400 mx-auto mb-3" />
-          <p class="text-gray-300 text-lg">No duplicate artwork groups found!</p>
-        </div>
-      <% else %>
-        <div class="space-y-4">
-          <%= for group <- @duplicate_groups do %>
-            <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-4">
-              <div class="flex items-center gap-6 mb-3">
-                <div class="w-40 flex-shrink-0">
-                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Artist
-                  </span>
-                  <div class="text-white text-sm">
-                    <.link
-                      patch={"/admin/participants/#{group.participant.id}"}
-                      class="text-purple-400 hover:text-purple-300"
-                    >
-                      {pfield(group.participant, "name")}
-                    </.link>
-                  </div>
-                </div>
-                <div class="w-40 flex-shrink-0">
-                  <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Event
-                  </span>
-                  <div class="text-white text-sm">
-                    <.link
-                      patch={"/admin/events/#{group.event.id}"}
-                      class="text-purple-400 hover:text-purple-300"
-                    >
-                      {pfield(group.event, "title")}
-                    </.link>
-                  </div>
-                </div>
-                <div class="text-xs text-gray-500">
-                  {length(group.entries)} works
+    <%= if @duplicate_groups == [] do %>
+      <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-8 text-center">
+        <.icon name="hero-check-circle" class="w-12 h-12 text-green-400 mx-auto mb-3" />
+        <p class="text-gray-300 text-lg">No duplicate artwork groups found!</p>
+      </div>
+    <% else %>
+      <div class="space-y-4">
+        <%= for group <- @duplicate_groups do %>
+          <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-4">
+            <div class="flex items-center gap-6 mb-3">
+              <div class="w-40 flex-shrink-0">
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Artist
+                </span>
+                <div class="text-white text-sm">
+                  <.link
+                    patch={"/admin/participants/#{group.participant.id}"}
+                    class="text-purple-400 hover:text-purple-300"
+                  >
+                    {pfield(group.participant, "name")}
+                  </.link>
                 </div>
               </div>
-
-              <div class="flex flex-wrap gap-3">
-                <%= for entry <- group.entries do %>
-                  <label
-                    class="cursor-pointer group"
-                    phx-click="toggle_select"
-                    phx-value-id={entry.artwork.id}
+              <div class="w-40 flex-shrink-0">
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Event
+                </span>
+                <div class="text-white text-sm">
+                  <.link
+                    patch={"/admin/events/#{group.event.id}"}
+                    class="text-purple-400 hover:text-purple-300"
                   >
-                    <input
-                      type="checkbox"
-                      name="selected"
-                      value={entry.artwork.id}
-                      checked={MapSet.member?(@selected_ids, entry.artwork.id)}
-                      class="hidden peer"
-                    />
-                    <div class="w-28 rounded-lg overflow-hidden border-2 border-transparent peer-checked:border-green-500 hover:border-gray-500 transition-colors">
-                      <div class="aspect-square bg-gray-700 flex items-center justify-center">
-                        <%= case first_media(entry.media) do %>
-                          <% %{source_type: "upload"} = media -> %>
-                            <.picture record={media} size="admin" alt={pfield(entry.artwork, "title")} />
-                          <% %{source_type: "url", source_url: url} -> %>
-                            <img
-                              src={url}
-                              alt={pfield(entry.artwork, "title")}
-                              class="w-full h-full object-cover"
-                            />
-                          <% _ -> %>
-                            <.icon name="hero-photo" class="w-6 h-6 text-gray-500" />
-                        <% end %>
-                      </div>
-                      <div class="px-1.5 py-1 bg-gray-800/80">
-                        <div class="text-[10px] text-gray-300 truncate">
-                          {pfield(entry.artwork, "title", "Untitled")}
-                        </div>
-                        <div class="text-[9px] text-gray-500">
-                          ID {entry.artwork.id}
-                        </div>
-                      </div>
-                    </div>
-                  </label>
-                <% end %>
+                    {pfield(group.event, "title")}
+                  </.link>
+                </div>
+              </div>
+              <div class="text-xs text-gray-500">
+                {length(group.entries)} works
               </div>
             </div>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
+
+            <div class="flex flex-wrap gap-3">
+              <%= for entry <- group.entries do %>
+                <label
+                  class="cursor-pointer group"
+                  phx-click="toggle_select"
+                  phx-value-id={entry.artwork.id}
+                >
+                  <input
+                    type="checkbox"
+                    name="selected"
+                    value={entry.artwork.id}
+                    checked={MapSet.member?(@selected_ids, entry.artwork.id)}
+                    class="hidden peer"
+                  />
+                  <div class="w-28 rounded-lg overflow-hidden border-2 border-transparent peer-checked:border-green-500 hover:border-gray-500 transition-colors">
+                    <div class="aspect-square bg-gray-700 flex items-center justify-center">
+                      <%= case first_media(entry.media) do %>
+                        <% %{source_type: "upload"} = media -> %>
+                          <.picture
+                            record={media}
+                            size="admin"
+                            alt={pfield(entry.artwork, "title")}
+                          />
+                        <% %{source_type: "url", source_url: url} -> %>
+                          <img
+                            src={url}
+                            alt={pfield(entry.artwork, "title")}
+                            class="w-full h-full object-cover"
+                          />
+                        <% _ -> %>
+                          <.icon name="hero-photo" class="w-6 h-6 text-gray-500" />
+                      <% end %>
+                    </div>
+                    <div class="px-1.5 py-1 bg-gray-800/80">
+                      <div class="text-[10px] text-gray-300 truncate">
+                        {pfield(entry.artwork, "title", "Untitled")}
+                      </div>
+                      <div class="text-[9px] text-gray-500">
+                        ID {entry.artwork.id}
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
 </Layouts.app>

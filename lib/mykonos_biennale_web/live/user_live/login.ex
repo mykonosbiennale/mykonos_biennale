@@ -24,7 +24,7 @@ defmodule MykonosBiennaleWeb.UserLive.Login do
           <div>
             <p>You are running the local mail adapter.</p>
             <p>
-              To see sent emails, visit <.link href="/dev/mailbox" class="underline">the mailbox page</.link>.
+              To see sent emails, visit <.link href="/admin/mailbox" class="underline">the mailbox page</.link>.
             </p>
           </div>
         </div>
@@ -120,6 +120,7 @@ defmodule MykonosBiennaleWeb.UserLive.Login do
   end
 
   defp local_mail_adapter? do
-    Application.get_env(:mykonos_biennale, MykonosBiennale.Mailer)[:adapter] == Swoosh.Adapters.Local
+    Application.get_env(:mykonos_biennale, MykonosBiennale.Mailer)[:adapter] ==
+      Swoosh.Adapters.Local
   end
 end

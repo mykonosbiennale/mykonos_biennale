@@ -59,7 +59,15 @@ defmodule MykonosBiennale.Content.Media do
               id = get_field(changeset, :id)
               # For new records, id is nil — slug will be set after insert
               if id do
-                put_change(changeset, :slug, MediaSlug.generate(id, get_field(changeset, :caption), get_field(changeset, :original_name)))
+                put_change(
+                  changeset,
+                  :slug,
+                  MediaSlug.generate(
+                    id,
+                    get_field(changeset, :caption),
+                    get_field(changeset, :original_name)
+                  )
+                )
               else
                 changeset
               end

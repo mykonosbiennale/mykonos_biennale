@@ -30,14 +30,19 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
     sort_by = (params["sort_by"] || "inserted_at") |> String.to_atom()
     sort_dir = (params["sort_dir"] || "desc") |> String.to_atom()
 
-    {relationships, total_count} = Content.list_relationships_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
+    {relationships, total_count} =
+      Content.list_relationships_paginated(page, @per_page, search,
+        sort_by: sort_by,
+        sort_dir: sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
 
     socket =
       socket
       |> assign(:current_page, page)
       |> assign(:total_pages, total_pages)
-     |> assign(:total_count, total_count)
+      |> assign(:total_count, total_count)
       |> assign(:sort_by, sort_by)
       |> assign(:sort_dir, sort_dir)
       |> stream(:relationships, relationships, reset: true)
@@ -51,7 +56,9 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
   end
 
   defp apply_action(socket, :new, _params) do
-    socket |> assign(:page_title, "New Relationship") |> assign(:relationship, %Content.Relationship{})
+    socket
+    |> assign(:page_title, "New Relationship")
+    |> assign(:relationship, %Content.Relationship{})
   end
 
   defp apply_action(socket, :index, _params) do
@@ -64,7 +71,13 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
         socket
       ) do
     page = socket.assigns.current_page
-    {relationships, total_count} = Content.list_relationships_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+
+    {relationships, total_count} =
+      Content.list_relationships_paginated(page, @per_page, socket.assigns.search,
+        sort_by: socket.assigns.sort_by,
+        sort_dir: socket.assigns.sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
 
     {:noreply,
@@ -80,7 +93,13 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
     {:ok, _} = Content.delete_relationship(rel)
 
     page = socket.assigns.current_page
-    {relationships, total_count} = Content.list_relationships_paginated(page, @per_page, socket.assigns.search, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+
+    {relationships, total_count} =
+      Content.list_relationships_paginated(page, @per_page, socket.assigns.search,
+        sort_by: socket.assigns.sort_by,
+        sort_dir: socket.assigns.sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
 
     {:noreply,
@@ -92,7 +111,12 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
 
   @impl true
   def handle_event("search", %{"search" => term}, socket) do
-    {relationships, total_count} = Content.list_relationships_paginated(1, @per_page, term, sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    {relationships, total_count} =
+      Content.list_relationships_paginated(1, @per_page, term,
+        sort_by: socket.assigns.sort_by,
+        sort_dir: socket.assigns.sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
 
     {:noreply,
@@ -102,12 +126,19 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
      |> assign(:total_pages, total_pages)
      |> assign(:total_count, total_count)
      |> stream(:relationships, relationships, reset: true)
-     |> push_patch(to: path_url("/admin/relationships", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
+     |> push_patch(
+       to: path_url("/admin/relationships", 1, socket.assigns.sort_by, socket.assigns.sort_dir)
+     )}
   end
 
   @impl true
   def handle_event("clear_search", _params, socket) do
-    {relationships, total_count} = Content.list_relationships_paginated(1, @per_page, "", sort_by: socket.assigns.sort_by, sort_dir: socket.assigns.sort_dir)
+    {relationships, total_count} =
+      Content.list_relationships_paginated(1, @per_page, "",
+        sort_by: socket.assigns.sort_by,
+        sort_dir: socket.assigns.sort_dir
+      )
+
     total_pages = max(1, ceil(total_count / @per_page))
 
     {:noreply,
@@ -117,15 +148,18 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
      |> assign(:total_pages, total_pages)
      |> assign(:total_count, total_count)
      |> stream(:relationships, relationships, reset: true)
-     |> push_patch(to: path_url("/admin/relationships", 1, socket.assigns.sort_by, socket.assigns.sort_dir))}
+     |> push_patch(
+       to: path_url("/admin/relationships", 1, socket.assigns.sort_by, socket.assigns.sort_dir)
+     )}
   end
 
   defp path_url(base, page, sort_by, sort_dir) do
     "#{base}?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
   end
 
-  defp entity_label(%Content.Entity{identity: identity}) when is_binary(identity) and identity != "",
-    do: identity
+  defp entity_label(%Content.Entity{identity: identity})
+       when is_binary(identity) and identity != "",
+       do: identity
 
   defp entity_label(%Content.Entity{fields: fields}) when is_map(fields) do
     Map.get(fields, "name") ||
@@ -142,12 +176,14 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
   defp entity_path(%Content.Entity{type: "event"} = e), do: "/admin/events/#{e.id}"
   defp entity_path(%Content.Entity{type: "biennale"} = e), do: "/admin/biennales/#{e.id}"
   defp entity_path(%Content.Entity{type: "project"} = e), do: "/admin/projects/#{e.id}"
+
   defp entity_path(%Content.Entity{} = e) do
     film_types = ["Short Film", "Video", "Dance", "Animation", "Documentary"]
     if e.type in film_types, do: "/admin/films/#{e.id}", else: "#"
   end
 
   defp format_fields(nil), do: ""
+
   defp format_fields(fields) when is_map(fields) do
     fields |> Enum.map(fn {k, v} -> "#{k}: #{v}" end) |> Enum.join(", ")
   end

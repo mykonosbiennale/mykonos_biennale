@@ -60,7 +60,12 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
         <div class="space-y-4">
           <.input field={@form[:year]} type="number" label="Year" required />
           <.input field={@form[:theme]} type="text" label="Theme" required />
-          <.input field={@form[:template]} type="select" label="Template" options={[{"Default", "default"}, {"None (raw content)", "none"}, {"List", "list"}]} />
+          <.input
+            field={@form[:template]}
+            type="select"
+            label="Template"
+            options={[{"Default", "default"}, {"None (raw content)", "none"}, {"List", "list"}]}
+          />
           <.input field={@form[:statement]} type="textarea" label="Statement" rows="3" />
           <.input field={@form[:description]} type="textarea" label="Description" rows="5" />
           <.input field={@form[:start_date]} type="date" label="Start Date" />

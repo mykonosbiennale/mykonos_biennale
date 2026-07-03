@@ -92,15 +92,13 @@ defmodule MykonosBiennaleWeb.PublicSearchLive do
             <%= cond do %>
               <% @q == "" -> %>
                 <p class="text-gray-400 text-lg">Type a name, work, or theme to begin.</p>
-
               <% @results.total == 0 -> %>
                 <p class="text-gray-400 text-lg">
                   No results for <span class="text-white font-bold">"{@q}"</span>.
                 </p>
-
               <% true -> %>
                 <p class="text-sm text-gray-400 uppercase tracking-wider mb-8">
-                  {@results.total} result<%= if @results.total != 1, do: "s" %> for "{@q}"
+                  {@results.total} result{if @results.total != 1, do: "s"} for "{@q}"
                 </p>
 
                 <%= if @results.entities != [] do %>
@@ -116,7 +114,10 @@ defmodule MykonosBiennaleWeb.PublicSearchLive do
                         >
                           <div class="flex items-baseline justify-between gap-4 mb-2">
                             <h3 class="text-lg font-bold text-white">{hit.title}</h3>
-                            <span :if={hit.subtitle} class="text-xs text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                            <span
+                              :if={hit.subtitle}
+                              class="text-xs text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                            >
                               {hit.subtitle}
                             </span>
                           </div>
@@ -142,7 +143,10 @@ defmodule MykonosBiennaleWeb.PublicSearchLive do
                         >
                           <div class="flex items-baseline justify-between gap-4 mb-2">
                             <h3 class="text-lg font-bold text-white">{hit.title}</h3>
-                            <span :if={hit.subtitle} class="text-xs text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                            <span
+                              :if={hit.subtitle}
+                              class="text-xs text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                            >
                               {hit.subtitle}
                             </span>
                           </div>
