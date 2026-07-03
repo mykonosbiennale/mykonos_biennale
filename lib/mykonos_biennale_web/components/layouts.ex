@@ -11,6 +11,48 @@ defmodule MykonosBiennaleWeb.Layouts do
   # and other static content.
   embed_templates "layouts/*"
 
+  def template_path(assigns) when is_map(assigns) do
+    cond do
+      module = assigns[:live_module] ->
+        source_path(module)
+
+      conn = assigns[:conn] ->
+        view = conn.private[:phoenix_view]
+        template = conn.private[:phoenix_template]
+        format = conn.private[:phoenix_format] || "html"
+
+        view_module =
+          case view do
+            mod when is_atom(mod) -> mod
+            map when is_map(map) -> Map.get(map, :_) || Map.get(map, format)
+            _ -> nil
+          end
+
+        if view_module && template do
+          case source_path(view_module) do
+            nil -> nil
+            view_source ->
+              basename = Path.basename(view_source, ".ex")
+              dir = Path.join(Path.dirname(view_source), basename)
+              suffix = if String.contains?(template, "."), do: ".heex", else: ".html.heex"
+              "#{dir}/#{template}#{suffix}"
+          end
+        end
+
+      true ->
+        nil
+    end
+  end
+
+  defp source_path(module) when is_atom(module) do
+    case module.__info__(:compile)[:source] do
+      source when is_list(source) -> to_string(source)
+      _ -> nil
+    end
+  rescue
+    _ -> nil
+  end
+
   @doc """
   Renders your app layout.
 

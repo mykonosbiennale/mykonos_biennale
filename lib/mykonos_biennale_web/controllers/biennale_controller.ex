@@ -44,7 +44,8 @@ defmodule MykonosBiennaleWeb.BiennaleController do
           projects
           |> Enum.map(fn project ->
             entity = Content.get_entity!(project.id)
-            {project.id, Content.list_media_for_entity(entity)}
+            media = Content.list_media_for_entity(entity)
+            {project.id, if(media == [], do: Content.list_event_media_for_project(entity), else: media)}
           end)
           |> Enum.into(%{})
 
@@ -98,6 +99,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
 
   defp present_project(%MykonosBiennale.Content.Entity{} = entity) do
     media = Content.list_media_for_entity(entity)
+    media = if media == [], do: Content.list_event_media_for_project(entity), else: media
 
     background =
       case List.last(media) do

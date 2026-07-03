@@ -142,7 +142,6 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
   defp entity_path(%Content.Entity{type: "event"} = e), do: "/admin/events/#{e.id}"
   defp entity_path(%Content.Entity{type: "biennale"} = e), do: "/admin/biennales/#{e.id}"
   defp entity_path(%Content.Entity{type: "project"} = e), do: "/admin/projects/#{e.id}"
-  defp entity_path(%Content.Entity{type: "festival"} = e), do: "/admin/festivals/#{e.id}"
   defp entity_path(%Content.Entity{} = e) do
     film_types = ["Short Film", "Video", "Dance", "Animation", "Documentary"]
     if e.type in film_types, do: "/admin/films/#{e.id}", else: "#"

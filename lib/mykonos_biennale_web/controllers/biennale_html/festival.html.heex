@@ -41,6 +41,7 @@
   <% end %>
 
   <%!-- Project Preview Section (from home page) --%>
+  <%= if @biennale.fields["show_program"] != false do %>
   <div class="px-6 py-20 md:py-32 max-w-7xl mx-auto">
     <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
       Projects {@biennale.fields["year"]}
@@ -77,6 +78,7 @@
       <% end %>
     </div>
   </div>
+  <% end %>
 
   <%!-- Archive Teaser Section --%>
   <div class="px-6 py-20 md:py-32 bg-gray-950">

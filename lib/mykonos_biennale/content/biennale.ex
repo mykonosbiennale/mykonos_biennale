@@ -48,7 +48,8 @@ defmodule MykonosBiennale.Content.Biennale do
       "statement" => Map.get(attrs, :statement) || Map.get(attrs, "statement"),
       "description" => Map.get(attrs, :description) || Map.get(attrs, "description"),
       "start_date" => Map.get(attrs, :start_date) || Map.get(attrs, "start_date"),
-      "end_date" => Map.get(attrs, :end_date) || Map.get(attrs, "end_date")
+      "end_date" => Map.get(attrs, :end_date) || Map.get(attrs, "end_date"),
+      "show_program" => Map.get(attrs, :show_program, true)
     }
 
     year = fields["year"]
@@ -71,7 +72,7 @@ defmodule MykonosBiennale.Content.Biennale do
 
     new_fields =
       Enum.reduce(
-        [:year, :theme, :statement, :description, :start_date, :end_date],
+        [:year, :theme, :statement, :description, :start_date, :end_date, :show_program],
         current_fields,
         fn key, acc ->
           case Map.get(attrs, key) do

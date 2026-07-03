@@ -99,10 +99,6 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/artworks/new", Admin.ArtworkLive.Index, :new
       live "/admin/artworks/:id/edit", Admin.ArtworkLive.Index, :edit
       live "/admin/artworks/:id", Admin.ArtworkLive.Show, :show
-      live "/admin/festivals", Admin.FestivalLive.Index, :index
-      live "/admin/festivals/new", Admin.FestivalLive.Index, :new
-      live "/admin/festivals/:id/edit", Admin.FestivalLive.Index, :edit
-      live "/admin/festivals/:id", Admin.FestivalLive.Index, :show
       live "/admin/projects", Admin.ProjectLive.Index, :index
       live "/admin/projects/new", Admin.ProjectLive.Index, :new
       live "/admin/projects/:id", Admin.ProjectLive.Show, :show
@@ -154,7 +150,6 @@ defmodule MykonosBiennaleWeb.Router do
 
     live_session :current_user,
       on_mount: [{MykonosBiennaleWeb.UserAuth, :mount_current_scope}] do
-      live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
       live "/users/log-in/:token", UserLive.Confirmation, :new
     end

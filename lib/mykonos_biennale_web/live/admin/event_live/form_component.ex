@@ -14,7 +14,6 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
     @primary_key false
     embedded_schema do
-      field :festival_id, :integer
       field :project_id, :integer
       field :title, :string
       field :type, :string
@@ -30,7 +29,6 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     def changeset(%__MODULE__{} = form, attrs) when is_map(attrs) do
       form
       |> cast(attrs, [
-        :festival_id,
         :project_id,
         :title,
         :type,
@@ -96,14 +94,6 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
               {"Workshop", "workshop"}
             ]}
             required
-          />
-
-          <.input
-            field={@form[:festival_id]}
-            type="select"
-            label="Festival"
-            prompt="Choose a festival"
-            options={Enum.map(@festivals, &{&1.fields["title"] || &1.fields["year"], &1.id})}
           />
 
           <.input field={@form[:date]} type="date" label="Date" />
@@ -249,9 +239,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:biennales, Content.list_biennales())
-     |> assign(:festivals, Content.list_festivals())
-     |> assign(:projects, Content.list_projects())
+|> assign(:biennales, Content.list_biennales())
+      |> assign(:projects, Content.list_projects())
      |> assign(:current_media_links, current_media_links)
      |> assign(:available_media, available_media)
      |> assign_new(:form, fn ->
@@ -409,7 +398,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
   defp extract_event_params(%{"event" => p}) when is_map(p) do
     p
     |> Enum.map(fn
-      {key, ""} when key in ["festival_id", "project_id", "biennale_id"] -> {key, nil}
+      {key, ""} when key in ["project_id", "biennale_id"] -> {key, nil}
       other -> other
     end)
     |> Enum.into(%{})
@@ -421,7 +410,6 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
   defp event_form_attrs(%Content.Entity{fields: fields, as_subject: rels})
        when is_map(fields) and is_list(rels) do
     %{
-      festival_id: relationship_id_by_slug(rels, "event_festival"),
       project_id: relationship_id_by_slug(rels, "event_project"),
       title: Map.get(fields, "title"),
       type: Map.get(fields, "type"),
@@ -480,7 +468,6 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     form = Changeset.apply_changes(changeset)
 
     %{
-      festival_id: form.festival_id,
       project_id: form.project_id,
       title: form.title,
       type: form.type,

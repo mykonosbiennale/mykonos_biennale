@@ -5,7 +5,6 @@ defmodule MykonosBiennale.Content do
   Domain-specific operations are in:
   - `MykonosBiennale.Content.Biennale`
   - `MykonosBiennale.Content.Event`
-  - `MykonosBiennale.Content.Festival`
   """
 
   import Ecto.Query, warn: false
@@ -41,18 +40,6 @@ defmodule MykonosBiennale.Content do
   defdelegate update_event(entity, attrs), to: MykonosBiennale.Content.Event, as: :update
   defdelegate delete_event(entity), to: MykonosBiennale.Content.Event, as: :delete
   defdelegate change_event(entity, attrs \\ %{}), to: MykonosBiennale.Content.Event, as: :change
-
-  ## Delegates - Festival
-
-  defdelegate list_festivals, to: MykonosBiennale.Content.Festival, as: :list
-  defdelegate get_festival!(id), to: MykonosBiennale.Content.Festival, as: :get!
-  defdelegate create_festival(attrs \\ %{}), to: MykonosBiennale.Content.Festival, as: :create
-  defdelegate update_festival(entity, attrs), to: MykonosBiennale.Content.Festival, as: :update
-  defdelegate delete_festival(entity), to: MykonosBiennale.Content.Festival, as: :delete
-
-  defdelegate change_festival(entity, attrs \\ %{}),
-    to: MykonosBiennale.Content.Festival,
-    as: :change
 
   ## Delegates - Participant
 
@@ -163,6 +150,9 @@ defmodule MykonosBiennale.Content do
     to: MykonosBiennale.Content.Project,
     as: :list_for_biennale
   defdelegate get_project!(id), to: MykonosBiennale.Content.Project, as: :get!
+  defdelegate list_event_media_for_project(project),
+    to: MykonosBiennale.Content.Project,
+    as: :list_event_media
   defdelegate create_project(attrs \\ %{}), to: MykonosBiennale.Content.Project, as: :create
   defdelegate update_project(entity, attrs), to: MykonosBiennale.Content.Project, as: :update
   defdelegate delete_project(entity), to: MykonosBiennale.Content.Project, as: :delete

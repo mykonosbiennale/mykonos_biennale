@@ -230,7 +230,6 @@ defmodule MykonosBiennaleWeb.UserAuth do
         MykonosBiennaleWeb.Admin.ArtworkLive.Index -> "artworks"
         MykonosBiennaleWeb.Admin.ArtworkLive.Show -> "artworks"
         MykonosBiennaleWeb.Admin.ArtworkLive.Merge -> "artworks"
-        MykonosBiennaleWeb.Admin.FestivalLive.Index -> "festivals"
         MykonosBiennaleWeb.Admin.ProjectLive.Index -> "projects"
         MykonosBiennaleWeb.Admin.ProjectLive.Show -> "projects"
         MykonosBiennaleWeb.Admin.MediaLive.Index -> "media"

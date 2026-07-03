@@ -45,6 +45,36 @@ defmodule MykonosBiennale.Content.Project do
 
   def get!(id), do: Repo.get!(Entity, id)
 
+  def list_event_media(%Entity{id: project_id}) do
+    event_project_rt_id =
+      Repo.one(from rt in RelationshipType, where: rt.slug == "event_project", select: rt.id, limit: 1)
+
+    if event_project_rt_id do
+      event_ids =
+        Repo.all(
+          from r in Relationship,
+            where: r.relationship_type_id == ^event_project_rt_id and r.object_id == ^project_id,
+            select: r.subject_id
+        )
+
+      if event_ids != [] do
+        Repo.all(
+          from m in Content.Media,
+            join: em in "entity_media",
+            on: em.media_id == m.id,
+            where: em.entity_id in ^event_ids,
+            distinct: m.id,
+            order_by: fragment("RANDOM()"),
+            limit: 1
+        )
+      else
+        []
+      end
+    else
+      []
+    end
+  end
+
   def create(attrs \\ %{}) do
     title = Map.get(attrs, :title) || Map.get(attrs, "title") || ""
 
