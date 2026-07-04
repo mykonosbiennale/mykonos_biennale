@@ -7,59 +7,23 @@ defmodule MykonosBiennaleWeb.BiennaleController do
   def show(conn, %{"slug" => slug}) do
     case Content.get_entity_by_slug(slug) do
       %{type: "biennale", visible: true} = biennale ->
+        projects = load_projects(biennale)
+        events = load_events(biennale)
+        biennales = Content.list_biennales()
+
         conn
         |> assign(:biennale, biennale)
-        |> assign(:events, load_events(biennale))
+        |> assign(:projects, projects)
+        |> assign(:events, events)
         |> assign(:biennale_media, Content.list_media_for_entity(biennale))
+        |> assign(:biennales, biennales)
+        |> assign(:biennale_media_map, biennale_media_map(biennales))
+        |> assign(:project_media, project_media_map(projects))
         |> assign(
           :page_title,
           "#{biennale.fields["theme"]} — Mykonos Biennale #{biennale.fields["year"]}"
         )
         |> render_template(biennale)
-
-      %{visible: false} ->
-        not_found(conn)
-
-      nil ->
-        not_found(conn)
-
-      _ ->
-        not_found(conn)
-    end
-  end
-
-  def festival(conn, %{"slug" => slug}) do
-    case Content.get_entity_by_slug(slug) do
-      %{type: "biennale", visible: true} = biennale ->
-        _year = parse_year(biennale.fields["year"])
-        projects = load_projects(biennale)
-        biennales = Content.list_biennales()
-
-        biennale_media_map =
-          biennales
-          |> Enum.map(fn b -> {b.id, Content.list_media_for_entity(b)} end)
-          |> Enum.into(%{})
-
-        project_media_map =
-          projects
-          |> Enum.map(fn project ->
-            entity = Content.get_entity!(project.id)
-            media = Content.list_media_for_entity(entity)
-
-            {project.id,
-             if(media == [], do: Content.list_event_media_for_project(entity), else: media)}
-          end)
-          |> Enum.into(%{})
-
-        conn
-        |> assign(:biennale, biennale)
-        |> assign(:projects, projects)
-        |> assign(:biennale_media, Content.list_media_for_entity(biennale))
-        |> assign(:biennales, biennales)
-        |> assign(:biennale_media_map, biennale_media_map)
-        |> assign(:project_media, project_media_map)
-        |> assign(:page_title, "Festival — Mykonos Biennale #{biennale.fields["year"]}")
-        |> render(:festival)
 
       %{visible: false} ->
         not_found(conn)
@@ -82,7 +46,25 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     Content.list_projects_for_biennale(year) |> Enum.map(&present_project/1)
   end
 
-  defp render_template(conn, %{template: :none}) do
+  defp biennale_media_map(biennales) do
+    biennales
+    |> Enum.map(fn b -> {b.id, Content.list_media_for_entity(b)} end)
+    |> Enum.into(%{})
+  end
+
+  defp project_media_map(projects) do
+    projects
+    |> Enum.map(fn project ->
+      entity = Content.get_entity!(project.id)
+      media = Content.list_media_for_entity(entity)
+
+      {project.id,
+       if(media == [], do: Content.list_event_media_for_project(entity), else: media)}
+    end)
+    |> Enum.into(%{})
+  end
+
+  def render_template(conn, %{template: "none"}) do
     biennale = conn.assigns.biennale
     content = BiennaleHTML.render_content(biennale.fields["content"], conn.assigns)
 
@@ -91,11 +73,15 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     |> render(:none)
   end
 
-  defp render_template(conn, "list") do
-    render(conn, :list)
+  def render_template(conn, %{template: "default"}) do
+    render(conn, :biennale)
   end
 
-  defp render_template(conn, _template) do
+  def render_template(conn, %{template: template}) when is_binary(template) do
+    render(conn, String.to_atom(template))
+  end
+
+  def render_template(conn, _template) do
     render(conn, :biennale)
   end
 
@@ -145,6 +131,8 @@ defmodule MykonosBiennaleWeb.BiennaleController do
       title: entity.fields["title"],
       type: entity.fields["type"],
       date: entity.fields["date"],
+      time: entity.fields["time"],
+      location: entity.fields["location"],
       description: entity.fields["description"],
       slug: entity.slug,
       background_image: background

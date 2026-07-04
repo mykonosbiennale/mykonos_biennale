@@ -3,6 +3,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
 
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Media
+  alias MykonosBiennaleWeb.BiennaleHTML
   alias Ecto.Changeset
 
   defmodule BiennaleForm do
@@ -20,7 +21,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
       field :start_date, :date
       field :end_date, :date
       field :visible, :boolean, default: true
-      field :template, Ecto.Enum, values: [:default, :none, :list], default: :default
+      field :template, :string, default: "default"
       field :show_program, :boolean, default: true
     end
 
@@ -64,7 +65,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
             field={@form[:template]}
             type="select"
             label="Template"
-            options={[{"Default", "default"}, {"None (raw content)", "none"}, {"List", "list"}]}
+            options={BiennaleHTML.template_options()}
           />
           <.input field={@form[:statement]} type="textarea" label="Statement" rows="3" />
           <.input field={@form[:description]} type="textarea" label="Description" rows="5" />
@@ -376,7 +377,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
       start_date: map_get_date(fields, "start_date"),
       end_date: map_get_date(fields, "end_date"),
       visible: true,
-      template: entity.template || :default,
+      template: entity.template || "default",
       show_program: Map.get(fields, "show_program", true)
     }
   end

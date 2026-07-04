@@ -33,6 +33,7 @@ phx_new_cache-*.tar
 
 # Ignore uploaded files (stored on persistent volume in production)
 /priv/static/uploads/
+/priv/static/media/
 
 # Ignore local databases
 *.db

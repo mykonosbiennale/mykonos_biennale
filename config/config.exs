@@ -64,7 +64,7 @@ config :esbuild,
 
 # Configure tailwind (the version is required)
 config :tailwind,
-  version: "4.1.7",
+  version: "4.3.0",
   mykonos_biennale: [
     args: ~w(
       --input=assets/css/app.css
