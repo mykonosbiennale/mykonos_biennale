@@ -7,7 +7,7 @@ defmodule MykonosBiennale.Content.Entity do
     field :type, :string
     field :slug, :string
     field :visible, :boolean, default: false
-    field :template, Ecto.Enum, values: [:none, :default], default: :default
+    field :template, :string, default: "default"
     field :fields, :map
     field :search_index, :string
     field :search_indexed_at, :naive_datetime

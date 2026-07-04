@@ -9,21 +9,34 @@
         else: ""
     }
   >
-    <div class="absolute inset-0 bg-black/50"></div>
     <div class="relative z-10 p-8 text-center">
-      <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4 text-white">
+      <h1
+        class="text-5xl md:text-7xl font-bold uppercase mb-4 text-white"
+        style="text-shadow: 2px 2px 8px rgba(0,0,0,0.9), -2px -2px 8px rgba(0,0,0,0.9), 2px -2px 8px rgba(0,0,0,0.9), -2px 2px 8px rgba(0,0,0,0.9);"
+      >
         MYKONOS BIENNALE<br />{@biennale.fields["theme"]}
       </h1>
-      <p class="text-2xl md:text-3xl text-red-600">{@biennale.fields["year"]}</p>
+      <p
+        class="text-2xl md:text-3xl text-red-600"
+        style="text-shadow: 2px 2px 6px rgba(0,0,0,0.9);"
+      >
+        {@biennale.fields["year"]}
+      </p>
       <%= if @biennale.fields["start_date"] && @biennale.fields["end_date"] do %>
-        <p class="text-lg text-gray-300 mt-4">
+        <p
+          class="text-lg text-white mt-4"
+          style="text-shadow: 2px 2px 6px rgba(0,0,0,0.9);"
+        >
           {format_date(@biennale.fields["start_date"])} – {format_date(
             @biennale.fields["end_date"]
           )}
         </p>
       <% end %>
       <%= if @biennale.fields["statement"] do %>
-        <div class="leading-relaxed text-gray-200 mt-8 max-w-3xl mx-auto">
+        <div
+          class="leading-relaxed text-white mt-8 max-w-3xl mx-auto"
+          style="text-shadow: 1px 1px 4px rgba(0,0,0,0.95), -1px -1px 4px rgba(0,0,0,0.95), 1px -1px 4px rgba(0,0,0,0.95), -1px 1px 4px rgba(0,0,0,0.95);"
+        >
           {Phoenix.HTML.raw(@biennale.fields["statement"])}
         </div>
       <% end %>
@@ -50,7 +63,54 @@
     </div>
   </div>
 
-  <%!-- Project Preview Section (from home page) --%>
+  <%!-- Program Section --%>
+  <%= if @biennale.fields["show_program"] != false and @events != [] do %>
+    <% events_by_date = Enum.group_by(@events, & &1.date, & &1)
+      sorted_dates = Enum.sort(Enum.uniq(Enum.map(@events, & &1.date)), fn a, b ->
+        case {Date.from_iso8601(a), Date.from_iso8601(b)} do
+          {{:ok, da}, {:ok, db}} -> Date.compare(da, db) != :gt
+          _ -> a <= b
+        end
+      end) %>
+    <div id="program" class="px-6 py-20 md:py-32 max-w-4xl mx-auto">
+      <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
+        Program {@biennale.fields["year"]}
+      </h2>
+
+      <%= for date <- sorted_dates do %>
+        <% day_events = Enum.sort_by(Map.get(events_by_date, date, []), & &1.time || "") %>
+        <% location = Enum.find_value(day_events, & &1.location) %>
+        <div class="mb-12">
+          <h3 class="text-2xl font-bold uppercase mb-1 text-red-600">
+            {format_day(date)}
+          </h3>
+          <%= if location do %>
+            <p class="text-sm text-gray-500 uppercase tracking-wider mb-6">
+              Location: {location}
+            </p>
+          <% end %>
+
+          <dl class="space-y-4">
+            <%= for event <- day_events do %>
+              <div class="flex gap-4 items-start">
+                <dt class="text-cyan-400 font-bold text-sm shrink-0 w-24">
+                  {format_time(event.time) || "TBA"}
+                </dt>
+                <dd class="flex-1">
+                  <h4 class="text-lg font-bold text-green-400">{event.title}</h4>
+                  <%= if event.description do %>
+                    <p class="text-sm text-gray-400 mt-1">{event.description}</p>
+                  <% end %>
+                </dd>
+              </div>
+            <% end %>
+          </dl>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%!-- Project Preview Section --%>
   <%= if @biennale.fields["show_program"] != false do %>
     <div class="px-6 py-20 md:py-32 max-w-7xl mx-auto">
       <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">

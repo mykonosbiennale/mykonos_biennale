@@ -1,6 +1,7 @@
 defmodule MykonosBiennaleWeb.PageController do
   use MykonosBiennaleWeb, :controller
   alias MykonosBiennale.Content
+  alias MykonosBiennaleWeb.BiennaleController
 
   def home(conn, _params) do
     current_biennale_year =
@@ -25,6 +26,15 @@ defmodule MykonosBiennaleWeb.PageController do
 
     projects = Enum.map(raw_projects, &present_project/1)
 
+    raw_events =
+      if current_biennale do
+        Content.list_events_for_biennale(current_biennale.fields["year"])
+      else
+        []
+      end
+
+    events = Enum.map(raw_events, &present_event/1)
+
     biennales = Content.list_biennales()
 
     biennale_media =
@@ -43,12 +53,13 @@ defmodule MykonosBiennaleWeb.PageController do
     |> assign(:page_title, page_title(current_biennale))
     |> assign(:biennale, current_biennale)
     |> assign(:projects, projects)
+    |> assign(:events, events)
     |> assign(:biennales, biennales)
     |> assign(:biennale_media, biennale_media)
     |> assign(:biennale_media_map, biennale_media_map)
     |> assign(:project_media, project_media)
     |> put_view(MykonosBiennaleWeb.BiennaleHTML)
-    |> render(:festival)
+    |> BiennaleController.render_template(current_biennale)
   end
 
   defp present_project(%MykonosBiennale.Content.Entity{} = entity) do
@@ -97,6 +108,8 @@ defmodule MykonosBiennaleWeb.PageController do
       title: entity.fields["title"],
       type: entity.fields["type"],
       date: entity.fields["date"],
+      time: entity.fields["time"],
+      location: entity.fields["location"],
       description: entity.fields["description"],
       slug: entity.slug,
       background_image: background
