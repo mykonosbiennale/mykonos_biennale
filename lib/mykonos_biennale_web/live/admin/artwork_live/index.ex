@@ -51,6 +51,13 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
         socket
       end
 
+    return_path =
+      if socket.assigns.live_action == :index do
+        "/admin/artworks?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
+      else
+        socket.assigns[:return_path] || "/admin/artworks"
+      end
+
     socket =
       socket
       |> assign(:current_page, page)
@@ -58,6 +65,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
       |> assign(:total_count, total_count)
       |> assign(:sort_by, sort_by)
       |> assign(:sort_dir, sort_dir)
+      |> assign(:return_path, return_path)
       |> assign(:creators_map, batch_load_creators(artwork_ids))
       |> assign(:events_map, batch_load_events(artwork_ids))
       |> assign(:media_map, batch_load_first_media(artwork_ids))

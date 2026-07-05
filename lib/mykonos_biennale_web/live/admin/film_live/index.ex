@@ -40,6 +40,13 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
     total_pages = max(1, ceil(total_count / @per_page))
     film_ids = Enum.map(films, & &1.id)
 
+    return_path =
+      if socket.assigns.live_action == :index do
+        "/admin/films?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
+      else
+        socket.assigns[:return_path] || "/admin/films"
+      end
+
     socket =
       socket
       |> assign(:current_page, page)
@@ -47,6 +54,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
       |> assign(:total_count, total_count)
       |> assign(:sort_by, sort_by)
       |> assign(:sort_dir, sort_dir)
+      |> assign(:return_path, return_path)
       |> assign(:poster_map, batch_load_posters(film_ids))
       |> assign(:events_map, batch_load_events(film_ids))
       |> stream(:films, films, reset: true)

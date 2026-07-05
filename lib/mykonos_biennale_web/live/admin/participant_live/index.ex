@@ -34,6 +34,13 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Index do
 
     total_pages = max(1, ceil(total_count / @per_page))
 
+    return_path =
+      if socket.assigns.live_action == :index do
+        "/admin/participants?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
+      else
+        socket.assigns[:return_path] || "/admin/participants"
+      end
+
     socket =
       socket
       |> assign(:current_page, page)
@@ -41,6 +48,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Index do
       |> assign(:total_count, total_count)
       |> assign(:sort_by, sort_by)
       |> assign(:sort_dir, sort_dir)
+      |> assign(:return_path, return_path)
       |> stream(:participants, participants, reset: true)
 
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}

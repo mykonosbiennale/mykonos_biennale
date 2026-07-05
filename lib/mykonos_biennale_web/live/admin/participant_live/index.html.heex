@@ -126,16 +126,16 @@
     :if={@live_action == :show}
     id="participant-show-modal"
     show
-    on_cancel={JS.patch("/admin/participants")}
+    on_cancel={JS.patch(@return_path)}
   >
-    <.entity_detail entity={@participant} cancel_path="/admin/participants" />
+    <.entity_detail entity={@participant} cancel_path={@return_path} />
   </.modal>
 
   <.modal
     :if={@live_action in [:new, :edit]}
     id="participant-modal"
     show
-    on_cancel={JS.patch("/admin/participants")}
+    on_cancel={JS.patch(@return_path)}
   >
     <.live_component
       module={MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent}
@@ -143,7 +143,7 @@
       title={@page_title}
       action={@live_action}
       participant={@participant}
-      patch="/admin/participants"
+      patch={@return_path}
     />
   </.modal>
 </Layouts.app>

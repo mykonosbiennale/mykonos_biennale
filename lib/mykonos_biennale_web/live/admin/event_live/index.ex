@@ -14,8 +14,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
      |> assign(:current_page, 1)
      |> assign(:total_pages, 1)
      |> assign(:total_count, 0)
-     |> assign(:sort_by, :date)
-     |> assign(:sort_dir, :asc)
+      |> assign(:sort_by, :id)
+      |> assign(:sort_dir, :desc)
      |> stream(:events, [])}
   end
 
@@ -23,13 +23,20 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
   def handle_params(params, _url, socket) do
     page = String.to_integer(params["page"] || "1")
     search = socket.assigns.search
-    sort_by = (params["sort_by"] || "date") |> String.to_atom()
-    sort_dir = (params["sort_dir"] || "asc") |> String.to_atom()
+    sort_by = (params["sort_by"] || "id") |> String.to_atom()
+    sort_dir = (params["sort_dir"] || "desc") |> String.to_atom()
 
     {events, total_count} =
       Content.list_events_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
 
     total_pages = max(1, ceil(total_count / @per_page))
+
+    return_path =
+      if socket.assigns.live_action == :index do
+        "/admin/events?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
+      else
+        socket.assigns[:return_path] || "/admin/events"
+      end
 
     socket =
       socket
@@ -38,6 +45,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
       |> assign(:total_count, total_count)
       |> assign(:sort_by, sort_by)
       |> assign(:sort_dir, sort_dir)
+      |> assign(:return_path, return_path)
       |> stream(:events, events, reset: true)
 
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
@@ -183,7 +191,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
   defp rel_type_slug?(
          %Content.Relationship{relationship_type: %Content.RelationshipType{slug: slug}},
          slug
-       ), do: true
+       ),
+       do: true
 
   defp rel_type_slug?(_, _), do: false
 

@@ -522,23 +522,8 @@ defmodule MykonosBiennale.Content do
     - `:sort_dir` - `:asc` or `:desc`. Default `:asc`.
   """
   def list_events_paginated(page \\ 1, per_page \\ 24, search \\ "", opts \\ []) do
-    offset = (page - 1) * per_page
-    sort_by = Keyword.get(opts, :sort_by, :date)
-    sort_dir = Keyword.get(opts, :sort_dir, :asc)
-
-    order = entity_sort_clause("event", sort_by, sort_dir)
-    base_query = from(e in Entity, where: e.type == "event", order_by: ^order)
-
-    filtered_query =
-      if search != "" do
-        pattern = MykonosBiennale.Search.entity_search_pattern(search)
-
-        from(e in base_query,
-          where: not is_nil(e.search_index) and like(e.search_index, ^pattern)
-        )
-      else
-        base_query
-      end
+    sort_by = Keyword.get(opts, :sort_by, :id)
+    sort_dir = Keyword.get(opts, :sort_dir, :desc)
 
     rt_ids =
       from(rt in RelationshipType,
@@ -552,14 +537,79 @@ defmodule MykonosBiennale.Content do
         preload: [:object, :relationship_type]
       )
 
-    items =
-      from(e in filtered_query, limit: ^per_page, offset: ^offset)
+    base_query =
+      from(e in Entity, where: e.type == "event")
+
+    all =
+      if search != "" do
+        pattern = MykonosBiennale.Search.entity_search_pattern(search)
+        from(e in base_query, where: not is_nil(e.search_index) and like(e.search_index, ^pattern))
+      else
+        base_query
+      end
       |> Repo.all()
       |> Repo.preload(as_subject: rel_query)
 
-    total_count = filtered_query |> exclude(:order_by) |> Repo.aggregate(:count, :id)
+    sorted = sort_events(all, sort_by, sort_dir)
+    total_count = length(sorted)
+    offset = (page - 1) * per_page
+    items = Enum.slice(sorted, offset, per_page)
     {items, total_count}
   end
+
+  defp sort_events(events, :biennale, dir) do
+    events
+    |> Enum.sort_by(
+      fn e ->
+        case Enum.find(e.as_subject || [], &rel_type_slug?(&1, "biennale_event")) do
+          %{object: %Entity{fields: %{"year" => year}}} -> to_string(year)
+          _ -> ""
+        end
+      end,
+      sort_dir_fn(dir)
+    )
+  end
+
+  defp sort_events(events, :project, dir) do
+    events
+    |> Enum.sort_by(
+      fn e ->
+        case Enum.find(e.as_subject || [], &rel_type_slug?(&1, "event_project")) do
+          %{object: %Entity{fields: %{"title" => title}}} -> title || ""
+          _ -> ""
+        end
+      end,
+      sort_dir_fn(dir)
+    )
+  end
+
+  defp sort_events(events, :title, dir) do
+    Enum.sort_by(events, &Map.get(&1.fields, "title", ""), sort_dir_fn(dir))
+  end
+
+  defp sort_events(events, :type, dir) do
+    Enum.sort_by(events, &Map.get(&1.fields, "type", ""), sort_dir_fn(dir))
+  end
+
+  defp sort_events(events, :date, dir) do
+    Enum.sort_by(events, &Map.get(&1.fields, "date", ""), sort_dir_fn(dir))
+  end
+
+  defp sort_events(events, :id, dir) do
+    Enum.sort_by(events, & &1.id, sort_dir_fn(dir))
+  end
+
+  defp sort_events(events, _key, dir) do
+    Enum.sort_by(events, & &1.id, sort_dir_fn(dir))
+  end
+
+  defp sort_dir_fn(:asc), do: &<=/2
+  defp sort_dir_fn(:desc), do: &>=/2
+
+  defp rel_type_slug?(%Relationship{relationship_type: %RelationshipType{slug: slug}}, slug),
+    do: true
+
+  defp rel_type_slug?(_, _), do: false
 
   @doc """
   Returns a paginated list of relationships matching an optional search pattern.
@@ -677,7 +727,7 @@ defmodule MykonosBiennale.Content do
     do: [asc: dynamic([e], fragment("? ->> ?", e.fields, "ref"))]
 
   defp entity_sort_clause("event", _, _),
-    do: [asc: dynamic([e], fragment("? ->> ?", e.fields, "date"))]
+    do: [desc: dynamic([e], e.id)]
 
   @doc """
   Gets a single media.
