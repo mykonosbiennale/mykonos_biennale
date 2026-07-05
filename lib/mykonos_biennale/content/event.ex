@@ -21,7 +21,7 @@ defmodule MykonosBiennale.Content.Event do
           where:
             e.type == "event" and r.object_id == ^biennale_entity.id and
               r.relationship_type_id in subquery(rt_subq),
-          order_by: [asc: fragment("? ->> ?", e.fields, "date")]
+          order_by: [desc: e.inserted_at]
       )
     else
       []
@@ -43,6 +43,7 @@ defmodule MykonosBiennale.Content.Event do
       from e in Entity,
         where: e.type == "event",
         order_by: [asc: fragment("? ->> ?", e.fields, "date")],
+        # order_by: [desc: e.id],
         preload: [as_subject: ^rel_query]
     )
   end

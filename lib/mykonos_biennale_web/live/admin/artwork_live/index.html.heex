@@ -160,16 +160,16 @@
     :if={@live_action == :show}
     id="artwork-show-modal"
     show
-    on_cancel={JS.patch("/admin/artworks")}
+    on_cancel={JS.patch(@return_path)}
   >
-    <.entity_detail entity={@artwork} cancel_path="/admin/artworks" />
+    <.entity_detail entity={@artwork} cancel_path={@return_path} />
   </.modal>
 
   <.modal
     :if={@live_action in [:new, :edit]}
     id="artwork-modal"
     show
-    on_cancel={JS.patch("/admin/artworks")}
+    on_cancel={JS.patch(@return_path)}
   >
     <.live_component
       module={MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent}
@@ -177,7 +177,7 @@
       title={@page_title}
       action={@live_action}
       artwork={@artwork}
-      patch="/admin/artworks"
+      patch={@return_path}
     />
   </.modal>
 </Layouts.app>

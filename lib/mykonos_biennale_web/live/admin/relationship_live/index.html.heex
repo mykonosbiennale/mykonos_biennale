@@ -118,7 +118,7 @@
     :if={@live_action in [:new, :edit]}
     id="relationship-modal"
     show
-    on_cancel={JS.patch("/admin/relationships")}
+    on_cancel={JS.patch(@return_path)}
   >
     <.live_component
       module={MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent}
@@ -127,7 +127,7 @@
       action={@live_action}
       relationship={@relationship}
       relationship_types={@relationship_types}
-      patch="/admin/relationships"
+      patch={@return_path}
     />
   </.modal>
 </Layouts.app>

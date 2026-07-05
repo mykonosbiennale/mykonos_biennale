@@ -35,8 +35,28 @@
                 Type
               </.sort_header>
             </th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">Biennale</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">Project</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
+              <.sort_header
+                base_path="/admin/events"
+                sort_by={:biennale}
+                current_sort={@sort_by}
+                current_dir={@sort_dir}
+                class="text-gray-400 hover:text-gray-200"
+              >
+                Biennale
+              </.sort_header>
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
+              <.sort_header
+                base_path="/admin/events"
+                sort_by={:project}
+                current_sort={@sort_by}
+                current_dir={@sort_dir}
+                class="text-gray-400 hover:text-gray-200"
+              >
+                Project
+              </.sort_header>
+            </th>
             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
               <.sort_header
                 base_path="/admin/events"
@@ -141,16 +161,16 @@
     :if={@live_action == :show}
     id="event-show-modal"
     show
-    on_cancel={JS.patch(~p"/admin/events")}
+    on_cancel={JS.patch(@return_path)}
   >
-    <.entity_detail entity={@event} cancel_path={~p"/admin/events" |> to_string()} />
+    <.entity_detail entity={@event} cancel_path={@return_path} />
   </.modal>
 
   <.modal
     :if={@live_action in [:new, :edit]}
     id="event-modal"
     show
-    on_cancel={JS.patch(~p"/admin/events")}
+    on_cancel={JS.patch(@return_path)}
   >
     <.live_component
       module={MykonosBiennaleWeb.Admin.EventLive.FormComponent}
@@ -158,7 +178,7 @@
       title={@page_title}
       action={@live_action}
       event={@event}
-      patch={~p"/admin/events"}
+      patch={@return_path}
     />
   </.modal>
 </Layouts.app>

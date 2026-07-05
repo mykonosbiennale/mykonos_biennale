@@ -160,7 +160,7 @@
     :if={@live_action in [:new, :edit]}
     id="film-modal"
     show
-    on_cancel={JS.patch("/admin/films")}
+    on_cancel={JS.patch(@return_path)}
   >
     <.live_component
       module={MykonosBiennaleWeb.Admin.FilmLive.FormComponent}
@@ -168,7 +168,7 @@
       title={@page_title}
       action={@live_action}
       film={@film}
-      patch="/admin/films"
+      patch={@return_path}
       default_event_id={Map.get(assigns, :default_event_id, "")}
     />
   </.modal>
