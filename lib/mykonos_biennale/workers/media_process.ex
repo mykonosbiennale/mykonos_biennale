@@ -48,6 +48,14 @@ defmodule MykonosBiennale.Workers.MediaProcess do
     end
   end
 
+  @impl Oban.Worker
+  def perform(%Oban.Job{args: %{"kind" => "rotate", "media_id" => id, "degrees" => degrees}}) do
+    case Repo.get(Media, id) do
+      nil -> :ok
+      media -> rotate_media(media, degrees)
+    end
+  end
+
   def perform(%Oban.Job{args: %{"kind" => "all", "media_id" => id}}) do
     case Repo.get(Media, id) do
       nil ->
@@ -186,6 +194,47 @@ defmodule MykonosBiennale.Workers.MediaProcess do
     :ok
   end
 
+  defp rotate_media(%Media{slug: slug, source_type: "upload", source_path: path}, degrees)
+       when is_binary(path) and is_binary(slug) do
+    unless image_ext?(path) do
+      {:ok, :skipped}
+    else
+      original_path = MykonosBiennale.Uploads.uploads_path(path)
+
+      if File.exists?(original_path) do
+        cmd = System.find_executable("magick") || "convert"
+
+        args = [
+          original_path,
+          "-rotate",
+          to_string(degrees),
+          original_path
+        ]
+
+        case System.cmd(cmd, args, stderr_to_stdout: true) do
+          {_, 0} ->
+            Thumbnail.invalidate_slug_cache(slug)
+            generate_webp_sizes(%Media{slug: slug, source_type: "upload", source_path: path})
+            enqueue_avif_and_press(id_for_slug(slug))
+            {:ok, :rotated}
+
+          {error, _code} ->
+            require Logger
+            Logger.warning("Rotation failed for #{original_path}: #{error}")
+            {:error, :rotate_failed}
+        end
+      else
+        {:ok, :no_source}
+      end
+    end
+  end
+
+  defp rotate_media(_, _), do: {:ok, :skipped}
+
+  defp id_for_slug(slug) do
+    Repo.one(from m in Media, where: m.slug == ^slug, select: m.id)
+  end
+
   defp image_ext?(filename) do
     ext = filename |> Path.extname() |> String.downcase()
     ext in [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff", ".tif"]
@@ -205,5 +254,11 @@ defmodule MykonosBiennale.Workers.MediaProcess do
 
   def enqueue_press(media_id) when is_integer(media_id) do
     %{kind: "press", media_id: media_id} |> __MODULE__.new() |> Oban.insert()
+  end
+
+  def enqueue_rotate(media_id, degrees) when is_integer(media_id) do
+    %{kind: "rotate", media_id: media_id, degrees: degrees}
+    |> __MODULE__.new()
+    |> Oban.insert()
   end
 end

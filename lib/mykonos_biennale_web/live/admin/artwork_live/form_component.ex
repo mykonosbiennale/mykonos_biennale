@@ -41,6 +41,16 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
     <div data-theme="light" class="bg-white rounded-xl [&_.label]:text-gray-900 [&_h1]:text-gray-900">
       <.header>
         {@title}
+        <:actions>
+          <.link
+            :if={@artwork.id}
+            href={"/art/#{@artwork.id}"}
+            target="_blank"
+            class="text-sm text-blue-600 hover:text-blue-700"
+          >
+            See on Site
+          </.link>
+        </:actions>
       </.header>
 
       <.form

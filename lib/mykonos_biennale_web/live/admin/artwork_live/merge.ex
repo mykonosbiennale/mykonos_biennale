@@ -5,80 +5,211 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
 
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, EntityMedia}
+  alias MykonosBiennale.Content.{Entity, Media, Relationship, RelationshipType, EntityMedia}
 
   @impl true
   def mount(_params, _session, socket) do
     socket =
       socket
       |> assign(:duplicate_groups, [])
+      |> assign(:all_groups, [])
+      |> assign(:groups_loaded, false)
       |> assign(:selected_ids, MapSet.new())
-      |> assign(:group_mode, "broad")
+      |> assign(:group_mode, "narrow")
       |> assign(:page, 1)
       |> assign(:per_page, 20)
       |> assign(:total_pages, 1)
+      |> assign(:all_groups_count, 0)
       |> assign(:merged_count, 0)
+      |> assign(:loading, false)
 
     {:ok, socket}
   end
 
   @impl true
-  def handle_params(_params, _uri, socket) do
-    duplicate_groups = load_duplicate_groups(socket.assigns.group_mode)
-    total_pages = max(1, ceil(length(duplicate_groups) / socket.assigns.per_page))
-    {:noreply, assign(socket, duplicate_groups: duplicate_groups, total_pages: total_pages)}
+  def handle_params(params, _uri, socket) do
+    page = String.to_integer(params["page"] || "1")
+
+    {all_groups, socket} =
+      if socket.assigns.groups_loaded do
+        {socket.assigns.all_groups, socket}
+      else
+        socket = assign(socket, :loading, true)
+        groups = load_duplicate_groups(socket.assigns.group_mode)
+        socket = assign(socket, :loading, false)
+        {groups, socket}
+      end
+
+    total_pages = max(1, ceil(length(all_groups) / socket.assigns.per_page))
+    page = min(page, total_pages)
+    offset = (page - 1) * socket.assigns.per_page
+    page_groups = Enum.slice(all_groups, offset, socket.assigns.per_page)
+
+    {:noreply,
+     socket
+     |> assign(:all_groups, all_groups)
+     |> assign(:duplicate_groups, page_groups)
+     |> assign(:all_groups_count, length(all_groups))
+     |> assign(:page, page)
+     |> assign(:total_pages, total_pages)
+     |> assign(:groups_loaded, true)}
+
+  rescue
+    _ ->
+      {:noreply, assign(socket, :loading, false)}
   end
 
   @impl true
   def handle_event("set_group_mode", %{"mode" => mode}, socket)
       when mode in ["broad", "narrow"] do
-    duplicate_groups = load_duplicate_groups(mode)
-
     {:noreply,
      socket
      |> assign(:group_mode, mode)
+     |> assign(:groups_loaded, false)
      |> assign(:selected_ids, MapSet.new())
-     |> assign(:duplicate_groups, duplicate_groups)}
+     |> push_patch(to: "/admin/artworks/merge?page=1")}
+  end
+
+  def handle_event("toggle_select", %{"id" => id_str}, socket) do
+    id = String.to_integer(id_str)
+    selected = socket.assigns.selected_ids
+
+    new_selected =
+      if MapSet.member?(selected, id) do
+        MapSet.delete(selected, id)
+      else
+        MapSet.put(selected, id)
+      end
+
+    {:noreply, assign(socket, :selected_ids, new_selected)}
+  end
+
+  def handle_event("merge_selected", _, socket) do
+    groups = socket.assigns.duplicate_groups
+    selected = socket.assigns.selected_ids
+
+    {merged, survivor_ids} =
+      Enum.reduce(groups, {0, []}, fn group, {count, survivors} ->
+        group_ids = Enum.map(group.entries, & &1.artwork.id)
+        selected_in_group = group_ids |> Enum.filter(&MapSet.member?(selected, &1))
+
+        if length(group.entries) >= 2 and length(selected_in_group) > 0 do
+          survivor_id = hd(selected_in_group)
+          to_merge = Enum.reject(group.entries, fn e -> e.artwork.id == survivor_id end)
+          survivor_entry = Enum.find(group.entries, &(&1.artwork.id == survivor_id))
+          merge_artworks!(survivor_entry, to_merge)
+          {count + 1, [survivor_id | survivors]}
+        else
+          {count, survivors}
+        end
+      end)
+
+    enqueue_reindex(survivor_ids)
+
+    {:noreply,
+     socket
+     |> assign(:merged_count, merged)
+     |> assign(:selected_ids, MapSet.new())
+     |> assign(:groups_loaded, false)
+     |> push_patch(to: "/admin/artworks/merge?page=#{socket.assigns.page}")}
+  end
+
+  def handle_event("merge_all", _, socket) do
+    all_groups = load_duplicate_groups(socket.assigns.group_mode)
+
+    {merged, survivor_ids} =
+      Enum.reduce(all_groups, {0, []}, fn group, {count, survivors} ->
+        if length(group.entries) < 2 do
+          {count, survivors}
+        else
+          sorted_entries = Enum.sort_by(group.entries, & &1.artwork.id)
+          survivor_entry = hd(sorted_entries)
+          to_merge = tl(sorted_entries)
+          merge_artworks!(survivor_entry, to_merge)
+          {count + 1, [survivor_entry.artwork.id | survivors]}
+        end
+      end)
+
+    enqueue_reindex(survivor_ids)
+
+    {:noreply,
+     socket
+     |> assign(:merged_count, merged)
+     |> assign(:selected_ids, MapSet.new())
+     |> assign(:groups_loaded, false)
+     |> push_patch(to: "/admin/artworks/merge?page=1")}
+  end
+
+  defp enqueue_reindex([]), do: :ok
+
+  defp enqueue_reindex(survivor_ids) do
+    survivor_ids
+    |> Enum.uniq()
+    |> Enum.each(&MykonosBiennale.SearchReindex.enqueue_entity/1)
   end
 
   defp load_duplicate_groups(mode) do
-    ae_rt = Repo.get_by(RelationshipType, slug: "artwork_event")
-    ap_rt = Repo.get_by(RelationshipType, slug: "artwork_participant")
+    rt_slugs =
+      Repo.all(from rt in RelationshipType, where: rt.slug in ~w(artwork_event artwork_participant))
+      |> Enum.into(%{}, &{&1.slug, &1.id})
 
-    if ae_rt == nil or ap_rt == nil do
+    ae_rt_id = rt_slugs["artwork_event"]
+    ap_rt_id = rt_slugs["artwork_participant"]
+
+    if ae_rt_id == nil or ap_rt_id == nil do
       []
     else
-      artwork_event_rels =
+      rels =
         Repo.all(
           from r in Relationship,
-            where: r.relationship_type_id == ^ae_rt.id,
-            select: %{artwork_id: r.subject_id, event_id: r.object_id}
+            where: r.relationship_type_id in ^[ae_rt_id, ap_rt_id],
+            select: {r.relationship_type_id, r.subject_id, r.object_id}
         )
-
-      artwork_participant_rels =
-        Repo.all(
-          from r in Relationship,
-            where: r.relationship_type_id == ^ap_rt.id,
-            select: %{artwork_id: r.subject_id, participant_id: r.object_id}
-        )
-
-      ap_map = Enum.group_by(artwork_participant_rels, & &1.artwork_id, & &1.participant_id)
 
       artwork_ids =
-        (Enum.map(artwork_event_rels, & &1.artwork_id) ++
-           Enum.map(artwork_participant_rels, & &1.artwork_id))
+        rels |> Enum.map(&elem(&1, 1)) |> Enum.uniq()
+
+      artworks = Repo.all(from e in Entity, where: e.id in ^artwork_ids and e.type == "artwork")
+      artwork_map = Enum.into(artworks, %{}, &{&1.id, &1})
+
+      media_rows =
+        Repo.all(
+          from m in Media,
+            join: em in EntityMedia,
+              on: em.media_id == m.id,
+            where: em.entity_id in ^artwork_ids,
+            order_by: [em.entity_id, em.position],
+            select: {em.entity_id, m.id, m.source_type, m.source_path, m.source_url}
+        )
+
+      media_by_artwork =
+        Enum.reduce(media_rows, %{}, fn {eid, mid, st, sp, su}, acc ->
+          Map.update(acc, eid, [{mid, st, sp, su}], &(&1 ++ [{mid, st, sp, su}]))
+        end)
+
+      linked_ids =
+        rels
+        |> Enum.flat_map(fn
+          {rt_id, _, obj_id} when rt_id == ae_rt_id -> [obj_id]
+          {rt_id, _, obj_id} when rt_id == ap_rt_id -> [obj_id]
+          _ -> []
+        end)
         |> Enum.uniq()
 
-      artworks =
-        Repo.all(from e in Entity, where: e.id in ^artwork_ids)
-        |> Enum.into(%{}, fn e -> {e.id, e} end)
+      linked = Repo.all(from e in Entity, where: e.id in ^linked_ids)
+      linked_map = Enum.into(linked, %{}, &{&1.id, &1})
 
-      artwork_event_rels
-      |> Enum.flat_map(fn %{artwork_id: aid, event_id: eid} ->
+      ae_rels = Enum.filter(rels, fn {rt, _, _} -> rt == ae_rt_id end)
+      ap_rels = Enum.filter(rels, fn {rt, _, _} -> rt == ap_rt_id end)
+
+      ap_map = Enum.group_by(ap_rels, &elem(&1, 1), &elem(&1, 2))
+
+      ae_rels
+      |> Enum.flat_map(fn {_, aid, eid} ->
         pids = Map.get(ap_map, aid, [])
 
         for pid <- pids do
-          artwork = Map.get(artworks, aid)
+          artwork = Map.get(artwork_map, aid)
 
           if artwork do
             title_slug = slugify(artwork.fields["title"] || "")
@@ -105,13 +236,12 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
             {e, p, _} -> {e, p}
           end
 
-        event = Repo.get(Entity, eid)
-        participant = Repo.get(Entity, pid)
+        event = Map.get(linked_map, eid)
+        participant = Map.get(linked_map, pid)
 
         artwork_entries =
           Enum.map(artwork_entities, fn a ->
-            media = Content.list_media_for_entity(a)
-            %{artwork: a, media: media}
+            %{artwork: a, media: Map.get(media_by_artwork, a.id, [])}
           end)
 
         %{
@@ -127,115 +257,70 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
     end
   end
 
-  @impl true
-  def handle_event("toggle_select", %{"id" => id_str}, socket) do
-    id = String.to_integer(id_str)
-    selected = socket.assigns.selected_ids
-
-    new_selected =
-      if MapSet.member?(selected, id) do
-        MapSet.delete(selected, id)
-      else
-        MapSet.put(selected, id)
-      end
-
-    {:noreply, assign(socket, :selected_ids, new_selected)}
-  end
-
-  def handle_event("merge_selected", _, socket) do
-    groups = socket.assigns.duplicate_groups
-    selected = socket.assigns.selected_ids
-
-    {merged, new_groups} =
-      Enum.reduce(groups, {0, []}, fn group, {count, acc} ->
-        group_ids = Enum.map(group.entries, & &1.artwork.id)
-        selected_in_group = group_ids |> Enum.filter(&MapSet.member?(selected, &1))
-
-        cond do
-          length(group.entries) < 2 ->
-            {count, [group | acc]}
-
-          length(selected_in_group) == 0 ->
-            {count, [group | acc]}
-
-          true ->
-            survivor_id = hd(selected_in_group)
-            to_merge = Enum.reject(group.entries, fn e -> e.artwork.id == survivor_id end)
-
-            survivor_entry = Enum.find(group.entries, &(&1.artwork.id == survivor_id))
-
-            merge_artworks!(survivor_entry, to_merge)
-
-            new_entries = [
-              %{
-                artwork: Repo.get!(Entity, survivor_id),
-                media: Content.list_media_for_entity(Repo.get!(Entity, survivor_id))
-              }
-            ]
-
-            new_group = %{group | entries: new_entries}
-
-            if length(new_entries) > 1 do
-              {count + 1, [new_group | acc]}
-            else
-              {count + 1, acc}
-            end
-        end
-      end)
-
-    {:noreply,
-     socket
-     |> assign(:merged_count, merged)
-     |> assign(:duplicate_groups, new_groups)
-     |> assign(:selected_ids, MapSet.new())}
-  end
-
   defp merge_artworks!(survivor_entry, to_merge) do
     survivor = survivor_entry.artwork
+    duplicate_ids = Enum.map(to_merge, & &1.artwork.id)
 
-    for entry <- to_merge do
-      duplicate = entry.artwork
-      duplicate_media = entry.media
+    all_dup_media =
+      Enum.flat_map(to_merge, fn entry ->
+        Enum.map(entry.media, fn {mid, st, sp, su} ->
+          {entry.artwork.id, mid, st, sp, su}
+        end)
+      end)
 
-      for media <- duplicate_media do
-        caption =
-          if media.caption in [nil, ""], do: duplicate.fields["title"], else: media.caption
-
-        alt_text =
-          if media.alt_text in [nil, ""],
-            do: duplicate.fields["description"],
-            else: media.alt_text
-
-        {:ok, updated_media} =
-          Content.update_media(media, %{
-            caption: caption,
-            alt_text: alt_text
-          })
-
-        Content.attach_media_to_entity(survivor, updated_media)
-      end
-
-      Repo.delete_all(
+    survivor_media_ids =
+      Repo.all(
         from em in EntityMedia,
-          where: em.entity_id == ^duplicate.id
+          where: em.entity_id == ^survivor.id,
+          select: em.media_id
       )
+      |> MapSet.new()
 
-      unless survivor.fields["description"] not in [nil, ""] do
-        if duplicate.fields["description"] not in [nil, ""] do
-          survivor
-          |> Ecto.Changeset.change(
-            fields: Map.put(survivor.fields, "description", duplicate.fields["description"])
-          )
-          |> Repo.update!()
-        end
-      end
+    new_media_links =
+      all_dup_media
+      |> Enum.reject(fn {_, mid, _, _, _} -> MapSet.member?(survivor_media_ids, mid) end)
 
-      Repo.delete_all(
-        from r in Relationship,
-          where: r.subject_id == ^duplicate.id or r.object_id == ^duplicate.id
-      )
+    max_pos =
+      Repo.one(
+        from em in EntityMedia,
+          where: em.entity_id == ^survivor.id,
+          select: coalesce(max(em.position), -1)
+      ) || -1
 
-      Content.delete_entity(duplicate)
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+    {rows, _final_pos} =
+      Enum.map_reduce(new_media_links, max_pos + 1, fn {_, mid, _, _, _}, pos ->
+        {[
+           entity_id: survivor.id,
+           media_id: mid,
+           position: pos,
+           metadata: %{},
+           inserted_at: now,
+           updated_at: now
+         ], pos + 1}
+      end)
+
+    if rows != [] do
+      Repo.insert_all(EntityMedia, rows)
+    end
+
+    dup_description =
+      Enum.find_value(to_merge, fn entry ->
+        d = entry.artwork.fields["description"]
+        if d not in [nil, ""], do: d, else: nil
+      end)
+
+    if survivor.fields["description"] in [nil, ""] and dup_description do
+      survivor
+      |> Ecto.Changeset.change(fields: Map.put(survivor.fields, "description", dup_description))
+      |> Repo.update!()
+    end
+
+    if duplicate_ids != [] do
+      Repo.delete_all(from em in EntityMedia, where: em.entity_id in ^duplicate_ids)
+      Repo.delete_all(from r in Relationship, where: r.subject_id in ^duplicate_ids or r.object_id in ^duplicate_ids)
+      Repo.delete_all(from e in Entity, where: e.id in ^duplicate_ids)
     end
   end
 
@@ -249,14 +334,18 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
 
   defp first_media([]), do: nil
 
-  defp first_media([%{source_type: "upload", source_path: path} | _]) when is_binary(path),
-    do: %{source_type: "upload", source_path: path}
-
-  defp first_media([%{source_type: "url", source_url: url} | _]) when is_binary(url),
-    do: %{source_type: "url", source_url: url}
+  defp first_media([{_mid, source_type, source_path, source_url} | _]) do
+    %{source_type: source_type, source_path: source_path, source_url: source_url}
+  end
 
   defp first_media([_ | rest]), do: first_media(rest)
-  defp first_media(_), do: nil
+
+  defp media_thumb_url(%{source_type: "upload", source_path: path}) when is_binary(path) do
+    MykonosBiennale.Uploads.media_url(%Media{source_type: "upload", source_path: path}, size: "admin")
+  end
+
+  defp media_thumb_url(%{source_type: "url", source_url: url}) when is_binary(url), do: url
+  defp media_thumb_url(_), do: nil
 
   defp slugify(nil), do: ""
 
