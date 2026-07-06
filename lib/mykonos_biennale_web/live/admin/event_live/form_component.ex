@@ -22,6 +22,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
       field :location, :string
       field :tickets, :string
       field :description, :string
+      field :show_project, :boolean, default: true
       field :visible, :boolean, default: true
     end
 
@@ -37,6 +38,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
         :location,
         :tickets,
         :description,
+        :show_project,
         :visible
       ])
       |> validate_required([:title, :type, :biennale_id])
@@ -49,6 +51,16 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     <div data-theme="light" class="bg-white rounded-xl [&_.label]:text-gray-900 [&_h1]:text-gray-900">
       <.header>
         {@title}
+        <:actions>
+          <.link
+            :if={@event.id}
+            href={"/event/#{@event.id}"}
+            target="_blank"
+            class="text-sm text-blue-600 hover:text-blue-700"
+          >
+            See on Site
+          </.link>
+        </:actions>
       </.header>
 
       <.form
@@ -87,10 +99,10 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
             options={[
               {"Exhibition", "exhibition"},
               {"Performance", "performance"},
-              {"Video Graffiti", "video_graffiti"},
-              {"Dramatic Nights", "dramatic_nights"},
-              {"Short Films", "short_films"},
-              {"Workshop", "workshop"}
+              {"Screening", "screening"},
+              {"Workshop", "workshop"},
+              {"Celebration", "celebration"},
+              {"Event", "event"}
             ]}
             required
           />
@@ -100,6 +112,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
           <.input field={@form[:location]} type="text" label="Location" />
           <.input field={@form[:tickets]} type="text" label="Tickets URL" />
           <.input field={@form[:description]} type="textarea" label="Description" rows="5" />
+          <.input field={@form[:show_project]} type="checkbox" label="Show all artworks/films from this project" />
         </div>
 
         <div class="mt-6 flex items-center justify-end gap-x-6">
@@ -412,12 +425,12 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
         File.cp!(path, dest)
 
         case Content.create_media(%{
-          source_type: "upload",
-          source_path: filename,
-          mime_type: entry.client_type,
-          original_name: entry.client_name,
-          caption: caption
-        }) do
+               source_type: "upload",
+               source_path: filename,
+               mime_type: entry.client_type,
+               original_name: entry.client_name,
+               caption: caption
+             }) do
           {:ok, media} ->
             Content.attach_media_to_entity(event, media)
             {:ok, media}
@@ -454,7 +467,6 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
      |> assign(:current_media_links, current_media_links)
      |> assign(:available_media, available_media)
      |> put_flash(flash_type, flash)}
-
   end
 
   defp handle_progress(:images, _entry, socket) do
@@ -463,9 +475,12 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
   defp event_biennale_year(%Entity{as_subject: rels}) when is_list(rels) do
     case Enum.find(rels, fn
-      %Relationship{relationship_type: %Content.RelationshipType{slug: "biennale_event"}} -> true
-      _ -> false
-    end) do
+           %Relationship{relationship_type: %Content.RelationshipType{slug: "biennale_event"}} ->
+             true
+
+           _ ->
+             false
+         end) do
       %Relationship{object_id: biennale_id} when is_integer(biennale_id) ->
         case Content.get_entity!(biennale_id) do
           %Entity{fields: %{"year" => year}} -> year
@@ -565,6 +580,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
       location: Map.get(fields, "location"),
       tickets: Map.get(fields, "tickets"),
       description: Map.get(fields, "description"),
+      show_project: Map.get(fields, "show_project", true),
       visible: true
     }
   end
@@ -578,11 +594,12 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
       location: Map.get(fields, "location"),
       tickets: Map.get(fields, "tickets"),
       description: Map.get(fields, "description"),
+      show_project: Map.get(fields, "show_project", true),
       visible: true
     }
   end
 
-  defp event_form_attrs(%Content.Entity{}), do: %{visible: true}
+  defp event_form_attrs(%Content.Entity{}), do: %{visible: true, show_project: true}
 
   defp relationship_id_by_slug(rels, slug) when is_list(rels) do
     case Enum.find(rels, fn
@@ -623,6 +640,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
       location: form.location,
       tickets: form.tickets,
       description: form.description,
+      show_project: form.show_project,
       visible: form.visible
     }
     |> Enum.reject(fn {_k, v} -> is_nil(v) end)

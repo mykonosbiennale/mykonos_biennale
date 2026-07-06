@@ -46,6 +46,8 @@ defmodule MykonosBiennaleWeb.Router do
     get "/page/:slug", SitePageController, :show
     get "/art/:id", ArtworkController, :show
     get "/art/s/:slug", ArtworkController, :show_by_slug
+    get "/event/:id", EventController, :show
+    get "/event/s/:slug", EventController, :show_by_slug
     get "/biennale/:slug", BiennaleController, :show
     get "/biennale/:slug/festival", BiennaleController, :show
   end

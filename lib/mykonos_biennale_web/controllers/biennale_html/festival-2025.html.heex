@@ -38,7 +38,7 @@
       <% end %>
       <%= if @biennale.fields["statement"] do %>
         <div
-          class="leading-relaxed text-lg text-black mt-8 max-w-3xl mx-auto"
+          class="text-left whitespace-pre-line leading-relaxed text-lg text-black mt-8 max-w-3xl mx-auto"
          >
           {Phoenix.HTML.raw(@biennale.fields["statement"])}
         </div>
@@ -81,7 +81,9 @@
       </h2>
 
       <%= for date <- sorted_dates do %>
-        <% day_events = Enum.sort_by(Map.get(events_by_date, date, []), & &1.time || "") %>
+        <% day_events = Map.get(events_by_date, date, [])
+          events_by_time = Enum.group_by(day_events, & &1.time || "")
+          sorted_times = Enum.sort(Enum.uniq(Enum.map(day_events, & &1.time || ""))) %>
         <% location = Enum.find_value(day_events, & &1.location) %>
         <div class="mb-12">
           <h3 class="text-2xl font-bold uppercase mb-1 text-red-600">
@@ -94,15 +96,24 @@
           <% end %>
 
           <dl class="space-y-4">
-            <%= for event <- day_events do %>
+            <%= for time <- sorted_times do %>
+              <% time_events = Map.get(events_by_time, time, []) %>
               <div class="flex gap-4 items-start">
                 <dt class="text-cyan-400 font-bold text-sm shrink-0 w-24">
-                  {format_time(event.time) || "TBA"}
+                  {format_time(time) || "TBA"}
                 </dt>
-                <dd class="flex-1">
-                  <h4 class="text-lg font-bold text-green-400">{event.title}</h4>
-                  <%= if event.description do %>
-                    <p class="text-sm text-gray-400 mt-1">{event.description}</p>
+                <dd class="flex-1 space-y-3">
+                  <%= for event <- time_events do %>
+                    <div>
+                      <h4 class="text-lg font-bold text-green-400">
+                        <a href={"/event/#{event.id}"} class="hover:text-green-300 transition-colors">
+                          {event.title}
+                        </a>
+                      </h4>
+                      <%= if event.description do %>
+                        <p class="text-sm text-gray-400 mt-1">{event.description}</p>
+                      <% end %>
+                    </div>
                   <% end %>
                 </dd>
               </div>

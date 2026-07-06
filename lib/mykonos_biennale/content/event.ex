@@ -67,7 +67,8 @@ defmodule MykonosBiennale.Content.Event do
       "date" => Map.get(attrs, :date) || Map.get(attrs, "date"),
       "time" => Map.get(attrs, :time) || Map.get(attrs, "time"),
       "location" => Map.get(attrs, :location) || Map.get(attrs, "location"),
-      "tickets" => Map.get(attrs, :tickets) || Map.get(attrs, "tickets")
+      "tickets" => Map.get(attrs, :tickets) || Map.get(attrs, "tickets"),
+      "show_project" => Map.get(attrs, :show_project, Map.get(attrs, "show_project", true))
     }
 
     slug = "#{slugify(title || "event")}-#{System.monotonic_time()}"
@@ -101,7 +102,7 @@ defmodule MykonosBiennale.Content.Event do
 
     new_fields =
       Enum.reduce(
-        [:title, :description, :type, :date, :time, :location, :tickets],
+        [:title, :description, :type, :date, :time, :location, :tickets, :show_project],
         current_fields,
         fn key, acc ->
           case Map.get(attrs, key) do
@@ -156,7 +157,7 @@ defmodule MykonosBiennale.Content.Event do
   end
 
   def change(%Entity{} = event_entity, attrs \\ %{}) do
-    event_fields_to_map = [:title, :description, :type, :date, :time, :location, :tickets]
+    event_fields_to_map = [:title, :description, :type, :date, :time, :location, :tickets, :show_project]
 
     fields_map =
       Map.take(attrs, event_fields_to_map)
