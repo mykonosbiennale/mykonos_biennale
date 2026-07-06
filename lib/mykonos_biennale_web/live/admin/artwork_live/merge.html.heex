@@ -8,7 +8,7 @@
         <h1 class="text-3xl font-bold text-white">Merge Duplicate Artworks</h1>
       </div>
       <div class="flex items-center gap-4">
-        <span class="text-sm text-gray-400">{length(@duplicate_groups)} groups</span>
+        <span class="text-sm text-gray-400">{@all_groups_count} groups · page {@page}/{@total_pages}</span>
         <%= if @merged_count > 0 do %>
           <span class="text-sm text-green-400">{@merged_count} groups merged</span>
         <% end %>
@@ -36,6 +36,30 @@
         >
           Merge Selected
         </button>
+        <button
+          phx-click="merge_all"
+          data-confirm="This will auto-merge ALL duplicate groups (keeping lowest ID as survivor). Continue?"
+          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          Merge All ({@all_groups_count} groups)
+        </button>
+        <%= if @total_pages > 1 do %>
+          <div class="flex items-center gap-2">
+            <.link
+              patch={"/admin/artworks/merge?page=#{max(@page - 1, 1)}"}
+              class={if @page == 1, do: "px-3 py-1.5 text-sm text-gray-600", else: "px-3 py-1.5 text-sm text-gray-400 hover:text-white"}
+            >
+              Prev
+            </.link>
+            <span class="text-sm text-gray-500">{@page} / {@total_pages}</span>
+            <.link
+              patch={"/admin/artworks/merge?page=#{min(@page + 1, @total_pages)}"}
+              class={if @page == @total_pages, do: "px-3 py-1.5 text-sm text-gray-600", else: "px-3 py-1.5 text-sm text-gray-400 hover:text-white"}
+            >
+              Next
+            </.link>
+          </div>
+        <% end %>
       </div>
     </div>
 
@@ -97,11 +121,11 @@
                   <div class="w-28 rounded-lg overflow-hidden border-2 border-transparent peer-checked:border-green-500 hover:border-gray-500 transition-colors">
                     <div class="aspect-square bg-gray-700 flex items-center justify-center">
                       <%= case first_media(entry.media) do %>
-                        <% %{source_type: "upload"} = media -> %>
-                          <.picture
-                            record={media}
-                            size="admin"
+                        <% %{source_type: "upload"} = m -> %>
+                          <img
+                            src={media_thumb_url(m)}
                             alt={pfield(entry.artwork, "title")}
+                            class="w-full h-full object-cover"
                           />
                         <% %{source_type: "url", source_url: url} -> %>
                           <img

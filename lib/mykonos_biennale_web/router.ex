@@ -18,18 +18,34 @@ defmodule MykonosBiennaleWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :static_media do
+    plug :accepts, ["html"]
+    plug :put_secure_browser_headers
+  end
+
   scope "/", MykonosBiennaleWeb do
     pipe_through :browser
 
     get "/", PageController, :home
-    get "/media/:dimensions/:filename", MediaController, :show
-    get "/media/:filename", MediaController, :show_slug
+  end
+
+  scope "/media", MykonosBiennaleWeb do
+    pipe_through :static_media
+
+    get "/:dimensions/:filename", MediaController, :show
+    get "/:filename", MediaController, :show_slug
+  end
+
+  scope "/", MykonosBiennaleWeb do
+    pipe_through :browser
     live "/archive", ArchiveLive
     live "/archive/:year", ArchiveDetailLive
     live "/program", ProgramLive
     live "/about", AboutLive
     live "/search", PublicSearchLive
     get "/page/:slug", SitePageController, :show
+    get "/art/:id", ArtworkController, :show
+    get "/art/s/:slug", ArtworkController, :show_by_slug
     get "/biennale/:slug", BiennaleController, :show
     get "/biennale/:slug/festival", BiennaleController, :show
   end
@@ -91,6 +107,7 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/films/:id/edit", Admin.FilmLive.Index, :edit
       live "/admin/films/:id", Admin.FilmLive.Show, :show
       live "/admin/artworks", Admin.ArtworkLive.Index, :index
+      live "/admin/artworks/import_preview", Admin.ArtworkLive.ReimportPreview, :index
       live "/admin/artworks/merge", Admin.ArtworkLive.Merge, :index
       live "/admin/artworks/new", Admin.ArtworkLive.Index, :new
       live "/admin/artworks/:id/edit", Admin.ArtworkLive.Index, :edit

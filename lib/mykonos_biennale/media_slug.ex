@@ -55,16 +55,16 @@ defmodule MykonosBiennale.MediaSlug do
   defp ensure_nonempty(""), do: "media"
   defp ensure_nonempty(s), do: s
 
-  @chars ~c"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  @chars ~c"0123456789abcdefghijklmnopqrstuvwxyz"
 
   def encode_id(id) when is_integer(id) and id > 0 do
-    id |> encode_base62([]) |> List.to_string()
+    id |> encode_base36([]) |> List.to_string()
   end
 
-  defp encode_base62(0, acc), do: [Enum.at(@chars, 0) | acc]
+  defp encode_base36(0, acc), do: [Enum.at(@chars, 0) | acc]
 
-  defp encode_base62(id, acc) do
-    encode_base62(div(id, 62), [Enum.at(@chars, rem(id, 62)) | acc])
+  defp encode_base36(id, acc) do
+    encode_base36(div(id, 36), [Enum.at(@chars, rem(id, 36)) | acc])
   end
 
   def decode_id(encoded) when is_binary(encoded) do
