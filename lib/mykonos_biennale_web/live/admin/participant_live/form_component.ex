@@ -223,6 +223,95 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
 
           <.input field={@form[:bio]} type="textarea" label="Bio" rows="5" />
           <.input field={@form[:statement]} type="textarea" label="Statement" rows="3" />
+
+          <%= if @participant.id do %>
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-900">
+                Linked Artworks
+              </label>
+
+              <%= if @linked_artworks == [] do %>
+                <p class="text-sm text-gray-500 mb-2">
+                  No artworks linked yet
+                </p>
+              <% else %>
+                <div class="space-y-2 mb-2">
+                  <div
+                    :for={rel <- @linked_artworks}
+                    class="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+                  >
+                    <div class="min-w-0">
+                      <div class="text-sm font-medium text-gray-900 truncate">
+                        {field(rel.subject, "title")}
+                      </div>
+                      <div class="text-xs text-gray-500">
+                        <%= if field(rel.subject, "type") do %>
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            {field(rel.subject, "type")}
+                          </span>
+                        <% end %>
+                        <%= if field(rel.subject, "date") do %>
+                          <span class="ml-1">{field(rel.subject, "date")}</span>
+                        <% end %>
+                        <%= if rel.fields["role"] do %>
+                          <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {rel.fields["role"]}
+                          </span>
+                        <% end %>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      phx-click="unlink_artwork"
+                      phx-value-artwork-id={rel.subject_id}
+                      phx-target={@myself}
+                      class="text-red-600 hover:text-red-700 flex-shrink-0 ml-2"
+                    >
+                      <.icon name="hero-x-mark" class="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              <% end %>
+
+              <form phx-change="search_artwork_to_link" phx-target={@myself}>
+                <input
+                  type="text"
+                  name="search"
+                  value={@artwork_search}
+                  placeholder="Search artworks by title to link..."
+                  phx-debounce="300"
+                  class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
+                />
+              </form>
+
+              <%= if @artwork_results != [] do %>
+                <div class="border border-gray-200 rounded-lg max-h-48 overflow-y-auto divide-y divide-gray-100">
+                  <button
+                    :for={{id, identity, date} <- @artwork_results}
+                    type="button"
+                    phx-click="link_artwork"
+                    phx-value-artwork-id={id}
+                    phx-target={@myself}
+                    class="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors"
+                  >
+                    <span class="text-sm text-gray-900">{identity}</span>
+                    <%= if date do %>
+                      <span class="text-xs text-gray-500 ml-2">{date}</span>
+                    <% end %>
+                    <span class="text-xs text-gray-400 ml-2">#{id}</span>
+                  </button>
+                </div>
+              <% else %>
+                <%= if @artwork_search != "" do %>
+                  <p class="text-xs text-gray-500">No artworks found</p>
+                <% end %>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="text-xs text-gray-500">
+              Save the participant first to link artworks.
+            </p>
+          <% end %>
         </div>
 
         <div class="mt-6 flex items-center justify-end gap-x-6">
@@ -243,12 +332,22 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
     headshot_media = get_headshot_media(participant)
     form_attrs = participant_form_attrs(participant)
 
+    linked_artworks =
+      if participant.id do
+        Content.list_participant_linked_artworks(participant)
+      else
+        []
+      end
+
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:social_platforms, @social_platforms)
      |> assign(:headshot_media, headshot_media)
      |> assign(:social_media_entries, form_attrs[:social_media] || [])
+     |> assign(:linked_artworks, linked_artworks)
+     |> assign(:artwork_search, "")
+     |> assign(:artwork_results, [])
      |> assign_new(:form, fn ->
        changeset = ParticipantForm.changeset(%ParticipantForm{}, form_attrs)
        to_form(changeset, as: :participant)
@@ -301,6 +400,75 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
     end
 
     {:noreply, assign(socket, headshot_media: nil)}
+  end
+
+  def handle_event("search_artwork_to_link", %{"search" => search}, socket) do
+    participant = socket.assigns.participant
+
+    results =
+      if participant.id && String.trim(search) != "" do
+        linked_ids = Enum.map(socket.assigns.linked_artworks, & &1.subject_id)
+        pattern = "%#{String.downcase(search)}%"
+
+        import Ecto.Query
+
+        MykonosBiennale.Repo.all(
+          from e in MykonosBiennale.Content.Entity,
+            where:
+              e.type == "artwork" and
+                e.id not in ^linked_ids and
+                (ilike(fragment("lower(?)", e.identity), ^pattern) or
+                   ilike(fragment("lower(?->>'title')", e.fields), ^pattern)),
+            limit: 10,
+            select: {e.id, e.identity, fragment("?->>'date'", e.fields)}
+        )
+      else
+        []
+      end
+
+    {:noreply,
+     socket
+     |> assign(:artwork_search, search)
+     |> assign(:artwork_results, results)}
+  end
+
+  def handle_event("link_artwork", %{"artwork-id" => artwork_id}, socket) do
+    participant = socket.assigns.participant
+
+    if participant.id do
+      artwork = Content.get_artwork!(artwork_id)
+
+      case Content.attach_participant_to_artwork(artwork, participant, "creator") do
+        {:ok, _} ->
+          linked_artworks = Content.list_participant_linked_artworks(participant)
+
+          {:noreply,
+           socket
+           |> assign(:linked_artworks, linked_artworks)
+           |> assign(:artwork_search, "")
+           |> assign(:artwork_results, [])
+           |> put_flash(:info, "Artwork linked successfully")}
+
+        {:error, reason} ->
+          {:noreply, put_flash(socket, :error, "Could not link artwork: #{inspect(reason)}")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "Save the participant first before linking artworks")}
+    end
+  end
+
+  def handle_event("unlink_artwork", %{"artwork-id" => artwork_id}, socket) do
+    participant = socket.assigns.participant
+    artwork_id = String.to_integer(artwork_id)
+
+    {:ok, _} = Content.detach_artwork_from_participant(participant, artwork_id)
+
+    linked_artworks = Content.list_participant_linked_artworks(participant)
+
+    {:noreply,
+     socket
+     |> assign(:linked_artworks, linked_artworks)
+     |> put_flash(:info, "Artwork unlinked successfully")}
   end
 
   def handle_event("save", params, socket) do

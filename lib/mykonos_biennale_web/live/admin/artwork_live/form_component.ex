@@ -295,43 +295,54 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
         <% end %>
 
         <%= if @artwork.id do %>
-          <form phx-submit="attach_participant" phx-target={@myself}>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <select
-                name="participant_id"
-                class="w-full rounded-lg border-gray-300 bg-white text-gray-900"
-              >
-                <option value="">Select a participant...</option>
-                <%= for participant <- @available_participants do %>
-                  <option value={participant.id}>
-                    {field(participant, "first_name")} {field(participant, "last_name")}
-                  </option>
-                <% end %>
-              </select>
+          <div class="space-y-2">
+            <input
+              type="text"
+              name="role"
+              list="participant-roles"
+              placeholder="Role (e.g. creator, curator)"
+              phx-change="set_participant_role"
+              phx-target={@myself}
+              class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
+            />
+            <datalist id="participant-roles">
+              <option value="creator" />
+              <option value="curator" />
+              <option value="director" />
+              <option value="actor" />
+            </datalist>
 
-              <div class="flex gap-2">
-                <input
-                  type="text"
-                  name="role"
-                  list="participant-roles"
-                  placeholder="Role (e.g. creator, curator)"
-                  class="flex-1 rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
-                />
-                <datalist id="participant-roles">
-                  <option value="creator" />
-                  <option value="curator" />
-                  <option value="director" />
-                  <option value="actor" />
-                </datalist>
+            <form phx-change="search_participant_to_link" phx-target={@myself}>
+              <input
+                type="text"
+                name="search"
+                value={@participant_search}
+                placeholder="Search participants by name to link..."
+                phx-debounce="300"
+                class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
+              />
+            </form>
+
+            <%= if @participant_results != [] do %>
+              <div class="border border-gray-200 rounded-lg max-h-48 overflow-y-auto divide-y divide-gray-100">
                 <button
-                  type="submit"
-                  class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+                  :for={{id, identity} <- @participant_results}
+                  type="button"
+                  phx-click="link_participant"
+                  phx-value-participant-id={id}
+                  phx-target={@myself}
+                  class="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors"
                 >
-                  Add
+                  <span class="text-sm text-gray-900">{identity}</span>
+                  <span class="text-xs text-gray-400 ml-2">#{id}</span>
                 </button>
               </div>
-            </div>
-          </form>
+            <% else %>
+              <%= if @participant_search != "" do %>
+                <p class="text-xs text-gray-500">No participants found</p>
+              <% end %>
+            <% end %>
+          </div>
         <% else %>
           <p class="text-xs text-gray-500">Save the artwork first to link participants.</p>
         <% end %>
@@ -387,6 +398,9 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
      |> assign(:available_events, available_events)
      |> assign(:linked_participants, linked_participants)
      |> assign(:available_participants, available_participants)
+     |> assign(:participant_search, "")
+     |> assign(:participant_results, [])
+     |> assign(:participant_role, "")
      |> assign_new(:form, fn ->
        changeset = ArtworkForm.changeset(%ArtworkForm{}, artwork_form_attrs(artwork))
        to_form(changeset, as: :artwork)
@@ -517,6 +531,78 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
            socket
            |> assign(:linked_participants, linked_participants)
            |> assign(:available_participants, available_participants)
+           |> assign(:participant_search, "")
+           |> assign(:participant_results, [])
+           |> assign(:participant_role, "")
+           |> put_flash(:info, "Participant linked successfully")}
+
+        {:error, reason} ->
+          {:noreply, put_flash(socket, :error, "Could not link participant: #{inspect(reason)}")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "Save the artwork first before linking participants")}
+    end
+  end
+
+  def handle_event("search_participant_to_link", %{"search" => search}, socket) do
+    artwork = socket.assigns.artwork
+
+    results =
+      if artwork.id && String.trim(search) != "" do
+        linked_ids = Enum.map(socket.assigns.linked_participants, & &1.object_id)
+        pattern = "%#{String.downcase(search)}%"
+
+        import Ecto.Query
+
+        MykonosBiennale.Repo.all(
+          from e in MykonosBiennale.Content.Entity,
+            where:
+              e.type == "participant" and
+                e.id not in ^linked_ids and
+                (ilike(fragment("lower(?)", e.identity), ^pattern) or
+                   ilike(fragment("lower(?->>'name')", e.fields), ^pattern) or
+                   ilike(fragment("lower(?->>'first_name')", e.fields), ^pattern) or
+                   ilike(fragment("lower(?->>'last_name')", e.fields), ^pattern)),
+            limit: 10,
+            select: {e.id, e.identity}
+        )
+      else
+        []
+      end
+
+    {:noreply,
+     socket
+     |> assign(:participant_search, search)
+     |> assign(:participant_results, results)}
+  end
+
+  def handle_event("set_participant_role", %{"role" => role}, socket) do
+    {:noreply, assign(socket, :participant_role, role)}
+  end
+
+  def handle_event("link_participant", %{"participant-id" => participant_id}, socket) do
+    artwork = socket.assigns.artwork
+
+    if artwork.id do
+      participant = Content.get_participant!(participant_id)
+      role = socket.assigns.participant_role
+
+      case Content.attach_participant_to_artwork(artwork, participant, role) do
+        {:ok, _} ->
+          linked_participants = Content.list_artwork_linked_participants(artwork)
+          all_participants = Content.list_participants()
+          linked_participant_ids = Enum.map(linked_participants, & &1.object_id)
+
+          available_participants =
+            Enum.reject(all_participants, fn p -> p.id in linked_participant_ids end)
+
+          {:noreply,
+           socket
+           |> assign(:linked_participants, linked_participants)
+           |> assign(:available_participants, available_participants)
+           |> assign(:participant_search, "")
+           |> assign(:participant_results, [])
+           |> assign(:participant_role, "")
            |> put_flash(:info, "Participant linked successfully")}
 
         {:error, reason} ->
@@ -546,7 +632,6 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
      |> assign(:available_participants, available_participants)
      |> put_flash(:info, "Participant unlinked successfully")}
   end
-
   def handle_event("save", params, socket) do
     artwork_params = extract_artwork_params(params)
     save_artwork(socket, socket.assigns.action, artwork_params)

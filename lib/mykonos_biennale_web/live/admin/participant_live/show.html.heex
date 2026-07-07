@@ -35,12 +35,22 @@
         <% end %>
         <h1 class="text-3xl font-bold text-white">{pfield(@participant, "name")}</h1>
       </div>
-      <.link
-        patch={"/admin/participants/#{@participant.id}/edit"}
-        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-      >
-        Edit
-      </.link>
+      <div class="flex items-center gap-2">
+        <.link
+          patch={"/admin/participants/#{@participant.id}/artworks/new"}
+          class="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors inline-flex items-center gap-1"
+          title="Add artwork"
+        >
+          <.icon name="hero-plus" class="w-4 h-4" />
+          Add Artwork
+        </.link>
+        <.link
+          patch={"/admin/participants/#{@participant.id}/edit"}
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          Edit
+        </.link>
+      </div>
     </div>
 
     <div class="flex gap-2 mb-6">
@@ -205,4 +215,20 @@
       </div>
     <% end %>
   </div>
+
+  <.modal
+    :if={@live_action == :new_artwork}
+    id="participant-artwork-modal"
+    show
+    on_cancel={JS.patch(@return_path)}
+  >
+    <.live_component
+      module={MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent}
+      id={@artwork.id || :new}
+      title="New Artwork"
+      action={:new}
+      artwork={@artwork}
+      patch={@return_path}
+    />
+  </.modal>
 </Layouts.app>

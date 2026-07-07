@@ -60,6 +60,14 @@ defmodule MykonosBiennale.Content do
     to: MykonosBiennale.Content.Participant,
     as: :change
 
+  defdelegate list_participant_linked_artworks(entity),
+    to: MykonosBiennale.Content.Participant,
+    as: :list_linked_artworks
+
+  defdelegate detach_artwork_from_participant(entity, artwork_id),
+    to: MykonosBiennale.Content.Participant,
+    as: :detach_artwork
+
   ## Delegates - Film
 
   defdelegate create_film(attrs \\ %{}), to: MykonosBiennale.Content.Film, as: :create
