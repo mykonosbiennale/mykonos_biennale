@@ -40,6 +40,31 @@
               <% end %>
             </div>
         <% end %>
+        <%= if @media.source_type == "upload" and @media.source_path do %>
+          <div class="flex items-center justify-center gap-2 p-3 border-t border-gray-700/30">
+            <button
+              phx-click="rotate_media"
+              phx-value-degrees="90"
+              class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded transition-colors"
+            >
+              Rotate 90°
+            </button>
+            <button
+              phx-click="rotate_media"
+              phx-value-degrees="180"
+              class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded transition-colors"
+            >
+              Rotate 180°
+            </button>
+            <button
+              phx-click="rotate_media"
+              phx-value-degrees="270"
+              class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded transition-colors"
+            >
+              Rotate 270°
+            </button>
+          </div>
+        <% end %>
       </div>
 
       <div class="space-y-4">

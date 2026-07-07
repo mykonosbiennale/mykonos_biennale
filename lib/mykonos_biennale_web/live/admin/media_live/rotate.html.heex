@@ -1,0 +1,146 @@
+<Layouts.app flash={@flash}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <.link patch="/admin/media" class="text-gray-400 hover:text-white transition-colors">
+          <.icon name="hero-arrow-left" class="w-5 h-5" />
+        </.link>
+        <h1 class="text-3xl font-bold text-white">Batch Rotate Media</h1>
+      </div>
+    </div>
+
+    <form phx-change="search" class="mb-6">
+      <input
+        type="text"
+        name="search"
+        value={@search}
+        placeholder="Search by original name or caption (e.g. antidote-box)..."
+        class="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none"
+      />
+    </form>
+
+    <div class="flex items-center justify-between mb-4">
+      <div class="text-sm text-gray-400">
+        {@total_count} images{@search != "" && " matching \"#{@search}\""}
+        <%= if MapSet.size(@selected) > 0 do %>
+          — <span class="text-blue-400 font-medium">{MapSet.size(@selected)} selected</span>
+        <% end %>
+      </div>
+      <div class="flex gap-2">
+        <button phx-click="select_all" class="text-xs px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors">
+          Select All
+        </button>
+        <button phx-click="clear_selection" class="text-xs px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
+      <%= for media <- @items do %>
+        <% selected = MapSet.member?(@selected, media.id) %>
+        <% rot = rotation_label(media) %>
+        <div class={"relative rounded-lg overflow-hidden border-2 transition-all " <> if(selected, do: "border-blue-500 ring-2 ring-blue-500/30", else: "border-gray-700/30")}>
+          <label class="block cursor-pointer">
+            <div class="bg-gray-800 relative flex items-center justify-center" style="min-height: 120px;">
+              <img
+                src={media_thumb(media)}
+                alt={media.original_name || media.caption || ""}
+                class="max-w-full max-h-48 object-contain"
+                loading="lazy"
+              />
+              <div class={"absolute top-2 left-2 w-6 h-6 rounded flex items-center justify-center transition-all " <> if(selected, do: "bg-blue-500", else: "bg-black/50 hover:bg-black/70")}>
+                <input
+                  type="checkbox"
+                  class="hidden"
+                  phx-click="toggle_select"
+                  phx-value-id={media.id}
+                  checked={selected}
+                />
+                <%= if selected do %>
+                  <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                <% end %>
+              </div>
+              <%= if rot do %>
+                <div class="absolute top-2 right-2 px-2 py-0.5 bg-amber-500/90 text-white text-xs font-medium rounded">
+                  ↻ {rot}
+                </div>
+              <% end %>
+            </div>
+            <div class="p-2 bg-gray-800/80">
+              <p class="text-xs text-gray-400 truncate" title={media.original_name}>
+                {media.original_name || media.caption || "##{media.id}"}
+              </p>
+            </div>
+          </label>
+        </div>
+      <% end %>
+    </div>
+
+    <%= if @items == [] do %>
+      <div class="text-center py-12">
+        <p class="text-gray-500">No images found</p>
+      </div>
+    <% end %>
+
+    <%!-- Batch rotate bar --%>
+    <div class="sticky bottom-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700/50 p-4 -mx-4 px-4">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div class="text-sm text-gray-400">
+          <%= if MapSet.size(@selected) > 0 do %>
+            <span class="text-blue-400 font-medium">{MapSet.size(@selected)}</span> selected
+          <% else %>
+            Select images above to rotate in batch
+          <% end %>
+        </div>
+        <div class="flex gap-2">
+          <button
+            phx-click="rotate_selected"
+            phx-value-degrees="90"
+            disabled={MapSet.size(@selected) == 0}
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Rotate 90°
+          </button>
+          <button
+            phx-click="rotate_selected"
+            phx-value-degrees="180"
+            disabled={MapSet.size(@selected) == 0}
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Rotate 180°
+          </button>
+          <button
+            phx-click="rotate_selected"
+            phx-value-degrees="270"
+            disabled={MapSet.size(@selected) == 0}
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Rotate -90°
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <%!-- Pagination --%>
+    <div class="flex items-center justify-between mt-6 mb-4">
+      <%= if @current_page > 1 do %>
+        <.link patch={"/admin/media/rotate?page=#{@current_page - 1}&search=#{URI.encode_www_form(@search)}"} class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors">
+          ← Prev
+        </.link>
+      <% else %>
+        <span></span>
+      <% end %>
+      <span class="text-sm text-gray-500">Page {@current_page} of {@total_pages}</span>
+      <%= if @current_page < @total_pages do %>
+        <.link patch={"/admin/media/rotate?page=#{@current_page + 1}&search=#{URI.encode_www_form(@search)}"} class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors">
+          Next →
+        </.link>
+      <% else %>
+        <span></span>
+      <% end %>
+    </div>
+  </div>
+</Layouts.app>

@@ -62,3 +62,16 @@ npm-debug.log
 
 .env
 .tool-versions
+
+db-*.zip
+/db.01/
+/images/
+mykonos_biennale_test.*
+.DS_Store
+priv/static/favicon-91f37b602a111216f1eef3aa337ad763.ico
+priv/static/images/logo-06a11be1f2cdde2c851763d00bdd2e80.svg
+priv/static/images/logo-06a11be1f2cdde2c851763d00bdd2e80.svg.gz
+priv/static/images/logo.svg.gz
+priv/static/robots-9e2c81b0855bbff2baa8371bc4a78186.txt
+priv/static/robots-9e2c81b0855bbff2baa8371bc4a78186.txt.gz
+priv/static/robots.txt.gz

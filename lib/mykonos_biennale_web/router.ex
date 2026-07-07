@@ -120,6 +120,7 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/projects/:id/edit", Admin.ProjectLive.Index, :edit
       live "/admin/media", Admin.MediaLive.Index, :index
       live "/admin/media/new", Admin.MediaLive.Index, :new
+      live "/admin/media/rotate", Admin.MediaLive.Rotate, :index
       live "/admin/media/:id", Admin.MediaLive.Show, :show
       live "/admin/media/:id/edit", Admin.MediaLive.Index, :edit
       live "/admin/pages", Admin.PageLive.Index, :index

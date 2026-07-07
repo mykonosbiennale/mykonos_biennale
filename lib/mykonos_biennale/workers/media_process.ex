@@ -194,7 +194,7 @@ defmodule MykonosBiennale.Workers.MediaProcess do
     :ok
   end
 
-  defp rotate_media(%Media{slug: slug, source_type: "upload", source_path: path}, degrees)
+  defp rotate_media(%Media{id: id, slug: slug, source_type: "upload", source_path: path, metadata: metadata}, degrees)
        when is_binary(path) and is_binary(slug) do
     unless image_ext?(path) do
       {:ok, :skipped}
@@ -216,6 +216,7 @@ defmodule MykonosBiennale.Workers.MediaProcess do
             Thumbnail.invalidate_slug_cache(slug)
             generate_webp_sizes(%Media{slug: slug, source_type: "upload", source_path: path})
             enqueue_avif_and_press(id_for_slug(slug))
+            record_rotation(id, metadata, degrees)
             {:ok, :rotated}
 
           {error, _code} ->
@@ -230,6 +231,17 @@ defmodule MykonosBiennale.Workers.MediaProcess do
   end
 
   defp rotate_media(_, _), do: {:ok, :skipped}
+
+  defp record_rotation(id, metadata, degrees) do
+    current = metadata || %{}
+    cumulative = rem(Map.get(current, "rotation", 0) + degrees, 360)
+    new_metadata = Map.put(current, "rotation", cumulative)
+
+    Repo.update_all(
+      from(m in Media, where: m.id == ^id),
+      set: [metadata: new_metadata]
+    )
+  end
 
   defp id_for_slug(slug) do
     Repo.one(from m in Media, where: m.slug == ^slug, select: m.id)
