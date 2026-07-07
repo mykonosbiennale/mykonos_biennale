@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{@page_title}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #0a0a0a; }
+  </style>
+</head>
+<body class="bg-neutral-950 text-neutral-200 min-h-screen">
+  <nav class="border-b border-neutral-800 px-6 py-4">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <a href="/" class="text-lg font-semibold text-white tracking-wide">MYKONOS BIENNALE</a>
+      <div class="flex gap-6 text-sm">
+        <a href="/archive" class="text-neutral-400 hover:text-white transition-colors">Archive</a>
+        <a href="/program" class="text-neutral-400 hover:text-white transition-colors">Program</a>
+        <a href="/about" class="text-neutral-400 hover:text-white transition-colors">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-6 py-12">
+    <article>
+      <div class="flex items-start gap-6 mb-8">
+        <%= if @headshot do %>
+          <div class="w-32 h-32 rounded-full overflow-hidden flex-shrink-0 border-2 border-neutral-800">
+            <img
+              src={media_url(@headshot, size: "admin")}
+              alt={participant_name(@participant)}
+              class="w-full h-full object-cover"
+            />
+          </div>
+        <% end %>
+        <div class="min-w-0">
+          <h1 class="text-4xl md:text-5xl font-light text-white mb-2">
+            {participant_name(@participant)}
+          </h1>
+          <%= if field(@participant, "country") do %>
+            <p class="text-lg text-neutral-500 mb-4">{field(@participant, "country")}</p>
+          <% end %>
+          <%= if field(@participant, "website") do %>
+            <a
+              href={field(@participant, "website")}
+              target="_blank"
+              class="text-sm text-neutral-400 hover:text-white transition-colors"
+            >
+              {field(@participant, "website")}
+            </a>
+          <% end %>
+        </div>
+      </div>
+
+      <%= if field(@participant, "bio") do %>
+        <div class="prose prose-invert prose-neutral max-w-2xl mb-8">
+          <p class="text-neutral-400 leading-relaxed whitespace-pre-line">
+            {field(@participant, "bio")}
+          </p>
+        </div>
+      <% end %>
+
+      <%= if field(@participant, "statement") do %>
+        <div class="prose prose-invert prose-neutral max-w-2xl mb-12 border-l-2 border-neutral-800 pl-6">
+          <p class="text-neutral-400 leading-relaxed whitespace-pre-line italic">
+            {field(@participant, "statement")}
+          </p>
+        </div>
+      <% end %>
+
+      <%= if @artworks != [] do %>
+        <div class="mt-12 border-t border-neutral-800 pt-8">
+          <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-6">Works</h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+            <%= for {artwork, media, events} <- @artworks do %>
+              <a
+                href={"/art/#{artwork.id}"}
+                class="group block"
+              >
+                <div class="aspect-square overflow-hidden rounded-lg bg-neutral-900 mb-3">
+                  <%= case List.first(media) do %>
+                    <% %{source_type: "upload"} = m -> %>
+                      <img
+                        src={media_url(m, size: "card")}
+                        alt={field(artwork, "title")}
+                        class="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+                        loading="lazy"
+                      />
+                    <% %{source_type: "url", source_url: url} -> %>
+                      <img
+                        src={url}
+                        alt={field(artwork, "title")}
+                        class="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+                        loading="lazy"
+                      />
+                    <% _ -> %>
+                      <div class="w-full h-full flex items-center justify-center">
+                        <span class="text-neutral-700 text-xs">No image</span>
+                      </div>
+                  <% end %>
+                </div>
+                <h3 class="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors">
+                  {field(artwork, "title", "Untitled")}
+                </h3>
+                <%= if field(artwork, "date") do %>
+                  <p class="text-xs text-neutral-600">{field(artwork, "date")}</p>
+                <% end %>
+                <%= if events != [] do %>
+                  <p class="text-xs text-neutral-700 mt-1">
+                    <%= for e <- Enum.take(events, 2) do %>
+                      <span>{field(e, "title")}</span>
+                    <% end %>
+                  </p>
+                <% end %>
+              </a>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </article>
+  </main>
+
+  <footer class="border-t border-neutral-800 px-6 py-6 mt-12">
+    <div class="max-w-5xl mx-auto text-sm text-neutral-600">
+      Mykonos Biennale
+    </div>
+  </footer>
+</body>
+</html>

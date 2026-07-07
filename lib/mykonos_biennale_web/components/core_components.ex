@@ -631,13 +631,6 @@ defmodule MykonosBiennaleWeb.CoreComponents do
     "#{key}: #{inspect(value)}"
   end
 
-  attr :artwork, :any, required: true
-  attr :media, :list, default: nil
-  attr :creators, :list, default: nil
-  attr :show_creators, :boolean, default: true
-  attr :show_description, :boolean, default: false
-  attr :show_statement, :boolean, default: false
-
   @doc """
   Renders a responsive `<picture>` element with AVIF, WebP sources, and JPEG fallback.
 
@@ -689,6 +682,12 @@ defmodule MykonosBiennaleWeb.CoreComponents do
     """
   end
 
+  attr :artwork, :any, required: true
+  attr :media, :list, default: nil
+  attr :creators, :list, default: nil
+  attr :show_creators, :boolean, default: true
+  attr :show_description, :boolean, default: false
+  attr :show_statement, :boolean, default: false
   attr :show_edit_link, :boolean, default: false
   attr :class, :string, default: ""
 
@@ -696,7 +695,12 @@ defmodule MykonosBiennaleWeb.CoreComponents do
     artwork = assigns[:artwork]
     resolved_media = assigns[:media] || MykonosBiennale.Content.list_media_for_entity(artwork)
     resolved_creators = assigns[:creators] || resolve_artwork_creators(artwork)
-    assigns = assign(assigns, :resolved_media, resolved_media)
+
+    assigns =
+      assigns
+      |> assign_new(:show_statement, fn -> false end)
+      |> assign_new(:show_edit_link, fn -> false end)
+      |> assign(:resolved_media, resolved_media)
 
     assigns =
       assign(

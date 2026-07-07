@@ -37,6 +37,13 @@
       </div>
       <div class="flex items-center gap-2">
         <.link
+          href={"/artist/#{@participant.id}"}
+          target="_blank"
+          class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          See on Site
+        </.link>
+        <.link
           patch={"/admin/participants/#{@participant.id}/artworks/new"}
           class="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors inline-flex items-center gap-1"
           title="Add artwork"
