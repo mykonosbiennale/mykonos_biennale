@@ -6,6 +6,7 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Show do
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.{Media, Entity, EntityMedia}
+  alias MykonosBiennale.Workers.MediaProcess
 
   @impl true
   def mount(_params, _session, socket) do
@@ -61,4 +62,13 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Show do
 
   defp media_source_url(%Media{source_type: "url", source_url: url}) when is_binary(url), do: url
   defp media_source_url(_), do: nil
+
+  @impl true
+  def handle_event("rotate_media", %{"degrees" => degrees}, socket) do
+    media = socket.assigns.media
+    MediaProcess.enqueue_rotate(media.id, String.to_integer(degrees))
+
+    {:noreply,
+      put_flash(socket, :info, "Rotation #{degrees}° queued for #{media.original_name || media.caption}")}
+  end
 end

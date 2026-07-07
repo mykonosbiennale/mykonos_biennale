@@ -37,10 +37,10 @@ defmodule MykonosBiennaleWeb.ProgramLive do
     case type do
       "exhibition" -> "Exhibitions"
       "performance" -> "Performances"
-      "video_graffiti" -> "Video Graffiti"
-      "dramatic_nights" -> "Dramatic Nights"
+      "screening" -> "Screenings"
       "short_films" -> "Short Films"
       "workshop" -> "Workshops"
+      "celebration" -> "Celebrations"
       _ -> String.capitalize(type)
     end
   end
@@ -53,17 +53,17 @@ defmodule MykonosBiennaleWeb.ProgramLive do
       "performance" ->
         "Live performances, experimental theater, and site-specific interventions exploring contemporary themes."
 
-      "video_graffiti" ->
-        "Large-scale video projections transforming urban landscapes and architectural spaces throughout Mykonos."
-
-      "dramatic_nights" ->
-        "Evening performances under the stars, blending theater, dance, music, and visual arts."
+      "screening" ->
+        "Film screenings, video projections, and dramatic nights showcasing cutting-edge cinema and visual storytelling."
 
       "short_films" ->
         "International experimental and narrative short film screenings showcasing cutting-edge cinema."
 
       "workshop" ->
         "Artist-led workshops and masterclasses exploring contemporary art practices and techniques."
+
+      "celebration" ->
+        "Festive events and celebrations part of the Mykonos Biennale."
 
       _ ->
         ""
@@ -121,7 +121,7 @@ defmodule MykonosBiennaleWeb.ProgramLive do
         <% else %>
           <div class="px-6 py-16 md:py-24">
             <div class="max-w-7xl mx-auto space-y-20">
-              <%= for type <- ["exhibition", "performance", "video_graffiti", "dramatic_nights", "short_films", "workshop"] do %>
+              <%= for type <- ["exhibition", "performance", "screening", "short_films", "workshop", "celebration", "event", "festival"] do %>
                 <%= if Map.has_key?(@events_by_type, type) do %>
                   <div class="space-y-8">
                     <%!-- Type Header --%>
@@ -139,7 +139,9 @@ defmodule MykonosBiennaleWeb.ProgramLive do
                       <%= for event <- @events_by_type[type] do %>
                         <div class="bg-gray-900/50 border border-gray-800 p-6 hover:border-gray-700 transition-all">
                           <h3 class="text-2xl font-bold mb-3">
-                            {event.fields["title"]}
+                            <.link navigate={~p"/event/#{event.id}"} class="hover:text-gray-300 transition-colors">
+                              {event.fields["title"]}
+                            </.link>
                           </h3>
 
                           <div class="space-y-2 mb-4">

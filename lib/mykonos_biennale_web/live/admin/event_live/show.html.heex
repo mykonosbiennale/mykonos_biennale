@@ -7,12 +7,21 @@
         </.link>
         <h1 class="text-3xl font-bold text-white">{efield(@event, "title")}</h1>
       </div>
-      <.link
-        patch={"/admin/events/#{@event.id}/edit"}
-        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-      >
-        Edit
-      </.link>
+      <div class="flex items-center gap-2">
+        <.link
+          href={"/event/#{@event.id}"}
+          target="_blank"
+          class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          See on Site
+        </.link>
+        <.link
+          patch={"/admin/events/#{@event.id}/edit"}
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          Edit
+        </.link>
+      </div>
     </div>
 
     <div class="flex gap-2 mb-6">
