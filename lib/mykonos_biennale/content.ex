@@ -41,6 +41,14 @@ defmodule MykonosBiennale.Content do
   defdelegate delete_event(entity), to: MykonosBiennale.Content.Event, as: :delete
   defdelegate change_event(entity, attrs \\ %{}), to: MykonosBiennale.Content.Event, as: :change
 
+  defdelegate list_event_artwork_media(entity),
+    to: MykonosBiennale.Content.Event,
+    as: :list_artwork_media_for_event
+
+  defdelegate get_event_poster_link(entity),
+    to: MykonosBiennale.Content.Event,
+    as: :get_poster_link
+
   ## Delegates - Participant
 
   defdelegate list_participants, to: MykonosBiennale.Content.Participant, as: :list

@@ -33,6 +33,13 @@ defmodule MykonosBiennaleWeb.EventController do
     biennale = get_event_biennale(event)
     show_project = Map.get(event.fields, "show_project", true)
 
+    artboard_media_ids =
+      event.fields
+      |> Map.get("artboard_media_ids", [])
+      |> Enum.map(fn id -> if is_binary(id), do: String.to_integer(id), else: id end)
+
+    poster = get_event_poster(event)
+
     {artworks, films} =
       if show_project do
         project = get_event_project(event)
@@ -43,7 +50,20 @@ defmodule MykonosBiennaleWeb.EventController do
         {get_event_artworks(event), get_event_films(event)}
       end
 
-    media = Content.list_media_for_entity(event)
+    artworks =
+      if event_type == "exhibition" and artboard_media_ids != [] do
+        filter_artworks_by_artboard(artworks, artboard_media_ids)
+      else
+        artworks
+      end
+
+    media =
+      if event_type != "exhibition" and event_type != "screening" and artboard_media_ids != [] do
+        load_artboard_media(artboard_media_ids)
+      else
+        Content.list_media_for_entity(event)
+      end
+
     participants = get_event_participants(event)
 
     template =
@@ -60,10 +80,41 @@ defmodule MykonosBiennaleWeb.EventController do
     |> assign(:artworks, artworks)
     |> assign(:films, films)
     |> assign(:media, media)
+    |> assign(:poster, poster)
     |> assign(:participants, participants)
     |> assign(:page_title, "#{event.fields["title"] || "Event"} — Mykonos Biennale")
     |> put_view(EventHTML)
     |> render(template)
+  end
+
+  defp get_event_poster(event) do
+    case Content.get_event_poster_link(event) do
+      nil -> nil
+      link -> link.media
+    end
+  end
+
+  defp filter_artworks_by_artboard(artworks, artboard_media_ids) do
+    artboard_set = MapSet.new(artboard_media_ids)
+
+    artworks
+    |> Enum.map(fn item ->
+      selected = Enum.filter(item.media, fn m -> MapSet.member?(artboard_set, m.id) end)
+      if selected != [], do: %{item | media: selected}, else: nil
+    end)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp load_artboard_media(media_ids) do
+    records =
+      Repo.all(
+        from m in Content.Media,
+          where: m.id in ^media_ids
+      )
+
+    Enum.sort_by(records, fn m ->
+      Enum.find_index(media_ids, &(&1 == m.id))
+    end)
   end
 
   defp get_event_biennale(event) do
