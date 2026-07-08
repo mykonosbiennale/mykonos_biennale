@@ -46,6 +46,8 @@ defmodule MykonosBiennaleWeb.Router do
     get "/page/:slug", SitePageController, :show
     get "/art/:id", ArtworkController, :show
     get "/art/s/:slug", ArtworkController, :show_by_slug
+    get "/artist/:id", ParticipantController, :show
+    get "/artist/s/:slug", ParticipantController, :show_by_slug
     get "/event/:id", EventController, :show
     get "/event/s/:slug", EventController, :show_by_slug
     get "/biennale/:slug", BiennaleController, :show
@@ -103,6 +105,7 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/participants", Admin.ParticipantLive.Index, :index
       live "/admin/participants/new", Admin.ParticipantLive.Index, :new
       live "/admin/participants/:id/edit", Admin.ParticipantLive.Index, :edit
+      live "/admin/participants/:id/artworks/new", Admin.ParticipantLive.Show, :new_artwork
       live "/admin/participants/:id", Admin.ParticipantLive.Show, :show
       live "/admin/films", Admin.FilmLive.Index, :index
       live "/admin/films/new", Admin.FilmLive.Index, :new

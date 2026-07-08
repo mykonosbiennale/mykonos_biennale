@@ -73,7 +73,7 @@ defmodule MykonosBiennale.MediaSlug do
     |> Enum.reduce(0, fn char, acc ->
       case Enum.find_index(@chars, &(&1 == char)) do
         nil -> -1
-        idx -> acc * 62 + idx
+        idx -> acc * 36 + idx
       end
     end)
   end

@@ -81,8 +81,8 @@ const hooks = {
     pushOrder() {
       const ids = Array.from(this.el.querySelectorAll("[data-media-id]")).map((el) => el.dataset.mediaId)
       if (ids.length === 0) return
-      // Push to the hook element so LiveView routes correctly (including to LiveComponents via phx-target).
-      this.pushEventTo(this.el, "reorder_media_links", {media_ids: ids})
+      const eventName = this.el.dataset.sortableEvent || "reorder_media_links"
+      this.pushEventTo(this.el, eventName, {media_ids: ids})
     },
   },
 }

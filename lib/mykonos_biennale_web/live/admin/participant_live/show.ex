@@ -19,13 +19,28 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Show do
     artworks_by_event = get_artworks_grouped_by_event(participant)
     events = get_participant_events(participant)
 
-    {:noreply,
-     socket
-     |> assign(:page_title, pfield(participant, "name") || "Participant ##{participant.id}")
-     |> assign(:participant, participant)
-     |> assign(:headshot, headshot)
-     |> assign(:artworks_by_event, artworks_by_event)
-     |> assign(:events, events)}
+    socket =
+      socket
+      |> assign(:page_title, pfield(participant, "name") || "Participant ##{participant.id}")
+      |> assign(:participant, participant)
+      |> assign(:headshot, headshot)
+      |> assign(:artworks_by_event, artworks_by_event)
+      |> assign(:events, events)
+
+    socket =
+      case socket.assigns.live_action do
+        :new_artwork ->
+          socket
+          |> assign(:artwork, %Content.Entity{type: "artwork", fields: %{}})
+          |> assign(:return_path, "/admin/participants/#{participant.id}")
+
+        _ ->
+          socket
+          |> assign(:artwork, nil)
+          |> assign(:return_path, "/admin/participants/#{participant.id}")
+      end
+
+    {:noreply, socket}
   end
 
   defp pfield(%Entity{fields: fields}, key, default \\ nil) when is_map(fields) do
@@ -139,6 +154,30 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Show do
 
       {:error, _} ->
         {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent, {:saved, artwork}},
+        socket
+      ) do
+    participant = socket.assigns.participant
+
+    case Content.attach_participant_to_artwork(artwork, participant, "creator") do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Artwork created and linked to #{pfield(participant, "name")}")
+         |> assign(:artworks_by_event, get_artworks_grouped_by_event(participant))
+         |> assign(:events, get_participant_events(participant))}
+
+      {:error, reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Artwork created but could not link: #{inspect(reason)}")
+         |> assign(:artworks_by_event, get_artworks_grouped_by_event(participant))
+         |> assign(:events, get_participant_events(participant))}
     end
   end
 end

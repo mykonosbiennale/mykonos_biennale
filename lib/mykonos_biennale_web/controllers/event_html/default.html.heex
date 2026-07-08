@@ -27,6 +27,17 @@
     <article>
       <.event_header event={@event} biennale={@biennale} />
 
+      <%!-- Poster --%>
+      <%= if @poster do %>
+        <div class="mb-8 overflow-hidden rounded-lg bg-neutral-900">
+          <img
+            src={media_url(@poster, size: "hero")}
+            alt={field(@event, "title")}
+            class="w-full h-auto object-contain"
+          />
+        </div>
+      <% end %>
+
       <%!-- Description --%>
       <%= if field(@event, "description") do %>
         <div class="max-w-2xl mb-8">

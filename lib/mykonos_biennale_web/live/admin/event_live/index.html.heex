@@ -1,184 +1,191 @@
 <Layouts.app flash={@flash}>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-    <.pagination
-      :if={@total_pages > 1}
-      current_page={@current_page}
-      total_pages={@total_pages}
-      total_count={@total_count}
-      base_path="/admin/events"
-      sort_by={@sort_by}
-      sort_dir={@sort_dir}
-    />
-    <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-gray-700/30 overflow-hidden">
-      <table class="w-full">
-        <thead class="bg-gray-900/50 border-b border-gray-700/50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
-              <.sort_header
-                base_path="/admin/events"
-                sort_by={:title}
-                current_sort={@sort_by}
-                current_dir={@sort_dir}
-                class="text-gray-400 hover:text-gray-200"
-              >
-                Title
-              </.sort_header>
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
-              <.sort_header
-                base_path="/admin/events"
-                sort_by={:type}
-                current_sort={@sort_by}
-                current_dir={@sort_dir}
-                class="text-gray-400 hover:text-gray-200"
-              >
-                Type
-              </.sort_header>
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
-              <.sort_header
-                base_path="/admin/events"
-                sort_by={:biennale}
-                current_sort={@sort_by}
-                current_dir={@sort_dir}
-                class="text-gray-400 hover:text-gray-200"
-              >
-                Biennale
-              </.sort_header>
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
-              <.sort_header
-                base_path="/admin/events"
-                sort_by={:project}
-                current_sort={@sort_by}
-                current_dir={@sort_dir}
-                class="text-gray-400 hover:text-gray-200"
-              >
-                Project
-              </.sort_header>
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
-              <.sort_header
-                base_path="/admin/events"
-                sort_by={:date}
-                current_sort={@sort_by}
-                current_dir={@sort_dir}
-                class="text-gray-400 hover:text-gray-200"
-              >
-                Date
-              </.sort_header>
-            </th>
-            <th class="px-6 py-3 text-right">
-              <.link
-                patch={~p"/admin/events/new"}
-                class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors"
-              >
-                + New
-              </.link>
-            </th>
-          </tr>
-        </thead>
-        <tbody id="events" phx-update="stream" class="divide-y divide-gray-700/50">
-          <tr
-            :for={{id, event} <- @streams.events}
-            id={id}
-            class="hover:bg-gray-700/20 transition-colors"
-          >
-            <td class="px-6 py-4">
-              <div class="text-white font-medium">{field(event, "title")}</div>
-              <%= if field(event, "description") do %>
-                <div class="text-sm text-gray-400 mt-1 line-clamp-1">
-                  {field(event, "description")}
-                </div>
-              <% end %>
-            </td>
-            <td class="px-6 py-4">
-              <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-500/20 text-purple-300 uppercase">
-                {field(event, "type")}
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <%= if event_biennale(event) do %>
-                <div class="text-gray-300">{field(event_biennale(event), "year")}</div>
-              <% else %>
-                <span class="text-gray-500 text-sm">—</span>
-              <% end %>
-            </td>
-            <td class="px-6 py-4">
-              <%= if event_project(event) do %>
-                <div class="text-gray-300">{field(event_project(event), "title")}</div>
-              <% else %>
-                <span class="text-gray-500 text-sm">—</span>
-              <% end %>
-            </td>
-            <td class="px-6 py-4">
-              <%= if format_event_date(event) do %>
-                <div class="text-gray-300 text-sm">{format_event_date(event)}</div>
-              <% else %>
-                <span class="text-gray-500 text-sm">No date set</span>
-              <% end %>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex items-center justify-end space-x-2">
-                <.link
-                  patch={~p"/admin/events/#{event.id}"}
-                  class="text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  Show
-                </.link>
-                <.link
-                  patch={~p"/admin/events/#{event.id}/edit"}
-                  class="text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  Edit
-                </.link>
-                <button
-                  phx-click="delete"
-                  phx-value-id={event.id}
-                  data-confirm="Are you sure you want to delete this event?"
-                  class="text-red-400 hover:text-red-300 transition-colors"
-                >
-                  Delete
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <%= if @live_action in [:new, :edit] do %>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="mb-6">
+        <.link
+          patch={@return_path}
+          class="text-gray-400 hover:text-white transition-colors inline-flex items-center gap-2 text-sm"
+        >
+          <.icon name="hero-arrow-left" class="w-4 h-4" />
+          Back to Events
+        </.link>
+      </div>
+
+      <.live_component
+        module={MykonosBiennaleWeb.Admin.EventLive.FormComponent}
+        id={@event.id || :new}
+        title={@page_title}
+        action={@live_action}
+        event={@event}
+        patch={@return_path}
+      />
     </div>
-    <.pagination
-      :if={@total_pages > 1}
-      current_page={@current_page}
-      total_pages={@total_pages}
-      total_count={@total_count}
-      base_path="/admin/events"
-      sort_by={@sort_by}
-      sort_dir={@sort_dir}
-    />
-  </div>
+  <% else %>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <.pagination
+        :if={@total_pages > 1}
+        current_page={@current_page}
+        total_pages={@total_pages}
+        total_count={@total_count}
+        base_path="/admin/events"
+        sort_by={@sort_by}
+        sort_dir={@sort_dir}
+      />
+      <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-gray-700/30 overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-900/50 border-b border-gray-700/50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
+                <.sort_header
+                  base_path="/admin/events"
+                  sort_by={:title}
+                  current_sort={@sort_by}
+                  current_dir={@sort_dir}
+                  class="text-gray-400 hover:text-gray-200"
+                >
+                  Title
+                </.sort_header>
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
+                <.sort_header
+                  base_path="/admin/events"
+                  sort_by={:type}
+                  current_sort={@sort_by}
+                  current_dir={@sort_dir}
+                  class="text-gray-400 hover:text-gray-200"
+                >
+                  Type
+                </.sort_header>
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
+                <.sort_header
+                  base_path="/admin/events"
+                  sort_by={:biennale}
+                  current_sort={@sort_by}
+                  current_dir={@sort_dir}
+                  class="text-gray-400 hover:text-gray-200"
+                >
+                  Biennale
+                </.sort_header>
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
+                <.sort_header
+                  base_path="/admin/events"
+                  sort_by={:project}
+                  current_sort={@sort_by}
+                  current_dir={@sort_dir}
+                  class="text-gray-400 hover:text-gray-200"
+                >
+                  Project
+                </.sort_header>
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">
+                <.sort_header
+                  base_path="/admin/events"
+                  sort_by={:date}
+                  current_sort={@sort_by}
+                  current_dir={@sort_dir}
+                  class="text-gray-400 hover:text-gray-200"
+                >
+                  Date
+                </.sort_header>
+              </th>
+              <th class="px-6 py-3 text-right">
+                <.link
+                  patch={~p"/admin/events/new"}
+                  class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors"
+                >
+                  + New
+                </.link>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="events" phx-update="stream" class="divide-y divide-gray-700/50">
+            <tr
+              :for={{id, event} <- @streams.events}
+              id={id}
+              class="hover:bg-gray-700/20 transition-colors"
+            >
+              <td class="px-6 py-4">
+                <div class="text-white font-medium">{field(event, "title")}</div>
+                <%= if field(event, "description") do %>
+                  <div class="text-sm text-gray-400 mt-1 line-clamp-1">
+                    {field(event, "description")}
+                  </div>
+                <% end %>
+              </td>
+              <td class="px-6 py-4">
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-500/20 text-purple-300 uppercase">
+                  {field(event, "type")}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <%= if event_biennale(event) do %>
+                  <div class="text-gray-300">{field(event_biennale(event), "year")}</div>
+                <% else %>
+                  <span class="text-gray-500 text-sm">—</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4">
+                <%= if event_project(event) do %>
+                  <div class="text-gray-300">{field(event_project(event), "title")}</div>
+                <% else %>
+                  <span class="text-gray-500 text-sm">—</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4">
+                <%= if format_event_date(event) do %>
+                  <div class="text-gray-300 text-sm">{format_event_date(event)}</div>
+                <% else %>
+                  <span class="text-gray-500 text-sm">No date set</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center justify-end space-x-2">
+                  <.link
+                    patch={~p"/admin/events/#{event.id}"}
+                    class="text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    Show
+                  </.link>
+                  <.link
+                    patch={~p"/admin/events/#{event.id}/edit"}
+                    class="text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    Edit
+                  </.link>
+                  <button
+                    phx-click="delete"
+                    phx-value-id={event.id}
+                    data-confirm="Are you sure you want to delete this event?"
+                    class="text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <.pagination
+        :if={@total_pages > 1}
+        current_page={@current_page}
+        total_pages={@total_pages}
+        total_count={@total_count}
+        base_path="/admin/events"
+        sort_by={@sort_by}
+        sort_dir={@sort_dir}
+      />
+    </div>
 
-  <.modal
-    :if={@live_action == :show}
-    id="event-show-modal"
-    show
-    on_cancel={JS.patch(@return_path)}
-  >
-    <.entity_detail entity={@event} cancel_path={@return_path} />
-  </.modal>
-
-  <.modal
-    :if={@live_action in [:new, :edit]}
-    id="event-modal"
-    show
-    on_cancel={JS.patch(@return_path)}
-  >
-    <.live_component
-      module={MykonosBiennaleWeb.Admin.EventLive.FormComponent}
-      id={@event.id || :new}
-      title={@page_title}
-      action={@live_action}
-      event={@event}
-      patch={@return_path}
-    />
-  </.modal>
+    <.modal
+      :if={@live_action == :show}
+      id="event-show-modal"
+      show
+      on_cancel={JS.patch(@return_path)}
+    >
+      <.entity_detail entity={@event} cancel_path={@return_path} />
+    </.modal>
+  <% end %>
 </Layouts.app>

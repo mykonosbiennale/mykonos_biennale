@@ -102,7 +102,7 @@ defmodule MykonosBiennale.Content.Event do
 
     new_fields =
       Enum.reduce(
-        [:title, :description, :type, :date, :time, :location, :tickets, :show_project],
+        [:title, :description, :type, :date, :time, :location, :tickets, :show_project, :artboard_media_ids],
         current_fields,
         fn key, acc ->
           case Map.get(attrs, key) do
@@ -157,7 +157,7 @@ defmodule MykonosBiennale.Content.Event do
   end
 
   def change(%Entity{} = event_entity, attrs \\ %{}) do
-    event_fields_to_map = [:title, :description, :type, :date, :time, :location, :tickets, :show_project]
+    event_fields_to_map = [:title, :description, :type, :date, :time, :location, :tickets, :show_project, :artboard_media_ids]
 
     fields_map =
       Map.take(attrs, event_fields_to_map)
@@ -242,5 +242,58 @@ defmodule MykonosBiennale.Content.Event do
     |> String.replace(~r/\s+/, "-")
     |> String.trim_leading("-")
     |> String.trim_trailing("-")
+  end
+
+  @doc """
+  Returns media from all artworks linked to the given event, along with
+  the artwork each media belongs to. Used for the exhibition art board pool.
+
+  Returns a list of `%{media: %Media{}, artwork: %Entity{}}` maps.
+  """
+  def list_artwork_media_for_event(%Entity{id: event_id}) do
+    ae_rt = Repo.get_by(RelationshipType, slug: "artwork_event")
+
+    if ae_rt do
+      artwork_ids =
+        Repo.all(
+          from r in Relationship,
+            where: r.object_id == ^event_id and r.relationship_type_id == ^ae_rt.id,
+            select: r.subject_id
+        )
+
+      if artwork_ids == [] do
+        []
+      else
+        artworks =
+          Repo.all(from e in Entity, where: e.id in ^artwork_ids)
+          |> Enum.into(%{}, fn a -> {a.id, a} end)
+
+        records =
+          Repo.all(
+            from em in Content.EntityMedia,
+              where: em.entity_id in ^artwork_ids,
+              join: m in assoc(em, :media),
+              order_by: [em.entity_id, em.position],
+              select: %{media: m, entity_id: em.entity_id}
+          )
+
+        Enum.map(records, fn %{media: media, entity_id: artwork_id} ->
+          %{media: media, artwork: Map.get(artworks, artwork_id)}
+        end)
+      end
+    else
+      []
+    end
+  end
+
+  @doc """
+  Returns the EntityMedia link for the event's poster (metadata.role == "poster").
+  """
+  def get_poster_link(%Entity{id: event_id}) do
+    Repo.one(
+      from em in Content.EntityMedia,
+        where: em.entity_id == ^event_id and fragment("? ->> ?", em.metadata, "role") == "poster",
+        preload: [:media]
+    )
   end
 end

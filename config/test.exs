@@ -11,10 +11,12 @@ config :bcrypt_elixir, :log_rounds, 1
 # Run `mix help test` for more information.
 config :mykonos_biennale, MykonosBiennale.Repo,
   url:
-    System.get_env("DATABASE_URL") ||
-      "ecto://postgres:postgres@localhost/mykonos_biennale_test#{System.get_env("MIX_TEST_PARTITION")}",
+    System.get_env("TEST_DATABASE_URL") ||
+      System.get_env("DATABASE_URL") ||
+      "ecto://thanos@localhost/mykonos_biennale_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool_size: 5,
-  pool: Ecto.Adapters.SQL.Sandbox
+  pool: Ecto.Adapters.SQL.Sandbox,
+  ssl: false
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.

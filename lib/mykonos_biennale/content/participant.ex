@@ -6,7 +6,7 @@ defmodule MykonosBiennale.Content.Participant do
   import Ecto.Query, warn: false
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
 
   @doc """
   Returns the list of participants ordered by last name.
@@ -123,5 +123,44 @@ defmodule MykonosBiennale.Content.Participant do
     }
 
     Entity.changeset(participant_entity, entity_attrs)
+  end
+
+  @doc """
+  Returns the relationships linking a participant to their artworks.
+  Each relationship has the artwork preloaded as `:subject`.
+  """
+  def list_linked_artworks(%Entity{} = participant) do
+    rt = Repo.get_by(RelationshipType, slug: "artwork_participant")
+
+    if rt do
+      Repo.all(
+        from r in Relationship,
+          where: r.object_id == ^participant.id and r.relationship_type_id == ^rt.id,
+          preload: [:subject, :relationship_type]
+      )
+    else
+      []
+    end
+  end
+
+  @doc """
+  Detaches an artwork from a participant by removing the
+  `artwork_participant` relationship between them.
+  """
+  def detach_artwork(%Entity{} = participant, artwork_id) do
+    rt = Repo.get_by(RelationshipType, slug: "artwork_participant")
+
+    if rt do
+      case Repo.get_by(Relationship,
+             object_id: participant.id,
+             relationship_type_id: rt.id,
+             subject_id: artwork_id
+           ) do
+        %Relationship{} = rel -> Content.delete_relationship(rel)
+        nil -> {:error, :not_found}
+      end
+    else
+      {:error, :not_found}
+    end
   end
 end
