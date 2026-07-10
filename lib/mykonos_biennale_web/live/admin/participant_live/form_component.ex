@@ -52,7 +52,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
         :statement,
         :visible
       ])
-      |> validate_required([:first_name, :last_name])
+      |> validate_required([:name])
       |> auto_name()
     end
 
@@ -62,10 +62,15 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
       name = get_field(changeset, :name) || ""
       auto = String.trim("#{first} #{last}")
 
-      if name == "" or name == changeset.data.name do
-        put_change(changeset, :name, auto)
-      else
-        changeset
+      cond do
+        name == "" and auto != "" ->
+          put_change(changeset, :name, auto)
+
+        name == "" ->
+          changeset
+
+        true ->
+          changeset
       end
     end
   end
@@ -87,11 +92,12 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
         novalidate
       >
         <div class="space-y-4">
+          <.input field={@form[:name]} type="text" label="Name" required />
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <.input field={@form[:first_name]} type="text" label="First Name" required />
-            <.input field={@form[:last_name]} type="text" label="Last Name" required />
+            <.input field={@form[:first_name]} type="text" label="First Name" />
+            <.input field={@form[:last_name]} type="text" label="Last Name" />
           </div>
-          <.input field={@form[:name]} type="text" label="Name" />
 
           <.input
             field={@form[:country]}
