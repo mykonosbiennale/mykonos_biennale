@@ -158,7 +158,13 @@
               <% end %>
             </div>
             <h3 class="text-xl font-bold uppercase mb-2">
-              {project.title}
+              <%= if event_id = Map.get(@project_event_map, project.id) do %>
+                <a href={"/event/#{event_id}"} class="hover:text-red-500 transition-colors">
+                  {project.title}
+                </a>
+              <% else %>
+                {project.title}
+              <% end %>
             </h3>
             <%= if project.description do %>
               <p class="text-gray-400 text-sm line-clamp-2">

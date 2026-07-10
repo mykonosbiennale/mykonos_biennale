@@ -35,6 +35,11 @@ defmodule MykonosBiennaleWeb.PageController do
 
     events = Enum.map(raw_events, &present_event/1)
 
+    project_event_map =
+      events
+      |> Enum.filter(& &1[:project_id])
+      |> Enum.into(%{}, fn event -> {event.project_id, event.id} end)
+
     biennales = Content.list_biennales()
 
     biennale_media =
@@ -58,6 +63,7 @@ defmodule MykonosBiennaleWeb.PageController do
     |> assign(:biennale_media, biennale_media)
     |> assign(:biennale_media_map, biennale_media_map)
     |> assign(:project_media, project_media)
+    |> assign(:project_event_map, project_event_map)
     |> put_view(MykonosBiennaleWeb.BiennaleHTML)
     |> BiennaleController.render_template(current_biennale)
   end
@@ -103,6 +109,8 @@ defmodule MykonosBiennaleWeb.PageController do
           nil
       end
 
+    project_id = get_event_project_id(entity)
+
     %{
       id: entity.id,
       title: entity.fields["title"],
@@ -112,8 +120,27 @@ defmodule MykonosBiennaleWeb.PageController do
       location: entity.fields["location"],
       description: entity.fields["description"],
       slug: entity.slug,
-      background_image: background
+      background_image: background,
+      project_id: project_id
     }
+  end
+
+  defp get_event_project_id(event) do
+    import Ecto.Query
+    alias MykonosBiennale.Repo
+    alias MykonosBiennale.Content.{Relationship, RelationshipType}
+
+    rt = Repo.get_by(RelationshipType, slug: "event_project")
+
+    if rt do
+      Repo.one(
+        from r in Relationship,
+          where: r.subject_id == ^event.id and r.relationship_type_id == ^rt.id,
+          select: r.object_id
+      )
+    else
+      nil
+    end
   end
 
   defp page_title(nil), do: "Mykonos Biennale"
