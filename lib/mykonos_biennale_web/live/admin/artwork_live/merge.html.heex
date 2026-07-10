@@ -139,7 +139,9 @@
                     </div>
                     <div class="px-1.5 py-1 bg-gray-800/80">
                       <div class="text-[10px] text-gray-300 truncate">
-                        {pfield(entry.artwork, "title", "Untitled")}
+                        <.link patch={"/admin/artworks/#{entry.artwork.id}"} class="hover:text-purple-300">
+                          {pfield(entry.artwork, "title", "Untitled")}
+                        </.link>
                       </div>
                       <div class="text-[9px] text-gray-500">
                         ID {entry.artwork.id}

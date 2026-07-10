@@ -228,6 +228,12 @@ defmodule MykonosBiennale.Search do
   # Map every entity to the closest aggregate page.
   defp entity_url(%Entity{type: "biennale", fields: %{"year" => y}}, _), do: "/archive/#{y}"
 
+  defp entity_url(%Entity{type: "artwork"} = entity, _), do: "/art/#{entity.id}"
+
+  defp entity_url(%Entity{type: "event"} = entity, _), do: "/event/#{entity.id}"
+
+  defp entity_url(%Entity{type: "participant"} = entity, _), do: "/artist/#{entity.id}"
+
   defp entity_url(%Entity{} = entity, year_lookup) do
     case Map.get(year_lookup, entity.id) do
       nil -> "/archive"

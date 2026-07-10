@@ -62,21 +62,23 @@
               ""
             end %>
           <div class="group cursor-pointer">
-            <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
-              <%= if first_media do %>
-                <div
-                  class="absolute inset-0 group-hover:scale-105 transition-transform duration-500"
-                  style={bg_style}
-                >
-                </div>
-              <% else %>
-                <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-black group-hover:scale-105 transition-transform duration-500">
-                </div>
-              <% end %>
-            </div>
-            <h3 class="text-xl font-bold uppercase mb-2">
-              {event.fields["title"]}
-            </h3>
+            <a href={"/event/#{event.id}"} class="block">
+              <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
+                <%= if first_media do %>
+                  <div
+                    class="absolute inset-0 group-hover:scale-105 transition-transform duration-500"
+                    style={bg_style}
+                  >
+                  </div>
+                <% else %>
+                  <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-black group-hover:scale-105 transition-transform duration-500">
+                  </div>
+                <% end %>
+              </div>
+              <h3 class="text-xl font-bold uppercase mb-2">
+                {event.fields["title"]}
+              </h3>
+            </a>
             <%= if event.fields["type"] do %>
               <p class="text-gray-500 text-xs uppercase tracking-wider mb-1">
                 {Phoenix.Naming.humanize(event.fields["type"])}

@@ -81,7 +81,9 @@
             <span class="text-5xl text-gray-400">{String.slice(event.title || "", 0, 1)}</span>
           </div> --%>
           <div class="bg-white flex-grow p-8">
-            <h3 class="text-xl font-bold uppercase mb-4">{event.title}</h3>
+            <h3 class="text-xl font-bold uppercase mb-4">
+              <a href={"/event/#{event.id}"} class="hover:text-purple-600 transition-colors">{event.title}</a>
+            </h3>
             <%!-- <%= if event.date do %>
               <p class="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">{format_date(event.date)}</p>
             <% end %> --%>

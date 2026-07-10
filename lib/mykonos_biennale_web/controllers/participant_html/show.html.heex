@@ -108,7 +108,7 @@
                 <%= if events != [] do %>
                   <p class="text-xs text-neutral-700 mt-1">
                     <%= for e <- Enum.take(events, 2) do %>
-                      <span>{field(e, "title")}</span>
+                      <a href={"/event/#{e.id}"} class="hover:text-neutral-400 transition-colors">{field(e, "title")}</a>
                     <% end %>
                   </p>
                 <% end %>

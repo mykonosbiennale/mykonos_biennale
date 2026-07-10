@@ -94,7 +94,7 @@
               </h3>
               <p :if={item.creators != []} class="text-xs text-neutral-500 mt-1">
                 <%= for c <- item.creators do %>
-                  {participant_name(c)}
+                  <a href={"/artist/#{c.id}"} class="hover:text-neutral-300 transition-colors">{participant_name(c)}</a>
                 <% end %>
               </p>
             </a>

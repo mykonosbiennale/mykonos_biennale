@@ -138,9 +138,12 @@
                   <% else %>
                     <div class="flex flex-wrap gap-2">
                       <%= for rel <- @event_rels do %>
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-500/20 text-purple-300">
+                        <.link
+                          navigate={"/admin/events/#{rel.object_id}"}
+                          class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 transition-colors"
+                        >
                           {field(rel.object, "date")} {field(rel.object, "title")}
-                        </span>
+                        </.link>
                       <% end %>
                     </div>
                   <% end %>
@@ -174,10 +177,13 @@
                   <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-900/50 text-blue-300">
                     {rel.relationship_type.slug}
                   </span>
-                  <span class="text-white text-sm">
+                  <.link
+                    navigate={"/admin/participants/#{rel.object_id}"}
+                    class="text-white text-sm hover:text-purple-300 transition-colors"
+                  >
                     {field(rel.object, "name") ||
                       "#{field(rel.object, "first_name")} #{field(rel.object, "last_name")}"}
-                  </span>
+                  </.link>
                 </div>
                 <%= if rel.fields["roles"] do %>
                   <span class="text-gray-400 text-xs">{rel.fields["roles"]}</span>
