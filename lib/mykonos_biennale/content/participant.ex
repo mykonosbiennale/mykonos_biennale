@@ -96,6 +96,8 @@ defmodule MykonosBiennale.Content.Participant do
   Deletes a participant entity.
   """
   def delete(%Entity{} = participant_entity) do
+    Repo.delete_all(from r in Relationship, where: r.subject_id == ^participant_entity.id)
+    Repo.delete_all(from r in Relationship, where: r.object_id == ^participant_entity.id)
     Content.delete_entity(participant_entity)
   end
 

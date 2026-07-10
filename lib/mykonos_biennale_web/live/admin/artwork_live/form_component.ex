@@ -206,7 +206,9 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
             >
               <div>
                 <div class="text-sm font-medium text-gray-900">
-                  {field(rel.object, "title")}
+                  <.link navigate={"/admin/events/#{rel.object_id}"} class="hover:text-blue-600">
+                    {field(rel.object, "title")}
+                  </.link>
                 </div>
                 <div class="text-xs text-gray-500">
                   <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
@@ -266,7 +268,9 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
             >
               <div>
                 <div class="text-sm font-medium text-gray-900">
-                  {field(rel.object, "first_name")} {field(rel.object, "last_name")}
+                  <.link navigate={"/admin/participants/#{rel.object_id}"} class="hover:text-blue-600">
+                    {field(rel.object, "first_name")} {field(rel.object, "last_name")}
+                  </.link>
                 </div>
                 <div class="text-xs text-gray-500">
                   <%= if rel.fields["label"] do %>

@@ -124,6 +124,8 @@ defmodule MykonosBiennale.Content.Project do
   end
 
   def delete(%Entity{} = project_entity) do
+    Repo.delete_all(from r in Relationship, where: r.subject_id == ^project_entity.id)
+    Repo.delete_all(from r in Relationship, where: r.object_id == ^project_entity.id)
     Content.delete_entity(project_entity)
   end
 

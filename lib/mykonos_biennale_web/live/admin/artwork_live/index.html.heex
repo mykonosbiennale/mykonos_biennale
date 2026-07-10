@@ -70,7 +70,12 @@
               <% end %>
             </td>
             <td class="px-4 py-3">
-              <div class="text-white font-medium">{field(artwork, "title")}</div>
+              <.link
+                navigate={"/admin/artworks/#{artwork.id}"}
+                class="text-white font-medium hover:text-purple-300 transition-colors"
+              >
+                {field(artwork, "title")}
+              </.link>
               <div class="text-gray-500 text-xs mt-0.5">
                 <%= if field(artwork, "type") do %>
                   <span class="capitalize">{field(artwork, "type")}</span>

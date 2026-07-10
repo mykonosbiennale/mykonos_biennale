@@ -28,7 +28,9 @@
       <%!-- Artist --%>
       <div :if={@participants != []} class="mb-2">
         <%= for p <- @participants do %>
-          <span class="text-lg text-neutral-400">{participant_name(p)}</span>
+          <a href={"/artist/#{p.id}"} class="text-lg text-neutral-400 hover:text-white transition-colors">
+            {participant_name(p)}
+          </a>
         <% end %>
       </div>
 

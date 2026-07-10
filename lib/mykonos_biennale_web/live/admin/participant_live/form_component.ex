@@ -242,7 +242,9 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
                   >
                     <div class="min-w-0">
                       <div class="text-sm font-medium text-gray-900 truncate">
-                        {field(rel.subject, "title")}
+                        <.link navigate={"/admin/artworks/#{rel.subject_id}"} class="hover:text-blue-600">
+                          {field(rel.subject, "title")}
+                        </.link>
                       </div>
                       <div class="text-xs text-gray-500">
                         <%= if field(rel.subject, "type") do %>
@@ -273,7 +275,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
                 </div>
               <% end %>
 
-              <form phx-change="search_artwork_to_link" phx-target={@myself}>
+              <div phx-change="search_artwork_to_link" phx-target={@myself}>
                 <input
                   type="text"
                   name="search"
@@ -282,7 +284,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
                   phx-debounce="300"
                   class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
                 />
-              </form>
+              </div>
 
               <%= if @artwork_results != [] do %>
                 <div class="border border-gray-200 rounded-lg max-h-48 overflow-y-auto divide-y divide-gray-100">
