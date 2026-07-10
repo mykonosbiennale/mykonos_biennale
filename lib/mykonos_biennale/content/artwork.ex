@@ -178,6 +178,8 @@ defmodule MykonosBiennale.Content.Artwork do
   Deletes an artwork entity.
   """
   def delete(%Entity{} = artwork_entity) do
+    Repo.delete_all(from r in Relationship, where: r.subject_id == ^artwork_entity.id)
+    Repo.delete_all(from r in Relationship, where: r.object_id == ^artwork_entity.id)
     Content.delete_entity(artwork_entity)
   end
 
