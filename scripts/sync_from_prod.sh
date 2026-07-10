@@ -1,44 +1,32 @@
 #!/bin/bash
 set -e
 
-APP_NAME="mykonos-biennale"
+REMOTE_HOST="${REMOTE_HOST:-admin.mykonosbiennale.com}"
+REMOTE_USER="${REMOTE_USER:-ubuntu}"
+REMOTE_APP_DIR="${REMOTE_APP_DIR:-/opt/mykonos_biennale}"
+REMOTE_UPLOADS_DIR="${REMOTE_UPLOADS_DIR:-/data/uploads}"
 
 echo "=== Sync production data to local dev ==="
 echo ""
-echo "This script dumps the production database, downloads it, and restores"
-echo "it into your local dev database."
+echo "This script:"
+echo "  1. Downloads production uploads (images) to priv/static/uploads/"
+echo "  2. Downloads production generated media (thumbnails) to priv/static/media/"
 echo ""
 
-# Step 1: Dump production DB to JSON on the remote machine
-echo "Dumping production database..."
-fly ssh console -C "cd /app && mix app.dump --output /tmp/data_dump.json" -a "$APP_NAME"
+# Step 1: Sync uploads (original image files)
+echo "Syncing uploads from $REMOTE_HOST:$REMOTE_UPLOADS_DIR/..."
+rsync -avz --exclude='.DS_Store' \
+  "$REMOTE_USER@$REMOTE_HOST:$REMOTE_UPLOADS_DIR/" \
+  priv/static/uploads/
 
-# Step 2: Download the dump file
-echo "Downloading dump file..."
-fly sftp get /tmp/data_dump.json priv/repo/data_dump_from_prod.json -a "$APP_NAME"
-
-# Step 3: Clean up the remote dump
-fly ssh console -C "rm /tmp/data_dump.json" -a "$APP_NAME"
-
-# Step 4: Backup local DB
-LOCAL_DB="mykonos_biennale_dev.db"
-if [ -f "$LOCAL_DB" ]; then
-  BACKUP="${LOCAL_DB}.backup.$(date +%Y%m%d%H%M%S)"
-  echo "Backing up local DB to $BACKUP..."
-  cp "$LOCAL_DB" "$BACKUP"
-fi
-
-# Step 5: Restore into local DB
-echo "Restoring production data into local dev database..."
-mix app.restore --input priv/repo/data_dump_from_prod.json
-
-# Step 6: Clean up
-rm -f priv/repo/data_dump_from_prod.json
+# Step 2: Sync generated media (thumbnails) if it exists on the remote
+echo ""
+echo "Syncing generated media from $REMOTE_HOST:$REMOTE_APP_DIR/priv/static/media/..."
+rsync -avz --exclude='.DS_Store' \
+  "$REMOTE_USER@$REMOTE_HOST:$REMOTE_APP_DIR/priv/static/media/" \
+  priv/static/media/ 2>/dev/null || echo "(media dir not found on remote — thumbnails will be generated locally)"
 
 echo ""
 echo "=== Done! ==="
-echo "Local dev database now contains production data."
-if [ -n "$BACKUP" ]; then
-  echo "Backup saved to: $BACKUP"
-  echo "To rollback: cp $BACKUP $LOCAL_DB"
-fi
+echo "Local uploads: priv/static/uploads/"
+echo "Local media:   priv/static/media/"
