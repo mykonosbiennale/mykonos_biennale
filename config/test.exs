@@ -12,7 +12,6 @@ config :bcrypt_elixir, :log_rounds, 1
 config :mykonos_biennale, MykonosBiennale.Repo,
   url:
     System.get_env("TEST_DATABASE_URL") ||
-      System.get_env("DATABASE_URL") ||
       "ecto://thanos@localhost/mykonos_biennale_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool_size: 5,
   pool: Ecto.Adapters.SQL.Sandbox,
