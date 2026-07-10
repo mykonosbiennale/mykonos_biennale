@@ -155,6 +155,58 @@ defmodule MykonosBiennale.Thumbnail do
     :ok
   end
 
+  @doc """
+  Clears the entire thumbnail cache directory.
+  Thumbnails will be regenerated on next access.
+  Returns the count of files removed.
+  """
+  @spec clear_all_cache() :: non_neg_integer()
+  def clear_all_cache do
+    dir = MediaDir.media_dir()
+
+    if File.dir?(dir) do
+      files = Path.wildcard(Path.join(dir, "*"))
+      Enum.each(files, &File.rm/1)
+      length(files)
+    else
+      0
+    end
+  end
+
+  @doc """
+  Clears the legacy UUID-based thumbnail cache.
+  """
+  @spec clear_legacy_cache() :: non_neg_integer()
+  def clear_legacy_cache do
+    uploads_dir = Uploads.uploads_dir()
+    thumbs_root = Path.join(Path.dirname(uploads_dir), "thumbnails")
+
+    if File.dir?(thumbs_root) do
+      files = Path.wildcard(Path.join(thumbs_root, "**/*")) |> Enum.filter(&File.regular?/1)
+      Enum.each(files, &File.rm/1)
+      File.rmdir(thumbs_root)
+      length(files)
+    else
+      0
+    end
+  end
+
+  @doc """
+  Returns the size of the thumbnail cache in bytes and file count.
+  """
+  @spec cache_stats() :: %{bytes: non_neg_integer(), files: non_neg_integer()}
+  def cache_stats do
+    dir = MediaDir.media_dir()
+
+    if File.dir?(dir) do
+      files = Path.wildcard(Path.join(dir, "*")) |> Enum.filter(&File.regular?/1)
+      bytes = Enum.reduce(files, 0, fn f, acc -> acc + (File.stat!(f).size || 0) end)
+      %{bytes: bytes, files: length(files)}
+    else
+      %{bytes: 0, files: 0}
+    end
+  end
+
   defp image_ext?(filename) do
     ext = filename |> Path.extname() |> String.downcase()
     ext in [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff", ".tif"]
@@ -164,10 +216,6 @@ defmodule MykonosBiennale.Thumbnail do
     args = [
       original_path,
       "-resize",
-      "#{width}x#{height}^",
-      "-gravity",
-      "center",
-      "-extent",
       "#{width}x#{height}",
       "-quality",
       "80",
@@ -192,10 +240,6 @@ defmodule MykonosBiennale.Thumbnail do
     args = [
       original_path,
       "-resize",
-      "#{width}x#{height}^",
-      "-gravity",
-      "center",
-      "-extent",
       "#{width}x#{height}",
       "-quality",
       "85",

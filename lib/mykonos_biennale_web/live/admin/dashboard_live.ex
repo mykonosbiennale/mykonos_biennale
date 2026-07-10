@@ -1,6 +1,7 @@
 defmodule MykonosBiennaleWeb.Admin.DashboardLive do
   use MykonosBiennaleWeb, :live_view
   alias MykonosBiennale.Content
+  alias MykonosBiennale.Thumbnail
 
   @film_types ["Short Film", "Video", "Dance", "Animation", "Documentary"]
 
@@ -20,6 +21,7 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
       Repo.one(from e in Entity, where: e.type in ^@film_types, select: count(e.id))
 
     current_biennale = List.first(biennales)
+    cache_stats = Thumbnail.cache_stats()
 
     {:ok,
      socket
@@ -30,12 +32,27 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
      |> assign(:total_artworks, length(artworks))
      |> assign(:total_films, total_films)
      |> assign(:total_media, total_media)
-     |> assign(:current_biennale, current_biennale)}
+     |> assign(:current_biennale, current_biennale)
+     |> assign(:cache_files, cache_stats.files)
+     |> assign(:cache_size, format_bytes(cache_stats.bytes))}
   end
 
   @impl true
   def handle_params(_params, _uri, socket) do
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("clear_thumbnail_cache", _params, socket) do
+    count = Thumbnail.clear_all_cache()
+    legacy_count = Thumbnail.clear_legacy_cache()
+    cache_stats = Thumbnail.cache_stats()
+
+    {:noreply,
+     socket
+     |> assign(:cache_files, cache_stats.files)
+     |> assign(:cache_size, format_bytes(cache_stats.bytes))
+     |> put_flash(:info, "Cleared #{count + legacy_count} cached thumbnail(s). They will regenerate on next access.")}
   end
 
   @impl true
@@ -150,6 +167,31 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
           </div>
         </div>
 
+        <div class="mb-12">
+          <h2 class="text-xl font-bold uppercase mb-6 text-gray-300">Media Management</h2>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h3 class="font-bold text-white uppercase tracking-wider mb-1">Thumbnail Cache</h3>
+                <p class="text-sm text-gray-400">
+                  {@cache_files} files · {@cache_size}
+                </p>
+                <p class="text-xs text-gray-500 mt-2">
+                  Clearing the cache forces all thumbnails to regenerate on next access.
+                  Useful after changing image processing settings.
+                </p>
+              </div>
+              <button
+                phx-click="clear_thumbnail_cache"
+                data-confirm="Clear all cached thumbnails? They will regenerate automatically on next access."
+                class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                Clear Cache
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div>
           <h2 class="text-xl font-bold uppercase mb-6 text-gray-300">Current Biennale</h2>
 
@@ -205,4 +247,9 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
   end
 
   defp format_date(_, _), do: ""
+
+  defp format_bytes(bytes) when bytes >= 1_000_000_000, do: "#{Float.round(bytes / 1_000_000_000, 1)} GB"
+  defp format_bytes(bytes) when bytes >= 1_000_000, do: "#{Float.round(bytes / 1_000_000, 1)} MB"
+  defp format_bytes(bytes) when bytes >= 1_000, do: "#{Float.round(bytes / 1_000, 1)} KB"
+  defp format_bytes(bytes), do: "#{bytes} B"
 end
