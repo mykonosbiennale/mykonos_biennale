@@ -74,30 +74,32 @@
         <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-6">Related Artworks</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <%= for item <- @artworks do %>
-            <a href={"/art/#{item.artwork.id}"} class="group block">
-              <div class="overflow-hidden rounded-lg bg-neutral-900 aspect-square mb-3">
-                <%= if item.media != [] do %>
-                  <img
-                    src={media_url(List.first(item.media), size: "card")}
-                    alt={field(item.artwork, "title")}
-                    class="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
-                    loading="lazy"
-                  />
-                <% else %>
-                  <div class="w-full h-full flex items-center justify-center">
-                    <span class="text-neutral-700 text-sm">No image</span>
-                  </div>
-                <% end %>
-              </div>
-              <h3 class="text-sm text-neutral-300 group-hover:text-white transition-colors">
-                {field(item.artwork, "title")}
-              </h3>
+            <div>
+              <a href={"/art/#{item.artwork.id}"} class="group block">
+                <div class="overflow-hidden rounded-lg bg-neutral-900 aspect-square mb-3">
+                  <%= if item.media != [] do %>
+                    <img
+                      src={media_url(List.first(item.media), size: "card")}
+                      alt={field(item.artwork, "title")}
+                      class="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+                      loading="lazy"
+                    />
+                  <% else %>
+                    <div class="w-full h-full flex items-center justify-center">
+                      <span class="text-neutral-700 text-sm">No image</span>
+                    </div>
+                  <% end %>
+                </div>
+                <h3 class="text-sm text-neutral-300 group-hover:text-white transition-colors">
+                  {field(item.artwork, "title")}
+                </h3>
+              </a>
               <p :if={item.creators != []} class="text-xs text-neutral-500 mt-1">
                 <%= for c <- item.creators do %>
                   <a href={"/artist/#{c.id}"} class="hover:text-neutral-300 transition-colors">{participant_name(c)}</a>
                 <% end %>
               </p>
-            </a>
+            </div>
           <% end %>
         </div>
       </section>
