@@ -156,16 +156,22 @@ defmodule MykonosBiennale.Thumbnail do
   end
 
   @doc """
-  Clears the entire thumbnail cache directory.
+  Clears the entire thumbnail cache (both slug-based and legacy UUID-based).
   Thumbnails will be regenerated on next access.
   Returns the count of files removed.
   """
   @spec clear_all_cache() :: non_neg_integer()
   def clear_all_cache do
+    slug_count = clear_slug_cache()
+    legacy_count = clear_legacy_cache()
+    slug_count + legacy_count
+  end
+
+  defp clear_slug_cache do
     dir = MediaDir.media_dir()
 
     if File.dir?(dir) do
-      files = Path.wildcard(Path.join(dir, "*"))
+      files = Path.wildcard(Path.join(dir, "*")) |> Enum.filter(&File.regular?/1)
       Enum.each(files, &File.rm/1)
       length(files)
     else
@@ -193,13 +199,37 @@ defmodule MykonosBiennale.Thumbnail do
 
   @doc """
   Returns the size of the thumbnail cache in bytes and file count.
+  Includes both slug-based and legacy UUID-based caches.
   """
   @spec cache_stats() :: %{bytes: non_neg_integer(), files: non_neg_integer()}
   def cache_stats do
+    slug_stats = slug_cache_stats()
+    legacy_stats = legacy_cache_stats()
+
+    %{
+      bytes: slug_stats.bytes + legacy_stats.bytes,
+      files: slug_stats.files + legacy_stats.files
+    }
+  end
+
+  defp slug_cache_stats do
     dir = MediaDir.media_dir()
 
     if File.dir?(dir) do
       files = Path.wildcard(Path.join(dir, "*")) |> Enum.filter(&File.regular?/1)
+      bytes = Enum.reduce(files, 0, fn f, acc -> acc + (File.stat!(f).size || 0) end)
+      %{bytes: bytes, files: length(files)}
+    else
+      %{bytes: 0, files: 0}
+    end
+  end
+
+  defp legacy_cache_stats do
+    uploads_dir = Uploads.uploads_dir()
+    thumbs_root = Path.join(Path.dirname(uploads_dir), "thumbnails")
+
+    if File.dir?(thumbs_root) do
+      files = Path.wildcard(Path.join(thumbs_root, "**/*")) |> Enum.filter(&File.regular?/1)
       bytes = Enum.reduce(files, 0, fn f, acc -> acc + (File.stat!(f).size || 0) end)
       %{bytes: bytes, files: length(files)}
     else
