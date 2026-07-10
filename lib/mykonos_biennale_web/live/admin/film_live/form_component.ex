@@ -444,8 +444,10 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
                       {rel.relationship_type.slug}
                     </span>
                     <span class="text-sm font-medium text-gray-900">
-                      {field(rel.object, "name") ||
-                        "#{field(rel.object, "first_name")} #{field(rel.object, "last_name")}"}
+                      <.link navigate={"/admin/participants/#{rel.object_id}"} class="hover:text-blue-600">
+                        {field(rel.object, "name") ||
+                          "#{field(rel.object, "first_name")} #{field(rel.object, "last_name")}"}
+                      </.link>
                     </span>
                     <%= if rel.fields["roles"] do %>
                       <span class="text-xs text-gray-500">({rel.fields["roles"]})</span>

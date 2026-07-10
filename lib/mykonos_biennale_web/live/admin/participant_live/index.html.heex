@@ -63,7 +63,12 @@
             class="hover:bg-gray-700/20 transition-colors"
           >
             <td class="px-6 py-4">
-              <div class="text-white font-medium">{field(participant, "name")}</div>
+              <.link
+                navigate={"/admin/participants/#{participant.id}"}
+                class="text-white font-medium hover:text-purple-300 transition-colors"
+              >
+                {field(participant, "name")}
+              </.link>
             </td>
             <td class="px-6 py-4">
               <div class="text-gray-300 text-sm">

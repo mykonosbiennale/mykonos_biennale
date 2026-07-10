@@ -723,7 +723,9 @@ defmodule MykonosBiennaleWeb.CoreComponents do
       </figure>
       <div class="card-body p-4 gap-2">
         <h3 class="card-title text-base">
-          {artwork_field(@artwork, "title", "Untitled")}
+          <.link patch={"/admin/artworks/#{@artwork.id}"} class="hover:text-base-content/70">
+            {artwork_field(@artwork, "title", "Untitled")}
+          </.link>
         </h3>
         <%= if @resolved_creators != [] do %>
           <div class="text-sm text-base-content/50">

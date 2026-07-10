@@ -242,7 +242,9 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
                   >
                     <div class="min-w-0">
                       <div class="text-sm font-medium text-gray-900 truncate">
-                        {field(rel.subject, "title")}
+                        <.link navigate={"/admin/artworks/#{rel.subject_id}"} class="hover:text-blue-600">
+                          {field(rel.subject, "title")}
+                        </.link>
                       </div>
                       <div class="text-xs text-gray-500">
                         <%= if field(rel.subject, "type") do %>

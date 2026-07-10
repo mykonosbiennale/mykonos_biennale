@@ -107,7 +107,12 @@
               class="hover:bg-gray-700/20 transition-colors"
             >
               <td class="px-6 py-4">
-                <div class="text-white font-medium">{field(event, "title")}</div>
+                <.link
+                  navigate={"/admin/events/#{event.id}"}
+                  class="text-white font-medium hover:text-purple-300 transition-colors"
+                >
+                  {field(event, "title")}
+                </.link>
                 <%= if field(event, "description") do %>
                   <div class="text-sm text-gray-400 mt-1 line-clamp-1">
                     {field(event, "description")}
