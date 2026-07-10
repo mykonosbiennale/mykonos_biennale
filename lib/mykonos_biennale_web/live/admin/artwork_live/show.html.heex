@@ -140,13 +140,13 @@
                   <%= case m.source_type do %>
                     <% "upload" -> %>
                       <%= if m.source_path do %>
-                        <img src={media_thumb(m)} alt={m.alt_text || m.caption} class="w-full h-full object-cover" />
+                        <img src={media_thumb(m)} alt={m.alt_text || m.caption} class="w-full h-full object-contain" />
                       <% else %>
                         <.icon name="hero-photo" class="w-8 h-8 text-gray-400" />
                       <% end %>
                     <% "url" -> %>
                       <%= if m.source_url do %>
-                        <img src={m.source_url} alt={m.alt_text || m.caption} class="w-full h-full object-cover" />
+                        <img src={m.source_url} alt={m.alt_text || m.caption} class="w-full h-full object-contain" />
                       <% else %>
                         <.icon name="hero-link" class="w-8 h-8 text-gray-400" />
                       <% end %>

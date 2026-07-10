@@ -51,11 +51,16 @@
         <span :if={field(@artwork, "size")}>{field(@artwork, "size")}</span>
       </div>
 
-      <%!-- Gallery --%>
+      <%!-- Gallery — Full layout on mobile, Gallery layout on large screens --%>
       <div :if={@media != []} class="mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <%= for {m, idx} <- Enum.with_index(@media) do %>
-            <div class={"overflow-hidden rounded-lg bg-neutral-900 " <> if(idx == 0, do: "md:col-span-2", else: "")}>
+        <% all_media = @media %>
+        <% first = List.first(all_media) %>
+        <% rest = Enum.drop(all_media, 1) %>
+
+        <%!-- Mobile: full grid (all images, no cropping) --%>
+        <div class="md:hidden grid grid-cols-1 gap-4">
+          <%= for {m, idx} <- Enum.with_index(all_media) do %>
+            <div class="overflow-hidden rounded-lg bg-neutral-900">
               <a
                 href={media_url(m, size: "hero")}
                 data-pswp-width="1920"
@@ -73,13 +78,57 @@
             </div>
           <% end %>
         </div>
+
+        <%!-- Desktop: gallery (main image + thumbnail strip) --%>
+        <div class="hidden md:block">
+          <div class="overflow-hidden rounded-lg bg-neutral-900 mb-4">
+            <a
+              href={media_url(first, size: "hero")}
+              data-pswp-width="1920"
+              data-pswp-height="1080"
+              target="_blank"
+              class="block"
+              id="featured-main-link"
+            >
+              <img
+                src={media_url(first, size: "hero")}
+                alt={first.alt_text || first.caption || field(@artwork, "title")}
+                class="w-full h-auto object-contain"
+                loading="eager"
+                id="featured-main-img"
+              />
+            </a>
+          </div>
+          <%= if rest != [] do %>
+            <div class="flex flex-wrap justify-center gap-2">
+              <%= for {m, idx} <- Enum.with_index(all_media) do %>
+                <button
+                  type="button"
+                  data-hero-url={media_url(m, size: "hero")}
+                  data-alt={m.alt_text || m.caption || field(@artwork, "title")}
+                  onclick="event.preventDefault(); var img=document.getElementById('featured-main-img'); img.src=this.dataset.heroUrl; img.alt=this.dataset.alt; document.getElementById('featured-main-link').href=this.dataset.heroUrl;"
+                  class={"overflow-hidden rounded-lg bg-neutral-900 aspect-square border-2 transition-all w-[calc((100%-1rem)/3)] " <> if(idx == 0, do: "border-neutral-400", else: "border-transparent hover:border-neutral-500")}
+                >
+                  <img
+                    src={media_url(m, size: "thumb")}
+                    alt={m.alt_text || m.caption || field(@artwork, "title")}
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </button>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
       </div>
 
       <%!-- Description / Statement --%>
-      <div :if={field(@artwork, "description")} class="prose prose-invert prose-neutral max-w-2xl mt-8">
-        <p class="text-neutral-400 leading-relaxed whitespace-pre-line">
-          {field(@artwork, "description")}
-        </p>
+      <div :if={field(@artwork, "description")} class="mt-10 flex justify-center">
+        <div class="w-full lg:w-3/4 prose prose-invert prose-neutral">
+          <p class="text-neutral-400 leading-relaxed whitespace-pre-line">
+            {field(@artwork, "description")}
+          </p>
+        </div>
       </div>
 
       <%!-- Events / Projects --%>
