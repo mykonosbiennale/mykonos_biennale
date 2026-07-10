@@ -1,8 +1,7 @@
 defmodule MykonosBiennale.Search do
   @moduledoc """
-  Public search API. Performs a normalized substring match against the
-  `search_index` column on entities and media, resolves each hit to a public
-  URL, and groups results by kind.
+  Public search API. Performs word-boundary + prefix matching against the
+  `search_index` column on entities, grouped by type.
 
   Index population is the responsibility of `MykonosBiennale.Search.Indexer`
   and `MykonosBiennale.Workers.SearchReindex`.
@@ -11,7 +10,7 @@ defmodule MykonosBiennale.Search do
   import Ecto.Query, warn: false
 
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, Media, EntityMedia}
+  alias MykonosBiennale.Content.Entity
   alias MykonosBiennale.Search.Transliterate
 
   @type hit :: %{
@@ -20,169 +19,240 @@ defmodule MykonosBiennale.Search do
           title: String.t(),
           subtitle: String.t() | nil,
           url: String.t(),
-          snippet: String.t()
+          snippet: String.t(),
+          creators: [String.t()],
+          events: [String.t()]
         }
 
-  @default_limit 50
+  @default_limit 20
+
+  @film_types ["Short Film", "Video", "Dance", "Animation", "Documentary"]
 
   @doc """
-  Search for entities and media matching `term`. Returns a map:
+  Search for entities matching `term`, grouped by type. Returns a map:
 
       %{
-        entities: [hit, ...],
-        media: [hit, ...],
+        biennales: [hit, ...],
+        events: [hit, ...],
+        participants: [hit, ...],
+        works: [hit, ...],
         total: integer
       }
 
   Options:
-
-    * `:limit` - maximum hits per kind (default #{@default_limit})
-    * `:types` - list of entity types to restrict to
+    * `:limit` - maximum hits per group (default #{@default_limit})
   """
   def search(term, opts \\ [])
 
   def search(term, _opts) when not is_binary(term) or term == "" do
-    %{entities: [], media: [], total: 0}
+    %{biennales: [], events: [], participants: [], works: [], total: 0}
   end
 
   def search(term, opts) do
     limit = Keyword.get(opts, :limit, @default_limit)
-    types = Keyword.get(opts, :types)
-
     normalized = Transliterate.normalize(term)
-    pattern = "%" <> normalized <> "%"
+    # normalize() returns both Greek and Latin forms joined by spaces.
+    # For a single source word like "Βενιέρη", it returns "βενιερη venieri"
+    # — these are alternatives (OR), not both required (AND).
+    # For actual multi-word queries like "anna molloy", each word normalizes
+    # independently and all must match (AND).
+    #
+    # Strategy: split the original term into source words, normalize each
+    # separately, and treat each word's Greek+Latin forms as alternatives.
+    raw_words = String.split(String.trim(term), ~r/\s+/, trim: true)
+    word_groups = Enum.map(raw_words, fn w ->
+      String.split(Transliterate.normalize(w), " ", trim: true)
+    end)
 
-    entities = search_entities(pattern, types, limit)
-    media = search_media(pattern, limit)
+    biennales = search_group("biennale", ["field.theme", "field.statement"], word_groups, limit)
+    events = search_group("event", ["field.title", "field.location", "field.date", "field.description"], word_groups, limit)
+    participants = search_group("participant", ["field.name", "field.first_name", "field.last_name", "field.bio", "field.statement"], word_groups, limit)
 
-    biennale_year_by_id = build_biennale_year_lookup(entities)
-    media_owner_by_id = build_media_owner_lookup(media)
+    work_sections = ["field.title", "field.description", "field.statement", "identity", "field.synopsis", "field.log_line", "rel.creator", "rel.person", "rel.event"]
 
-    entity_hits = Enum.map(entities, &entity_to_hit(&1, biennale_year_by_id, normalized))
+    artworks = search_group(nil, work_sections, word_groups, limit, ["artwork"])
+    films = search_group(nil, work_sections, word_groups, limit, ["Short Film", "Video", "Animation", "Documentary"])
+    performances = search_group(nil, work_sections, word_groups, limit, ["Dance"])
 
-    media_hits =
-      Enum.map(media, &media_to_hit(&1, media_owner_by_id, biennale_year_by_id, normalized))
+    total = length(biennales) + length(events) + length(participants) + length(artworks) + length(films) + length(performances)
 
     %{
-      entities: entity_hits,
-      media: media_hits,
-      total: length(entity_hits) + length(media_hits)
+      biennales: biennales,
+      events: events,
+      participants: participants,
+      artworks: artworks,
+      films: films,
+      performances: performances,
+      total: total
     }
   end
 
-  @doc """
-  Helper for admin LiveViews and other internal consumers — returns a single
-  Ecto query that filters entities by `search_index LIKE ?`. Useful for
-  preserving stream/order semantics in the existing admin UIs.
-  """
-  def entity_search_pattern(term) when is_binary(term) and term != "" do
-    "%" <> Transliterate.normalize(term) <> "%"
+  defp work_types, do: ["artwork" | @film_types]
+
+  defp search_group(type, sections, word_groups, limit, types \\ nil) do
+    types = types || [type]
+
+    pattern = build_regex_pattern(sections, word_groups)
+
+    if pattern == "" do
+      []
+    else
+      query =
+        from e in Entity,
+          where:
+            e.visible == true and
+              e.type in ^types and
+              not is_nil(e.search_index) and
+              fragment("? ~ ?", e.search_index, ^pattern),
+          limit: ^limit,
+          order_by: [asc: fragment("length(?)", e.search_index)]
+
+      entities = Repo.all(query)
+
+      Enum.map(entities, &entity_to_hit/1)
+    end
   end
 
-  def entity_search_pattern(_), do: nil
+  defp build_regex_pattern(_sections, []), do: ""
 
-  # =====================================================================
-  # Private — querying
-  # =====================================================================
+  defp build_regex_pattern(sections, word_groups) do
+    # word_groups is a list of lists: [["βενιερη", "venieri"], ["anna"]]
+    # Each inner list is a group of alternatives (OR) for one source word.
+    # All groups must match (AND via lookahead).
+    #
+    # For each group, build: (?:section1:[^:]*\mword1|section1:[^:]*\mword2|section2:[^:]*\mword1|...)
+    # Then wrap in (?=.*(?:...)) for AND lookahead.
 
-  defp search_entities(pattern, types, limit) do
-    query =
-      from e in Entity,
-        where: not is_nil(e.search_index) and like(e.search_index, ^pattern),
-        limit: ^limit,
-        order_by: [asc: fragment("length(?)", e.search_index)]
+    word_patterns =
+      Enum.map(word_groups, fn alternatives ->
+        section_word_alts =
+          for section <- sections, word <- alternatives do
+            section_escaped = String.replace(section, ".", "\\.")
+            "#{section_escaped}:[^:]*\\m#{escape_regex(word)}"
+          end
+          |> Enum.join("|")
 
-    query =
-      case types do
-        nil -> query
-        list when is_list(list) -> from e in query, where: e.type in ^list
-      end
+        "(?=.*(?:#{section_word_alts}))"
+      end)
 
-    Repo.all(query)
+    Enum.join(word_patterns)
   end
 
-  defp search_media(pattern, limit) do
-    Repo.all(
-      from m in Media,
-        where: not is_nil(m.search_index) and like(m.search_index, ^pattern),
-        limit: ^limit,
-        order_by: [asc: fragment("length(?)", m.search_index)]
-    )
-  end
-
-  # =====================================================================
-  # Private — biennale-year resolution for URL building
-  # =====================================================================
-
-  # For each entity in `entities`, fetch a biennale year via the indexed
-  # tokens. We rely on the indexer to have written `rel.biennale_year:YEAR`
-  # tokens — this means we can resolve URLs without re-running graph queries
-  # at search time.
-  defp build_biennale_year_lookup(entities) do
-    Map.new(entities, fn entity ->
-      {entity.id, extract_biennale_year(entity.search_index)}
-    end)
-  end
-
-  defp extract_biennale_year(nil), do: nil
-
-  defp extract_biennale_year(index) when is_binary(index) do
-    # tokens are space-joined; biennale year token looks like "rel.biennale_year:2023"
-    Regex.scan(~r/rel\.biennale_year:(\d{4})/, index)
-    |> Enum.map(fn [_, y] -> y end)
-    |> Enum.uniq()
-    |> Enum.sort(:desc)
-    |> List.first()
-  end
-
-  # For each media, find the first attached entity (by position) so we can
-  # link the media to the entity's public page.
-  defp build_media_owner_lookup([]), do: %{}
-
-  defp build_media_owner_lookup(media) do
-    media_ids = Enum.map(media, & &1.id)
-
-    rows =
-      Repo.all(
-        from em in EntityMedia,
-          join: e in Entity,
-          on: e.id == em.entity_id,
-          where: em.media_id in ^media_ids,
-          order_by: em.position,
-          select: {em.media_id, e}
-      )
-
-    Enum.reduce(rows, %{}, fn {mid, entity}, acc ->
-      Map.put_new(acc, mid, entity)
-    end)
+  defp escape_regex(str) do
+    str
+    |> String.replace("\\", "\\\\")
+    |> String.replace(".", "\\.")
+    |> String.replace("+", "\\+")
+    |> String.replace("*", "\\*")
+    |> String.replace("?", "\\?")
+    |> String.replace("(", "\\(")
+    |> String.replace(")", "\\)")
+    |> String.replace("[", "\\[")
+    |> String.replace("]", "\\]")
+    |> String.replace("{", "\\{")
+    |> String.replace("}", "\\}")
+    |> String.replace("|", "\\|")
+    |> String.replace("^", "\\^")
+    |> String.replace("$", "\\$")
+    |> String.replace("/", "\\/")
   end
 
   # =====================================================================
-  # Private — hit construction
+  # Hit construction
   # =====================================================================
 
-  defp entity_to_hit(%Entity{} = entity, year_lookup, normalized) do
-    %{
+  defp entity_to_hit(%Entity{} = entity) do
+    base = %{
       kind: :entity,
       id: entity.id,
       title: entity_title(entity),
-      subtitle: entity_subtitle(entity, year_lookup),
-      url: entity_url(entity, year_lookup),
-      snippet: snippet(entity.search_index, normalized)
+      subtitle: entity_subtitle(entity),
+      url: entity_url(entity),
+      snippet: "",
+      creators: [],
+      events: []
     }
+
+    case entity.type do
+      t when t in ["artwork" | @film_types] ->
+        %{base | creators: extract_rel_people(entity.search_index), events: extract_rel_events(entity.search_index)}
+
+      "participant" ->
+        %{base | creators: extract_participant_roles(entity.search_index), events: extract_participant_works(entity.search_index)}
+
+      _ ->
+        base
+    end
   end
 
-  defp media_to_hit(%Media{} = media, owner_lookup, year_lookup, normalized) do
-    owner = Map.get(owner_lookup, media.id)
+  @role_noise ~w(creator director editor producer screenwriter cinematographer composer actor actress lead lead_actor lead_actress exec exec_producer executive executive_producer production production_designer designer sound sound_editor sub_by writer photographer participated_in person creator curator)
 
-    %{
-      kind: :media,
-      id: media.id,
-      title: media_title(media, owner),
-      subtitle: media_subtitle(media, owner),
-      url: media_url(media, owner, year_lookup),
-      snippet: snippet(media.search_index, normalized)
-    }
+  defp extract_rel_people(nil), do: []
+  defp extract_rel_people(index) do
+    ~r/(?:rel\.creator|rel\.person):([^:]+?)(?=\s+\w+\.|\s*$)/
+    |> Regex.scan(index, capture: :all_but_first)
+    |> List.flatten()
+    |> Enum.flat_map(fn chunk ->
+      chunk
+      |> String.trim()
+      |> String.split(~r/\s+/, trim: true)
+      |> Enum.reject(&(&1 in @role_noise))
+      |> Enum.reject(&String.match?(&1, ~r/^\p{L}{1,2}$/u))
+      |> case do
+        [] -> []
+        tokens -> [Enum.join(tokens, " ")]
+      end
+    end)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.uniq()
+  end
+
+  defp extract_rel_events(nil), do: []
+  defp extract_rel_events(index) do
+    ~r/rel\.event:([^:]+?)(?=\s+\w+\.|\s*$)/
+    |> Regex.scan(index, capture: :all_but_first)
+    |> List.flatten()
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.uniq()
+    |> Enum.reject(&String.match?(&1, ~r/^\d{4}-\d{2}-\d{2}$/))
+  end
+
+  defp extract_participant_roles(nil), do: []
+  defp extract_participant_roles(index) do
+    # Extract roles from rel.in_artwork and rel.directed_film sections
+    # The role appears as a token like "creator", "director" in these sections
+    ~r/(?:rel\.in_artwork|rel\.directed_film|rel\.acted_in_film|rel\.participated_in_film):[^:]*?(\b(?:creator|director|curator|actor|actress|performer|editor|producer|writer|screenwriter|cinematographer|composer|participant)\b)/
+    |> Regex.scan(index, capture: :all_but_first)
+    |> List.flatten()
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.uniq()
+    |> Enum.map(&String.capitalize/1)
+  end
+
+  defp extract_participant_works(nil), do: []
+  defp extract_participant_works(index) do
+    ~r/(?:rel\.in_artwork|rel\.directed_film|rel\.acted_in_film|rel\.participated_in_film):([^:]+?)(?=\s+\w+\.|\s*$)/
+    |> Regex.scan(index, capture: :all_but_first)
+    |> List.flatten()
+    |> Enum.flat_map(fn chunk ->
+      chunk
+      |> String.trim()
+      |> String.split(~r/\s+/, trim: true)
+      |> Enum.reject(&(&1 in @role_noise))
+      |> Enum.reject(&String.match?(&1, ~r/^\d{4}(-\d{2}(-\d{2})?)?$/))
+      |> Enum.reject(&String.match?(&1, ~r/^\d{4}-\d+$/))
+      |> Enum.reject(&String.match?(&1, ~r/^\p{L}{1,2}$/u))
+      |> Enum.reject(&(&1 in ~w(gr fr de us uk gb pk)))
+      |> case do
+        [] -> []
+        tokens -> [Enum.join(tokens, " ")]
+      end
+    end)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.reject(&String.match?(&1, ~r/^['"]?\d{2}['"]?$/))
+    |> Enum.uniq()
   end
 
   defp entity_title(%Entity{type: "biennale", fields: %{"year" => y}}),
@@ -205,14 +275,32 @@ defmodule MykonosBiennale.Search do
 
   defp compose_name(_), do: nil
 
-  defp entity_subtitle(%Entity{type: type} = entity, year_lookup) do
-    base = humanize_type(type)
-    year = Map.get(year_lookup, entity.id)
+  defp entity_subtitle(%Entity{type: "biennale", fields: %{"theme" => theme}}) when is_binary(theme),
+    do: theme
 
+  defp entity_subtitle(%Entity{type: "biennale"}), do: "Biennale Edition"
+
+  defp entity_subtitle(%Entity{type: type, fields: fields} = entity) do
     cond do
-      type == "biennale" -> "Biennale Edition"
-      year -> "#{base} · #{year}"
-      true -> base
+      type == "event" ->
+        date = Map.get(fields, "date")
+        location = Map.get(fields, "location")
+        parts = [Map.get(fields, "type"), date, location] |> Enum.reject(&is_nil/1)
+        if parts == [], do: "Event", else: Enum.join(parts, " · ")
+
+      type == "participant" ->
+        country = Map.get(fields, "country")
+        if country, do: country, else: "Artist"
+
+      type in work_types() ->
+        type_label = humanize_type(type)
+        date = Map.get(fields, "date")
+        dir_by = Map.get(fields, "dir_by")
+        base = if date, do: "#{type_label} · #{date}", else: type_label
+        if dir_by && dir_by != "", do: "#{base} · Dir. #{dir_by}", else: base
+
+      true ->
+        humanize_type(type)
     end
   end
 
@@ -221,107 +309,31 @@ defmodule MykonosBiennale.Search do
   defp humanize_type("Dance"), do: "Dance"
   defp humanize_type("Animation"), do: "Animation"
   defp humanize_type("Documentary"), do: "Documentary"
+  defp humanize_type("artwork"), do: "Artwork"
+  defp humanize_type("film"), do: "Film"
+  defp humanize_type("event"), do: "Event"
+  defp humanize_type("participant"), do: "Artist"
+  defp humanize_type("biennale"), do: "Biennale"
   defp humanize_type(t) when is_binary(t), do: String.capitalize(t)
   defp humanize_type(_), do: ""
 
-  # The site only has dead public pages: /, /archive, /archive/:year, /program, /about.
-  # Map every entity to the closest aggregate page.
-  defp entity_url(%Entity{type: "biennale", fields: %{"year" => y}}, _), do: "/archive/#{y}"
-
-  defp entity_url(%Entity{type: "artwork"} = entity, _), do: "/art/#{entity.id}"
-
-  defp entity_url(%Entity{type: "event"} = entity, _), do: "/event/#{entity.id}"
-
-  defp entity_url(%Entity{type: "participant"} = entity, _), do: "/artist/#{entity.id}"
-
-  defp entity_url(%Entity{} = entity, year_lookup) do
-    case Map.get(year_lookup, entity.id) do
-      nil -> "/archive"
-      year -> "/archive/#{year}"
-    end
-  end
-
-  defp media_title(%Media{caption: caption}, _) when is_binary(caption) and caption != "",
-    do: caption
-
-  defp media_title(_, %Entity{} = owner), do: "Image · #{entity_title(owner)}"
-  defp media_title(_, _), do: "Untitled media"
-
-  defp media_subtitle(_, %Entity{} = owner), do: "Media in #{humanize_type(owner.type)}"
-  defp media_subtitle(_, _), do: "Media"
-
-  defp media_url(_, %Entity{} = owner, year_lookup), do: entity_url(owner, year_lookup)
-  defp media_url(_, _, _), do: "/archive"
+  defp entity_url(%Entity{type: "biennale", fields: %{"year" => y}}), do: "/archive/#{y}"
+  defp entity_url(%Entity{type: "artwork"} = entity), do: "/art/#{entity.id}"
+  defp entity_url(%Entity{type: "event"} = entity), do: "/event/#{entity.id}"
+  defp entity_url(%Entity{type: "participant"} = entity), do: "/artist/#{entity.id}"
+  defp entity_url(%Entity{type: type} = entity) when type in @film_types, do: "/art/#{entity.id}"
+  defp entity_url(_), do: "/archive"
 
   # =====================================================================
-  # Private — snippet extraction
+  # Admin helper (unchanged)
   # =====================================================================
 
-  @snippet_window 80
-
-  defp snippet(nil, _term), do: ""
-  defp snippet(_index, ""), do: ""
-
-  defp snippet(index, term) do
-    case String.split(term, " ", trim: true) do
-      [] ->
-        ""
-
-      tokens ->
-        # Find the earliest-occurring matching token in the index.
-        case earliest_index(index, tokens) do
-          nil ->
-            String.slice(strip_section_prefixes(index), 0, @snippet_window)
-
-          {pos, len} ->
-            extract_window(strip_section_prefixes(index), pos, len)
-        end
-    end
+  @doc """
+  Helper for admin LiveViews — returns a LIKE pattern for substring search.
+  """
+  def entity_search_pattern(term) when is_binary(term) and term != "" do
+    "%" <> Transliterate.normalize(term) <> "%"
   end
 
-  defp earliest_index(haystack, tokens) do
-    tokens
-    |> Enum.map(fn t ->
-      case :binary.match(haystack, t) do
-        {pos, _len} -> {pos, byte_size(t)}
-        :nomatch -> nil
-      end
-    end)
-    |> Enum.reject(&is_nil/1)
-    |> case do
-      [] -> nil
-      list -> Enum.min_by(list, fn {pos, _} -> pos end)
-    end
-  end
-
-  defp extract_window(text, pos, len) do
-    half = div(@snippet_window, 2)
-    start = max(0, pos - half)
-    snippet = String.slice(text, start, @snippet_window)
-    prefix = if start > 0, do: "…", else: ""
-    suffix = if start + @snippet_window < String.length(text), do: "…", else: ""
-
-    (prefix <> snippet <> suffix)
-    |> String.trim()
-    |> elide_unrelated()
-    |> ensure_match_visible(len)
-  end
-
-  defp elide_unrelated(s), do: s
-
-  defp ensure_match_visible(s, _len), do: s
-
-  # Strip the "section:" prefixes from indexed tokens for display, e.g.
-  # "field.title:garden of mysteries" -> "garden of mysteries".
-  defp strip_section_prefixes(text) do
-    text
-    |> String.split(" ", trim: true)
-    |> Enum.map(fn token ->
-      case String.split(token, ":", parts: 2) do
-        [_label, value] -> value
-        [value] -> value
-      end
-    end)
-    |> Enum.join(" ")
-  end
+  def entity_search_pattern(_), do: nil
 end
