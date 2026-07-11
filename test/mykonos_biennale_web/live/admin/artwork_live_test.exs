@@ -89,6 +89,15 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLiveTest do
   end
 
   describe "Reimport Preview" do
+    setup do
+      dir = Path.join(File.cwd!(), "exports/festival")
+      File.mkdir_p!(dir)
+      path = Path.join(dir, "records.json")
+      File.write!(path, Jason.encode!([]))
+      on_exit(fn -> File.rm(path) end)
+      :ok
+    end
+
     test "mounts reimport preview page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/admin/artworks/import_preview")
       assert html =~ "Artwork Reimport Preview"
