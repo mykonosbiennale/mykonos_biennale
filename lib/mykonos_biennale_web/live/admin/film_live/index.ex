@@ -179,7 +179,6 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
      )}
   end
 
-
   defp patch_path(base, page, sort_by, sort_dir) do
     "#{base}?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
   end

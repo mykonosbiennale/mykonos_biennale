@@ -41,7 +41,6 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
     |> Enum.filter(&(&1["fields"]["status"] == "SELECTED"))
   end
 
-
   defp find_existing_film(pk) do
     pk_str = to_string(pk)
 
@@ -705,7 +704,6 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
   end
 
   ## -- Media helpers --
-
 
   defp download_s3_image(url) do
     filename =

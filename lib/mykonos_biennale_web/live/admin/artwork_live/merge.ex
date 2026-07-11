@@ -52,7 +52,6 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
      |> assign(:page, page)
      |> assign(:total_pages, total_pages)
      |> assign(:groups_loaded, true)}
-
   rescue
     _ ->
       {:noreply, assign(socket, :loading, false)}
@@ -149,7 +148,9 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
 
   defp load_duplicate_groups(mode) do
     rt_slugs =
-      Repo.all(from rt in RelationshipType, where: rt.slug in ~w(artwork_event artwork_participant))
+      Repo.all(
+        from rt in RelationshipType, where: rt.slug in ~w(artwork_event artwork_participant)
+      )
       |> Enum.into(%{}, &{&1.slug, &1.id})
 
     ae_rt_id = rt_slugs["artwork_event"]
@@ -175,7 +176,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
         Repo.all(
           from m in Media,
             join: em in EntityMedia,
-              on: em.media_id == m.id,
+            on: em.media_id == m.id,
             where: em.entity_id in ^artwork_ids,
             order_by: [em.entity_id, em.position],
             select: {em.entity_id, m.id, m.source_type, m.source_path, m.source_url}
@@ -318,7 +319,12 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
 
     if duplicate_ids != [] do
       Repo.delete_all(from em in EntityMedia, where: em.entity_id in ^duplicate_ids)
-      Repo.delete_all(from r in Relationship, where: r.subject_id in ^duplicate_ids or r.object_id in ^duplicate_ids)
+
+      Repo.delete_all(
+        from r in Relationship,
+          where: r.subject_id in ^duplicate_ids or r.object_id in ^duplicate_ids
+      )
+
       Repo.delete_all(from e in Entity, where: e.id in ^duplicate_ids)
     end
   end
@@ -340,7 +346,9 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
   defp first_media([_ | rest]), do: first_media(rest)
 
   defp media_thumb_url(%{source_type: "upload", source_path: path}) when is_binary(path) do
-    MykonosBiennale.Uploads.media_url(%Media{source_type: "upload", source_path: path}, size: "admin")
+    MykonosBiennale.Uploads.media_url(%Media{source_type: "upload", source_path: path},
+      size: "admin"
+    )
   end
 
   defp media_thumb_url(%{source_type: "url", source_url: url}) when is_binary(url), do: url

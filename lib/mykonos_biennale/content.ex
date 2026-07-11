@@ -559,7 +559,10 @@ defmodule MykonosBiennale.Content do
     all =
       if search != "" do
         pattern = MykonosBiennale.Search.entity_search_pattern(search)
-        from(e in base_query, where: not is_nil(e.search_index) and like(e.search_index, ^pattern))
+
+        from(e in base_query,
+          where: not is_nil(e.search_index) and like(e.search_index, ^pattern)
+        )
       else
         base_query
       end

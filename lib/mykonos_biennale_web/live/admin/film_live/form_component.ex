@@ -444,7 +444,10 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
                       {rel.relationship_type.slug}
                     </span>
                     <span class="text-sm font-medium text-gray-900">
-                      <.link navigate={"/admin/participants/#{rel.object_id}"} class="hover:text-blue-600">
+                      <.link
+                        navigate={"/admin/participants/#{rel.object_id}"}
+                        class="hover:text-blue-600"
+                      >
                         {field(rel.object, "name") ||
                           "#{field(rel.object, "first_name")} #{field(rel.object, "last_name")}"}
                       </.link>

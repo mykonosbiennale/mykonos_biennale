@@ -114,7 +114,11 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
           <.input field={@form[:location]} type="text" label="Location" />
           <.input field={@form[:tickets]} type="text" label="Tickets URL" />
           <.input field={@form[:description]} type="textarea" label="Description" rows="5" />
-          <.input field={@form[:show_project]} type="checkbox" label="Show all artworks/films from this project" />
+          <.input
+            field={@form[:show_project]}
+            type="checkbox"
+            label="Show all artworks/films from this project"
+          />
         </div>
 
         <div class="mt-6 flex items-center justify-end gap-x-6">
@@ -242,7 +246,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
               <.live_file_input upload={@uploads.images} class="hidden" />
               <button
                 type="button"
-                onclick={"document.getElementById('event-form_images').click()"}
+                onclick="document.getElementById('event-form_images').click()"
                 class="w-full rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-purple-500 px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400 transition-colors"
               >
                 Click to select images
@@ -253,9 +257,12 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
                   <%= if entry.done? do %>
                     <.icon name="hero-check-circle" class="w-5 h-5 text-green-500" />
                   <% else %>
-                    <div class="w-5 h-5 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
+                    <div class="w-5 h-5 rounded-full border-2 border-purple-500 border-t-transparent animate-spin">
+                    </div>
                   <% end %>
-                  <span class="text-xs text-gray-600 dark:text-gray-300 flex-1 truncate">{entry.client_name}</span>
+                  <span class="text-xs text-gray-600 dark:text-gray-300 flex-1 truncate">
+                    {entry.client_name}
+                  </span>
                   <button
                     type="button"
                     phx-click="cancel-upload"
@@ -341,7 +348,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
                     <%= if entry.done? do %>
                       <.icon name="hero-check-circle" class="w-4 h-4 text-green-500" />
                     <% else %>
-                      <div class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
+                      <div class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin">
+                      </div>
                     <% end %>
                     <span class="text-sm text-gray-900">{entry.client_name}</span>
                   </div>
@@ -524,7 +532,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
                     <%= if entry.done? do %>
                       <.icon name="hero-check-circle" class="w-4 h-4 text-green-500" />
                     <% else %>
-                      <div class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
+                      <div class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin">
+                      </div>
                     <% end %>
                     <span class="text-xs text-gray-600 flex-1 truncate">{entry.client_name}</span>
                     <button

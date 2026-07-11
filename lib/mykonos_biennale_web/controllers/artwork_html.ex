@@ -23,5 +23,4 @@ defmodule MykonosBiennaleWeb.ArtworkHTML do
     do: String.trim("#{first || ""} #{last || ""}")
 
   defp participant_name(_), do: "Unknown"
-
 end

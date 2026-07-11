@@ -39,19 +39,19 @@ defmodule MykonosBiennale.ReimportArtworks do
 
         project_pk = get_in(art, ["foreign_keys", "project", "pk"])
         project = Map.get(project_map, project_pk)
-        project_slug = project && project["fields"]["slug"] || ""
+        project_slug = (project && project["fields"]["slug"]) || ""
 
         project_x_pk = get_in(art, ["foreign_keys", "project_x", "pk"])
         ps = Map.get(projectseason_map, project_x_pk)
         fest_pk = ps && get_in(ps, ["foreign_keys", "festival", "pk"])
         festival = fest_pk && Map.get(festival_map, fest_pk)
-        year = festival && to_string(festival["fields"]["year"]) || ""
+        year = (festival && to_string(festival["fields"]["year"])) || ""
 
         artist_pk = get_in(art, ["foreign_keys", "artist", "pk"])
         artist = Map.get(artist_map, artist_pk)
-        artist_name = artist && artist["fields"]["name"] || ""
+        artist_name = (artist && artist["fields"]["name"]) || ""
 
-        _biennale_title = festival && festival["fields"]["title"] || ""
+        _biennale_title = (festival && festival["fields"]["title"]) || ""
 
         {title_slug, year, project_slug, artist_name}
       end)
@@ -84,7 +84,7 @@ defmodule MykonosBiennale.ReimportArtworks do
         description: best_description(items),
         photo_url: first["fields"]["photo"],
         art_type: infer_art_type(project_slug),
-        leader: Enum.any?(items, & &1["fields"]["leader"] == true)
+        leader: Enum.any?(items, &(&1["fields"]["leader"] == true))
       }
     end)
     |> Enum.sort_by(fn g -> {g.artist_name, g.year, g.title} end)
@@ -96,7 +96,7 @@ defmodule MykonosBiennale.ReimportArtworks do
     project = Map.get(project_map, project_pk)
     fest_pk = project && get_in(project, ["foreign_keys", "festival", "pk"])
     festival = fest_pk && Map.get(fest_map, fest_pk)
-    festival && festival["fields"]["title"] || ""
+    (festival && festival["fields"]["title"]) || ""
   end
 
   defp best_description(items) do
@@ -236,7 +236,16 @@ defmodule MykonosBiennale.ReimportArtworks do
             []
 
           {media_id, _path} ->
-            [[entity_id: artwork.id, media_id: media_id, position: idx, metadata: %{}, inserted_at: now, updated_at: now]]
+            [
+              [
+                entity_id: artwork.id,
+                media_id: media_id,
+                position: idx,
+                metadata: %{},
+                inserted_at: now,
+                updated_at: now
+              ]
+            ]
         end
       end)
 
@@ -333,8 +342,7 @@ defmodule MykonosBiennale.ReimportArtworks do
     events =
       Repo.all(
         from e in Entity,
-          where:
-            e.type == "event" and fragment("? ->> 'import_key' IS NOT NULL", e.fields),
+          where: e.type == "event" and fragment("? ->> 'import_key' IS NOT NULL", e.fields),
           select: {fragment("? ->> 'import_key'", e.fields), e.id}
       )
       |> Enum.into(%{})

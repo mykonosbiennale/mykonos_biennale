@@ -1,138 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{@page_title}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.min.css" />
-  <style>
-    body { background: #0a0a0a; }
-    .pswp { --pswp-bg: #000; }
-  </style>
-</head>
-<body class="bg-neutral-950 text-neutral-200 min-h-screen">
-  <nav class="border-b border-neutral-800 px-6 py-4">
-    <div class="max-w-5xl mx-auto flex items-center justify-between">
-      <a href="/" class="text-lg font-semibold text-white tracking-wide">MYKONOS BIENNALE</a>
-      <div class="flex gap-6 text-sm">
-        <a href="/archive" class="text-neutral-400 hover:text-white transition-colors">Archive</a>
-        <a href="/program" class="text-neutral-400 hover:text-white transition-colors">Program</a>
-        <a href="/about" class="text-neutral-400 hover:text-white transition-colors">About</a>
-      </div>
-    </div>
-  </nav>
-
-  <main class="max-w-5xl mx-auto px-6 py-12">
-    <article>
-      <.event_header event={@event} biennale={@biennale} />
-
-      <%!-- Description --%>
-      <%= if field(@event, "description") do %>
-        <div class="max-w-2xl mb-8">
-          <p class="text-neutral-400 leading-relaxed whitespace-pre-line">{field(@event, "description")}</p>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{@page_title}</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.min.css"
+    />
+    <style>
+      body { background: #0a0a0a; }
+      .pswp { --pswp-bg: #000; }
+    </style>
+  </head>
+  <body class="bg-neutral-950 text-neutral-200 min-h-screen">
+    <nav class="border-b border-neutral-800 px-6 py-4">
+      <div class="max-w-5xl mx-auto flex items-center justify-between">
+        <a href="/" class="text-lg font-semibold text-white tracking-wide">MYKONOS BIENNALE</a>
+        <div class="flex gap-6 text-sm">
+          <a href="/archive" class="text-neutral-400 hover:text-white transition-colors">
+            Archive
+          </a>
+          <a href="/program" class="text-neutral-400 hover:text-white transition-colors">
+            Program
+          </a>
+          <a href="/about" class="text-neutral-400 hover:text-white transition-colors">About</a>
         </div>
-      <% end %>
+      </div>
+    </nav>
 
-      <%!-- Film Selection --%>
-      <section :if={@films != []} class="mt-8">
-        <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-6">Official Film Selection</h2>
-        <div class="space-y-12">
-          <%= for item <- @films do %>
-            <% film = item.film %>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <%!-- Poster --%>
-              <div :if={item.media != []} class="md:col-span-1">
-                <div class="overflow-hidden rounded-lg bg-neutral-900">
-                  <a
-                    href={media_url(List.first(item.media), size: "hero")}
-                    data-pswp-width="1920"
-                    data-pswp-height="1080"
-                    target="_blank"
-                    class="block"
-                  >
-                    <img
-                      src={media_url(List.first(item.media), size: "card")}
-                      alt={field(film, "title")}
-                      class="w-full h-auto object-contain"
-                      loading="lazy"
-                    />
-                  </a>
+    <main class="max-w-5xl mx-auto px-6 py-12">
+      <article>
+        <.event_header event={@event} biennale={@biennale} />
+
+        <%!-- Description --%>
+        <%= if field(@event, "description") do %>
+          <div class="max-w-2xl mb-8">
+            <p class="text-neutral-400 leading-relaxed whitespace-pre-line">
+              {field(@event, "description")}
+            </p>
+          </div>
+        <% end %>
+
+        <%!-- Film Selection --%>
+        <section :if={@films != []} class="mt-8">
+          <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-6">
+            Official Film Selection
+          </h2>
+          <div class="space-y-12">
+            <%= for item <- @films do %>
+              <% film = item.film %>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <%!-- Poster --%>
+                <div :if={item.media != []} class="md:col-span-1">
+                  <div class="overflow-hidden rounded-lg bg-neutral-900">
+                    <a
+                      href={media_url(List.first(item.media), size: "hero")}
+                      data-pswp-width="1920"
+                      data-pswp-height="1080"
+                      target="_blank"
+                      class="block"
+                    >
+                      <img
+                        src={media_url(List.first(item.media), size: "card")}
+                        alt={field(film, "title")}
+                        class="w-full h-auto object-contain"
+                        loading="lazy"
+                      />
+                    </a>
+                  </div>
+                </div>
+
+                <%!-- Details --%>
+                <div class="md:col-span-2 space-y-3">
+                  <h3 class="text-2xl font-bold text-white">
+                    {entity_title(film)}
+                  </h3>
+
+                  <%= if field(film, "dir_by") do %>
+                    <p class="text-sm text-neutral-400">
+                      <span class="text-neutral-600">Dir. by</span> {field(film, "dir_by")}
+                      <%= if field(film, "country") do %>
+                        <span class="text-neutral-600">,</span> {field(film, "country")}
+                      <% end %>
+                    </p>
+                  <% end %>
+
+                  <%= if field(film, "runtime") do %>
+                    <p class="text-sm text-neutral-400">
+                      <span class="text-neutral-600">Runtime:</span> {field(film, "runtime")} min
+                    </p>
+                  <% end %>
+
+                  <%= if field(film, "log_line") do %>
+                    <p class="text-neutral-400 leading-relaxed whitespace-pre-line text-sm mt-2">
+                      {field(film, "log_line")}
+                    </p>
+                  <% end %>
                 </div>
               </div>
+            <% end %>
+          </div>
+        </section>
 
-              <%!-- Details --%>
-              <div class="md:col-span-2 space-y-3">
-                <h3 class="text-2xl font-bold text-white">
-                  {entity_title(film)}
-                </h3>
-
-                <%= if field(film, "dir_by") do %>
-                  <p class="text-sm text-neutral-400">
-                    <span class="text-neutral-600">Dir. by</span> {field(film, "dir_by")}
-                    <%= if field(film, "country") do %>
-                      <span class="text-neutral-600">,</span> {field(film, "country")}
-                    <% end %>
-                  </p>
-                <% end %>
-
-                <%= if field(film, "runtime") do %>
-                  <p class="text-sm text-neutral-400">
-                    <span class="text-neutral-600">Runtime:</span> {field(film, "runtime")} min
-                  </p>
-                <% end %>
-
-                <%= if field(film, "log_line") do %>
-                  <p class="text-neutral-400 leading-relaxed whitespace-pre-line text-sm mt-2">
-                    {field(film, "log_line")}
-                  </p>
-                <% end %>
+        <%!-- Fallback: event media slideshow if no films --%>
+        <section :if={@films == [] and @media != []} class="mb-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <%= for {m, idx} <- Enum.with_index(@media) do %>
+              <div class={"overflow-hidden rounded-lg bg-neutral-900 " <> if(idx == 0, do: "md:col-span-2", else: "")}>
+                <a
+                  href={media_url(m, size: "hero")}
+                  data-pswp-width="1920"
+                  data-pswp-height="1080"
+                  target="_blank"
+                  class="block"
+                >
+                  <img
+                    src={media_url(m, size: "card")}
+                    alt={m.alt_text || m.caption || field(@event, "title")}
+                    class="w-full h-auto object-contain"
+                    loading={if idx == 0, do: "eager", else: "lazy"}
+                  />
+                </a>
               </div>
-            </div>
-          <% end %>
-        </div>
-      </section>
+            <% end %>
+          </div>
+        </section>
+      </article>
+    </main>
 
-      <%!-- Fallback: event media slideshow if no films --%>
-      <section :if={@films == [] and @media != []} class="mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <%= for {m, idx} <- Enum.with_index(@media) do %>
-            <div class={"overflow-hidden rounded-lg bg-neutral-900 " <> if(idx == 0, do: "md:col-span-2", else: "")}>
-              <a
-                href={media_url(m, size: "hero")}
-                data-pswp-width="1920"
-                data-pswp-height="1080"
-                target="_blank"
-                class="block"
-              >
-                <img
-                  src={media_url(m, size: "card")}
-                  alt={m.alt_text || m.caption || field(@event, "title")}
-                  class="w-full h-auto object-contain"
-                  loading={if idx == 0, do: "eager", else: "lazy"}
-                />
-              </a>
-            </div>
-          <% end %>
-        </div>
-      </section>
-    </article>
-  </main>
+    <footer class="border-t border-neutral-800 px-6 py-6 mt-12">
+      <div class="max-w-5xl mx-auto text-sm text-neutral-600">
+        Mykonos Biennale
+      </div>
+    </footer>
 
-  <footer class="border-t border-neutral-800 px-6 py-6 mt-12">
-    <div class="max-w-5xl mx-auto text-sm text-neutral-600">
-      Mykonos Biennale
-    </div>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe-lightbox.umd.min.js"></script>
-  <script>
-    const lightbox = new PhotoSwipeLightbox({
-      gallery: 'main',
-      children: 'a[data-pswp-width]',
-      pswpModule: () => import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.esm.js'),
-    });
-    lightbox.init();
-  </script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe-lightbox.umd.min.js">
+    </script>
+    <script>
+      const lightbox = new PhotoSwipeLightbox({
+        gallery: 'main',
+        children: 'a[data-pswp-width]',
+        pswpModule: () => import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.esm.js'),
+      });
+      lightbox.init();
+    </script>
+  </body>
 </html>

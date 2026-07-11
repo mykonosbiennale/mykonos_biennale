@@ -60,21 +60,57 @@ defmodule MykonosBiennale.Search do
     # Strategy: split the original term into source words, normalize each
     # separately, and treat each word's Greek+Latin forms as alternatives.
     raw_words = String.split(String.trim(term), ~r/\s+/, trim: true)
-    word_groups = Enum.map(raw_words, fn w ->
-      String.split(Transliterate.normalize(w), " ", trim: true)
-    end)
+
+    word_groups =
+      Enum.map(raw_words, fn w ->
+        String.split(Transliterate.normalize(w), " ", trim: true)
+      end)
 
     biennales = search_group("biennale", ["field.theme", "field.statement"], word_groups, limit)
-    events = search_group("event", ["field.title", "field.location", "field.date", "field.description"], word_groups, limit)
-    participants = search_group("participant", ["field.name", "field.first_name", "field.last_name", "field.bio", "field.statement"], word_groups, limit)
 
-    work_sections = ["field.title", "field.description", "field.statement", "identity", "field.synopsis", "field.log_line", "rel.creator", "rel.person", "rel.event"]
+    events =
+      search_group(
+        "event",
+        ["field.title", "field.location", "field.date", "field.description"],
+        word_groups,
+        limit
+      )
+
+    participants =
+      search_group(
+        "participant",
+        ["field.name", "field.first_name", "field.last_name", "field.bio", "field.statement"],
+        word_groups,
+        limit
+      )
+
+    work_sections = [
+      "field.title",
+      "field.description",
+      "field.statement",
+      "identity",
+      "field.synopsis",
+      "field.log_line",
+      "rel.creator",
+      "rel.person",
+      "rel.event"
+    ]
 
     artworks = search_group(nil, work_sections, word_groups, limit, ["artwork"])
-    films = search_group(nil, work_sections, word_groups, limit, ["Short Film", "Video", "Animation", "Documentary"])
+
+    films =
+      search_group(nil, work_sections, word_groups, limit, [
+        "Short Film",
+        "Video",
+        "Animation",
+        "Documentary"
+      ])
+
     performances = search_group(nil, work_sections, word_groups, limit, ["Dance"])
 
-    total = length(biennales) + length(events) + length(participants) + length(artworks) + length(films) + length(performances)
+    total =
+      length(biennales) + length(events) + length(participants) + length(artworks) + length(films) +
+        length(performances)
 
     %{
       biennales: biennales,
@@ -175,10 +211,18 @@ defmodule MykonosBiennale.Search do
 
     case entity.type do
       t when t in ["artwork" | @film_types] ->
-        %{base | creators: extract_rel_people(entity.search_index), events: extract_rel_events(entity.search_index)}
+        %{
+          base
+          | creators: extract_rel_people(entity.search_index),
+            events: extract_rel_events(entity.search_index)
+        }
 
       "participant" ->
-        %{base | creators: extract_participant_roles(entity.search_index), events: extract_participant_works(entity.search_index)}
+        %{
+          base
+          | creators: extract_participant_roles(entity.search_index),
+            events: extract_participant_works(entity.search_index)
+        }
 
       _ ->
         base
@@ -188,6 +232,7 @@ defmodule MykonosBiennale.Search do
   @role_noise ~w(creator director editor producer screenwriter cinematographer composer actor actress lead lead_actor lead_actress exec exec_producer executive executive_producer production production_designer designer sound sound_editor sub_by writer photographer participated_in person creator curator)
 
   defp extract_rel_people(nil), do: []
+
   defp extract_rel_people(index) do
     ~r/(?:rel\.creator|rel\.person):([^:]+?)(?=\s+\w+\.|\s*$)/
     |> Regex.scan(index, capture: :all_but_first)
@@ -208,6 +253,7 @@ defmodule MykonosBiennale.Search do
   end
 
   defp extract_rel_events(nil), do: []
+
   defp extract_rel_events(index) do
     ~r/rel\.event:([^:]+?)(?=\s+\w+\.|\s*$)/
     |> Regex.scan(index, capture: :all_but_first)
@@ -219,6 +265,7 @@ defmodule MykonosBiennale.Search do
   end
 
   defp extract_participant_roles(nil), do: []
+
   defp extract_participant_roles(index) do
     # Extract roles from rel.in_artwork and rel.directed_film sections
     # The role appears as a token like "creator", "director" in these sections
@@ -232,6 +279,7 @@ defmodule MykonosBiennale.Search do
   end
 
   defp extract_participant_works(nil), do: []
+
   defp extract_participant_works(index) do
     ~r/(?:rel\.in_artwork|rel\.directed_film|rel\.acted_in_film|rel\.participated_in_film):([^:]+?)(?=\s+\w+\.|\s*$)/
     |> Regex.scan(index, capture: :all_but_first)
@@ -275,8 +323,9 @@ defmodule MykonosBiennale.Search do
 
   defp compose_name(_), do: nil
 
-  defp entity_subtitle(%Entity{type: "biennale", fields: %{"theme" => theme}}) when is_binary(theme),
-    do: theme
+  defp entity_subtitle(%Entity{type: "biennale", fields: %{"theme" => theme}})
+       when is_binary(theme),
+       do: theme
 
   defp entity_subtitle(%Entity{type: "biennale"}), do: "Biennale Edition"
 

@@ -67,6 +67,7 @@ defmodule MykonosBiennaleWeb.ArtworkController do
       )
       |> Enum.map(fn rel ->
         event = rel.object
+
         %{
           id: event.id,
           title: event.fields["title"],

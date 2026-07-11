@@ -140,13 +140,21 @@
                   <%= case m.source_type do %>
                     <% "upload" -> %>
                       <%= if m.source_path do %>
-                        <img src={media_thumb(m)} alt={m.alt_text || m.caption} class="w-full h-full object-contain" />
+                        <img
+                          src={media_thumb(m)}
+                          alt={m.alt_text || m.caption}
+                          class="w-full h-full object-contain"
+                        />
                       <% else %>
                         <.icon name="hero-photo" class="w-8 h-8 text-gray-400" />
                       <% end %>
                     <% "url" -> %>
                       <%= if m.source_url do %>
-                        <img src={m.source_url} alt={m.alt_text || m.caption} class="w-full h-full object-contain" />
+                        <img
+                          src={m.source_url}
+                          alt={m.alt_text || m.caption}
+                          class="w-full h-full object-contain"
+                        />
                       <% else %>
                         <.icon name="hero-link" class="w-8 h-8 text-gray-400" />
                       <% end %>
@@ -202,7 +210,12 @@
                   <div class="px-2 py-1 text-xs text-gray-400 truncate">{m.caption}</div>
                 <% end %>
                 <%= if m.original_name do %>
-                  <div class="px-2 pb-1 text-[10px] text-gray-600 truncate" title={m.original_name}>{m.original_name}</div>
+                  <div
+                    class="px-2 pb-1 text-[10px] text-gray-600 truncate"
+                    title={m.original_name}
+                  >
+                    {m.original_name}
+                  </div>
                 <% end %>
               </div>
             <% end %>
@@ -211,7 +224,10 @@
       <% end %>
 
       <%= if @move_media_id do %>
-        <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50" phx-click="cancel_move_media">
+        <div
+          class="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+          phx-click="cancel_move_media"
+        >
           <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4" phx-click={nil}>
             <h2 class="text-lg font-bold text-white mb-4">Move media to artwork</h2>
             <form phx-submit="search_artwork" phx-change="search_artwork">

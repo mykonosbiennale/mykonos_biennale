@@ -220,7 +220,6 @@ defmodule MykonosBiennaleWeb.MediaController do
     end
   end
 
-
   defp parse_dimensions(dim) do
     case Map.get(@sizes, dim) do
       {w, h} ->

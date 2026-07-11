@@ -32,12 +32,10 @@ defmodule MykonosBiennale.Workers.ImportFestival do
     end
   end
 
-
   defp records_by_model(model) do
     load_records()
     |> Enum.filter(&(&1["model"] == model))
   end
-
 
   defp find_existing_by_type(model, pk, type) do
     pk_str = to_string(pk)

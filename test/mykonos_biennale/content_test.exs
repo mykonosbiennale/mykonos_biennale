@@ -35,7 +35,10 @@ defmodule MykonosBiennale.ContentTest do
 
     test "update_entity/2 updates entity fields" do
       entity = ContentFixtures.artwork_fixture()
-      {:ok, updated} = Content.update_entity(entity, %{fields: Map.put(entity.fields, "title", "Updated")})
+
+      {:ok, updated} =
+        Content.update_entity(entity, %{fields: Map.put(entity.fields, "title", "Updated")})
+
       assert updated.fields["title"] == "Updated"
     end
 
@@ -177,7 +180,9 @@ defmodule MykonosBiennale.ContentTest do
 
   describe "media CRUD" do
     test "create_media/1 creates a media record with auto-generated slug" do
-      {:ok, media} = Content.create_media(%{source_type: "upload", source_path: "test.jpg", caption: "Test"})
+      {:ok, media} =
+        Content.create_media(%{source_type: "upload", source_path: "test.jpg", caption: "Test"})
+
       assert %Media{} = media
       assert media.slug != nil
       assert media.caption == "Test"

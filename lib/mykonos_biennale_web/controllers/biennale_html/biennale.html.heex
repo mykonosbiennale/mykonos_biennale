@@ -4,117 +4,121 @@
       <h1 class="text-3xl font-bold uppercase">Mykonos Biennale</h1>
     </div>
   <% else %>
-  <%!-- Hero Section --%>
-  <div
-    :if={@biennale_media != []}
-    class="relative min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat px-4"
-    style={
-      if media_url(List.first(@biennale_media), size: "hero"),
-        do: "background-image: url('#{media_url(List.first(@biennale_media), size: "hero")}');",
-        else: ""
-    }
-  >
-    <div class="bg-black/40 p-8 text-center text-white">
-      <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4">{@biennale.fields["theme"]}</h1>
-      <p class="text-2xl md:text-3xl text-gray-300 font-light">{@biennale.fields["year"]}</p>
-      <%= if @biennale.fields["start_date"] && @biennale.fields["end_date"] do %>
-        <p class="text-lg text-gray-400 mt-4">
-          {format_date(@biennale.fields["start_date"])} – {format_date(
-            @biennale.fields["end_date"]
-          )}
-        </p>
-      <% end %>
-    </div>
-  </div>
-
-  <%!-- Fallback hero when no media --%>
-  <div :if={@biennale_media == []} class="min-h-[60vh] flex items-center justify-center px-4">
-    <div class="text-center">
-      <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4">{@biennale.fields["theme"]}</h1>
-      <p class="text-2xl md:text-3xl text-gray-300 font-light">{@biennale.fields["year"]}</p>
-      <%= if @biennale.fields["start_date"] && @biennale.fields["end_date"] do %>
-        <p class="text-lg text-gray-400 mt-4">
-          {format_date(@biennale.fields["start_date"])} – {format_date(
-            @biennale.fields["end_date"]
-          )}
-        </p>
-      <% end %>
-    </div>
-  </div>
-
-  <%!-- Statement Section --%>
-  <%= if @biennale.fields["statement"] do %>
-    <div class="bg-[#222] text-white py-20 px-6">
-      <div class="mx-auto max-w-5xl">
-        <h2 class="text-3xl font-light italic mb-10 text-center">{@biennale.fields["theme"]}</h2>
-        <p class="text-sm leading-relaxed text-gray-300">{@biennale.fields["statement"]}</p>
+    <%!-- Hero Section --%>
+    <div
+      :if={@biennale_media != []}
+      class="relative min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat px-4"
+      style={
+        if media_url(List.first(@biennale_media), size: "hero"),
+          do: "background-image: url('#{media_url(List.first(@biennale_media), size: "hero")}');",
+          else: ""
+      }
+    >
+      <div class="bg-black/40 p-8 text-center text-white">
+        <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4">{@biennale.fields["theme"]}</h1>
+        <p class="text-2xl md:text-3xl text-gray-300 font-light">{@biennale.fields["year"]}</p>
+        <%= if @biennale.fields["start_date"] && @biennale.fields["end_date"] do %>
+          <p class="text-lg text-gray-400 mt-4">
+            {format_date(@biennale.fields["start_date"])} – {format_date(
+              @biennale.fields["end_date"]
+            )}
+          </p>
+        <% end %>
       </div>
     </div>
-  <% end %>
 
-  <%!-- Events Grid --%>
-  <%= if @events != [] do %>
-    <% remainder = rem(length(@events), 4) %>
-    <% {last_span, penultimate_span} =
-      cond do
-        remainder == 1 -> {"lg:col-span-4", "lg:col-span-2 md:col-span-1"}
-        remainder == 3 -> {"lg:col-span-2", nil}
-        true -> {nil, nil}
-      end %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-      <%= for {event, idx} <- Enum.with_index(@events) do %>
-        <% is_last = idx == length(@events) - 1 %>
-        <% is_penultimate = idx == length(@events) - 2 %>
-        <% span_class =
-          cond do
-            is_last && last_span -> last_span
-            is_penultimate && penultimate_span -> penultimate_span
-            true -> ""
-          end %>
+    <%!-- Fallback hero when no media --%>
+    <div :if={@biennale_media == []} class="min-h-[60vh] flex items-center justify-center px-4">
+      <div class="text-center">
+        <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4">{@biennale.fields["theme"]}</h1>
+        <p class="text-2xl md:text-3xl text-gray-300 font-light">{@biennale.fields["year"]}</p>
+        <%= if @biennale.fields["start_date"] && @biennale.fields["end_date"] do %>
+          <p class="text-lg text-gray-400 mt-4">
+            {format_date(@biennale.fields["start_date"])} – {format_date(
+              @biennale.fields["end_date"]
+            )}
+          </p>
+        <% end %>
+      </div>
+    </div>
 
-        <div class={[
-          "flex flex-col h-full border-b border-r border-gray-100 text-[#444]",
-          span_class
-        ]}>
-          <div
-            :if={event.background_image}
-            class="h-64 bg-cover bg-center"
-            style={"background-image: url('#{event.background_image}');"}
-          >
-          </div>
-          <div
-            :if={is_nil(event.background_image)}
-            class="h-64 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center"
-          >
-            <span class="text-5xl text-gray-400">{String.slice(event.title || "", 0, 1)}</span>
-          </div>
-          <div class={"#{if rem(idx, 2) == 0, do: "bg-gray-50", else: "bg-white"} flex-grow p-8"}>
-            <h3 class="text-xl font-bold uppercase mb-4">
-              <a href={"/event/#{event.id}"} class="hover:text-purple-600 transition-colors">{event.title}</a>
-            </h3>
-            <%!-- <%= if event.date do %>
+    <%!-- Statement Section --%>
+    <%= if @biennale.fields["statement"] do %>
+      <div class="bg-[#222] text-white py-20 px-6">
+        <div class="mx-auto max-w-5xl">
+          <h2 class="text-3xl font-light italic mb-10 text-center">
+            {@biennale.fields["theme"]}
+          </h2>
+          <p class="text-sm leading-relaxed text-gray-300">{@biennale.fields["statement"]}</p>
+        </div>
+      </div>
+    <% end %>
+
+    <%!-- Events Grid --%>
+    <%= if @events != [] do %>
+      <% remainder = rem(length(@events), 4) %>
+      <% {last_span, penultimate_span} =
+        cond do
+          remainder == 1 -> {"lg:col-span-4", "lg:col-span-2 md:col-span-1"}
+          remainder == 3 -> {"lg:col-span-2", nil}
+          true -> {nil, nil}
+        end %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+        <%= for {event, idx} <- Enum.with_index(@events) do %>
+          <% is_last = idx == length(@events) - 1 %>
+          <% is_penultimate = idx == length(@events) - 2 %>
+          <% span_class =
+            cond do
+              is_last && last_span -> last_span
+              is_penultimate && penultimate_span -> penultimate_span
+              true -> ""
+            end %>
+
+          <div class={[
+            "flex flex-col h-full border-b border-r border-gray-100 text-[#444]",
+            span_class
+          ]}>
+            <div
+              :if={event.background_image}
+              class="h-64 bg-cover bg-center"
+              style={"background-image: url('#{event.background_image}');"}
+            >
+            </div>
+            <div
+              :if={is_nil(event.background_image)}
+              class="h-64 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center"
+            >
+              <span class="text-5xl text-gray-400">{String.slice(event.title || "", 0, 1)}</span>
+            </div>
+            <div class={"#{if rem(idx, 2) == 0, do: "bg-gray-50", else: "bg-white"} flex-grow p-8"}>
+              <h3 class="text-xl font-bold uppercase mb-4">
+                <a href={"/event/#{event.id}"} class="hover:text-purple-600 transition-colors">
+                  {event.title}
+                </a>
+              </h3>
+              <%!-- <%= if event.date do %>
               <p class="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">{format_date(event.date)}</p>
             <% end %> --%>
-            <%= if event.description do %>
-              <p class="text-sm leading-relaxed text-gray-600 mb-4">{event.description}</p>
-            <% end %>
-            <a
-              href={"/biennale/#{event.slug}"}
-              class="text-xs font-bold uppercase text-[#f2ba49] hover:underline"
-            >
-              View Details
-            </a>
+              <%= if event.description do %>
+                <p class="text-sm leading-relaxed text-gray-600 mb-4">{event.description}</p>
+              <% end %>
+              <a
+                href={"/biennale/#{event.slug}"}
+                class="text-xs font-bold uppercase text-[#f2ba49] hover:underline"
+              >
+                View Details
+              </a>
+            </div>
           </div>
-        </div>
-      <% end %>
-    </div>
-  <% end %>
+        <% end %>
+      </div>
+    <% end %>
 
-  <%!-- Footer --%>
-  <footer class="bg-[#222] text-gray-500 py-12 px-6 text-center">
-    <p class="text-xs uppercase tracking-widest">
-      &copy; {@biennale.fields["year"]} Mykonos Biennale — All Rights Reserved
-    </p>
-  </footer>
+    <%!-- Footer --%>
+    <footer class="bg-[#222] text-gray-500 py-12 px-6 text-center">
+      <p class="text-xs uppercase tracking-widest">
+        &copy; {@biennale.fields["year"]} Mykonos Biennale — All Rights Reserved
+      </p>
+    </footer>
   <% end %>
 </div>

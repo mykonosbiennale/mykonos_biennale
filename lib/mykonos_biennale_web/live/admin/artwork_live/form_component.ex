@@ -636,6 +636,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
      |> assign(:available_participants, available_participants)
      |> put_flash(:info, "Participant unlinked successfully")}
   end
+
   def handle_event("save", params, socket) do
     artwork_params = extract_artwork_params(params)
     save_artwork(socket, socket.assigns.action, artwork_params)

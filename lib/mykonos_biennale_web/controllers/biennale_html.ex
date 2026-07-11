@@ -6,22 +6,23 @@ defmodule MykonosBiennaleWeb.BiennaleHTML do
   @system_templates [{"Default", "default"}, {"None (raw content)", "none"}]
 
   @discovered_templates (
-    dir = Path.join(__DIR__, "biennale_html")
-    for path <- Path.wildcard(Path.join(dir, "*.html.heex")),
-        name = Path.basename(path, ".html.heex"),
-        name not in ["biennale", "none"] do
-      label =
-        name
-        |> String.replace("-", " ")
-        |> String.replace("_", " ")
-        |> String.split(" ")
-        |> Enum.map(&String.capitalize/1)
-        |> Enum.join(" ")
+                          dir = Path.join(__DIR__, "biennale_html")
 
-      {label, name}
-    end
-    |> Enum.sort_by(fn {label, _} -> label end)
-  )
+                          for path <- Path.wildcard(Path.join(dir, "*.html.heex")),
+                              name = Path.basename(path, ".html.heex"),
+                              name not in ["biennale", "none"] do
+                            label =
+                              name
+                              |> String.replace("-", " ")
+                              |> String.replace("_", " ")
+                              |> String.split(" ")
+                              |> Enum.map(&String.capitalize/1)
+                              |> Enum.join(" ")
+
+                            {label, name}
+                          end
+                          |> Enum.sort_by(fn {label, _} -> label end)
+                        )
 
   def template_options, do: @system_templates ++ @discovered_templates
 
@@ -47,7 +48,7 @@ defmodule MykonosBiennaleWeb.BiennaleHTML do
         {hour, ""} = Integer.parse(h)
 
         suffix = if hour >= 12, do: "PM", else: "AM"
-        display_hour = if hour > 12, do: hour - 12, else: (if hour == 0, do: 12, else: hour)
+        display_hour = if hour > 12, do: hour - 12, else: if(hour == 0, do: 12, else: hour)
         "#{display_hour}:#{m} #{suffix}"
 
       _ ->

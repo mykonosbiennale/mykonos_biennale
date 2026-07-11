@@ -175,7 +175,9 @@ defmodule MykonosBiennaleWeb.EventController do
           Repo.all(
             from e in Entity,
               where: e.id in ^artwork_ids and e.visible == true,
-              order_by: [asc: fragment("lower(coalesce(? ->> ?, ?))", e.fields, "title", e.identity)]
+              order_by: [
+                asc: fragment("lower(coalesce(? ->> ?, ?))", e.fields, "title", e.identity)
+              ]
           )
 
         media_by_id = batch_media(artwork_ids)
@@ -216,7 +218,9 @@ defmodule MykonosBiennaleWeb.EventController do
           Repo.all(
             from e in Entity,
               where: e.id in ^film_ids and e.visible == true,
-              order_by: [asc: fragment("lower(coalesce(? ->> ?, ?))", e.fields, "title", e.identity)]
+              order_by: [
+                asc: fragment("lower(coalesce(? ->> ?, ?))", e.fields, "title", e.identity)
+              ]
           )
 
         media_by_id = batch_media(film_ids)

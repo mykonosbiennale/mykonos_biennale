@@ -248,7 +248,10 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
                   >
                     <div class="min-w-0">
                       <div class="text-sm font-medium text-gray-900 truncate">
-                        <.link navigate={"/admin/artworks/#{rel.subject_id}"} class="hover:text-blue-600">
+                        <.link
+                          navigate={"/admin/artworks/#{rel.subject_id}"}
+                          class="hover:text-blue-600"
+                        >
                           {field(rel.subject, "title")}
                         </.link>
                       </div>

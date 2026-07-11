@@ -14,8 +14,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
      |> assign(:current_page, 1)
      |> assign(:total_pages, 1)
      |> assign(:total_count, 0)
-      |> assign(:sort_by, :id)
-      |> assign(:sort_dir, :desc)
+     |> assign(:sort_by, :id)
+     |> assign(:sort_dir, :desc)
      |> stream(:events, [])}
   end
 

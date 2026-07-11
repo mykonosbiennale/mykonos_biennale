@@ -52,7 +52,10 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
      socket
      |> assign(:cache_files, cache_stats.files)
      |> assign(:cache_size, format_bytes(cache_stats.bytes))
-     |> put_flash(:info, "Cleared #{count + legacy_count} cached thumbnail(s). They will regenerate on next access.")}
+     |> put_flash(
+       :info,
+       "Cleared #{count + legacy_count} cached thumbnail(s). They will regenerate on next access."
+     )}
   end
 
   @impl true
@@ -248,7 +251,9 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
 
   defp format_date(_, _), do: ""
 
-  defp format_bytes(bytes) when bytes >= 1_000_000_000, do: "#{Float.round(bytes / 1_000_000_000, 1)} GB"
+  defp format_bytes(bytes) when bytes >= 1_000_000_000,
+    do: "#{Float.round(bytes / 1_000_000_000, 1)} GB"
+
   defp format_bytes(bytes) when bytes >= 1_000_000, do: "#{Float.round(bytes / 1_000_000, 1)} MB"
   defp format_bytes(bytes) when bytes >= 1_000, do: "#{Float.round(bytes / 1_000, 1)} KB"
   defp format_bytes(bytes), do: "#{bytes} B"

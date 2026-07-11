@@ -172,7 +172,7 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
             <.live_file_input upload={@uploads.images} class="hidden" />
             <button
               type="button"
-              onclick={"document.getElementById('project-form_images').click()"}
+              onclick="document.getElementById('project-form_images').click()"
               class="w-full rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-purple-500 px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400 transition-colors"
             >
               Click to select images
@@ -183,9 +183,12 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
                 <%= if entry.done? do %>
                   <.icon name="hero-check-circle" class="w-5 h-5 text-green-500" />
                 <% else %>
-                  <div class="w-5 h-5 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
+                  <div class="w-5 h-5 rounded-full border-2 border-purple-500 border-t-transparent animate-spin">
+                  </div>
                 <% end %>
-                <span class="text-xs text-gray-600 dark:text-gray-300 flex-1 truncate">{entry.client_name}</span>
+                <span class="text-xs text-gray-600 dark:text-gray-300 flex-1 truncate">
+                  {entry.client_name}
+                </span>
                 <button
                   type="button"
                   phx-click="cancel-upload"
@@ -348,12 +351,12 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
         File.cp!(path, dest)
 
         case Content.create_media(%{
-          source_type: "upload",
-          source_path: filename,
-          mime_type: entry.client_type,
-          original_name: entry.client_name,
-          caption: title
-        }) do
+               source_type: "upload",
+               source_path: filename,
+               mime_type: entry.client_type,
+               original_name: entry.client_name,
+               caption: title
+             }) do
           {:ok, media} ->
             Content.attach_media_to_entity(project, media)
             {:ok, media}

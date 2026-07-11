@@ -69,6 +69,10 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Show do
     MediaProcess.enqueue_rotate(media.id, String.to_integer(degrees))
 
     {:noreply,
-      put_flash(socket, :info, "Rotation #{degrees}° queued for #{media.original_name || media.caption}")}
+     put_flash(
+       socket,
+       :info,
+       "Rotation #{degrees}° queued for #{media.original_name || media.caption}"
+     )}
   end
 end
