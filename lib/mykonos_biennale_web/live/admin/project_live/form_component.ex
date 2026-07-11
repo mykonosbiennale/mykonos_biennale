@@ -2,7 +2,7 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Media, Entity}
+  alias MykonosBiennale.Content.Media
   alias Ecto.Changeset
 
   defmodule ProjectForm do

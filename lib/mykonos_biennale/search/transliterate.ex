@@ -154,7 +154,7 @@ defmodule MykonosBiennale.Search.Transliterate do
 
   defp do_translit(rest, acc) do
     case match_digraph(rest) do
-      {match, repl, tail} ->
+      {_match, repl, tail} ->
         do_translit(tail, [repl | acc])
 
       :nomatch ->

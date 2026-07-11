@@ -20,7 +20,6 @@ defmodule MykonosBiennale.Workers.ImportFestival do
   alias MykonosBiennale.Content.Entity
 
   @records_path "exports/festival/records.json"
-  @manifest_path "exports/festival/media_manifest.json"
 
   defp load_records do
     path = Path.join(File.cwd!(), @records_path)
@@ -33,33 +32,12 @@ defmodule MykonosBiennale.Workers.ImportFestival do
     end
   end
 
-  defp load_manifest do
-    path = Path.join(File.cwd!(), @manifest_path)
-
-    if File.exists?(path) do
-      {:ok, raw} = File.read(path)
-      Jason.decode!(raw)
-    else
-      raise "Manifest file not found at #{path}"
-    end
-  end
 
   defp records_by_model(model) do
     load_records()
     |> Enum.filter(&(&1["model"] == model))
   end
 
-  defp find_existing(model, pk) do
-    pk_str = to_string(pk)
-
-    Repo.one(
-      from(e in Entity,
-        where:
-          fragment("? ->> 'import_model'", e.fields) == ^model and
-            fragment("? ->> 'import_pk'", e.fields) == ^pk_str
-      )
-    )
-  end
 
   defp find_existing_by_type(model, pk, type) do
     pk_str = to_string(pk)

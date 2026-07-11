@@ -5,8 +5,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
 
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
-  alias MykonosBiennale.Search
+  alias MykonosBiennale.Content.{Relationship, RelationshipType, Media, EntityMedia}
 
   @per_page 24
 

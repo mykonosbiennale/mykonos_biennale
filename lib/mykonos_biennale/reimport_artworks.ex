@@ -51,7 +51,7 @@ defmodule MykonosBiennale.ReimportArtworks do
         artist = Map.get(artist_map, artist_pk)
         artist_name = artist && artist["fields"]["name"] || ""
 
-        biennale_title = festival && festival["fields"]["title"] || ""
+        _biennale_title = festival && festival["fields"]["title"] || ""
 
         {title_slug, year, project_slug, artist_name}
       end)
@@ -90,7 +90,7 @@ defmodule MykonosBiennale.ReimportArtworks do
     |> Enum.sort_by(fn g -> {g.artist_name, g.year, g.title} end)
   end
 
-  defp get_biennale_title(items, project_map, ps_map, fest_map) do
+  defp get_biennale_title(items, project_map, _ps_map, fest_map) do
     art = hd(items)
     project_pk = get_in(art, ["foreign_keys", "project", "pk"])
     project = Map.get(project_map, project_pk)

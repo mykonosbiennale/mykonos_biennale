@@ -4,7 +4,6 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
   import Ecto.Query, warn: false
 
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content
   alias MykonosBiennale.Content.{Entity, Media, Relationship, RelationshipType, EntityMedia}
 
   @impl true
@@ -145,7 +144,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
   defp enqueue_reindex(survivor_ids) do
     survivor_ids
     |> Enum.uniq()
-    |> Enum.each(&MykonosBiennale.SearchReindex.enqueue_entity/1)
+    |> Enum.each(&MykonosBiennale.Workers.SearchReindex.enqueue_entity/1)
   end
 
   defp load_duplicate_groups(mode) do

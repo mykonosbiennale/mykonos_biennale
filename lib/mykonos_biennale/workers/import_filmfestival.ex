@@ -41,18 +41,6 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
     |> Enum.filter(&(&1["fields"]["status"] == "SELECTED"))
   end
 
-  defp find_existing_by_type(model, pk, type) do
-    pk_str = to_string(pk)
-
-    Repo.one(
-      from(e in Entity,
-        where:
-          e.type == ^type and
-            fragment("? ->> 'import_model'", e.fields) == ^model and
-            fragment("? ->> 'import_pk'", e.fields) == ^pk_str
-      )
-    )
-  end
 
   defp find_existing_film(pk) do
     pk_str = to_string(pk)
@@ -718,7 +706,6 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
 
   ## -- Media helpers --
 
-  @s3_base "https://s3.amazonaws.com/com.mykonosbiennale.static/"
 
   defp download_s3_image(url) do
     filename =

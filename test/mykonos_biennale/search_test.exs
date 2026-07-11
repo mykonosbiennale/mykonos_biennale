@@ -84,14 +84,14 @@ defmodule MykonosBiennale.SearchTest do
       entity = ContentFixtures.artwork_fixture(title: "FindableArtworkXYZ")
       Indexer.index_entity(entity.id)
       results = Search.search("FindableArtworkXYZ")
-      assert Enum.any?(results.entities, &(&1.id == entity.id))
+      assert Enum.any?(results.artworks, &(&1.id == entity.id))
     end
 
     test "is case-insensitive" do
       entity = ContentFixtures.artwork_fixture(title: "MixedCaseTitle")
       Indexer.index_entity(entity.id)
       results = Search.search("mixedcasetitle")
-      assert Enum.any?(results.entities, &(&1.id == entity.id))
+      assert Enum.any?(results.artworks, &(&1.id == entity.id))
     end
   end
 end

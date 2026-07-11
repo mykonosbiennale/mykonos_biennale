@@ -50,7 +50,7 @@ defmodule MykonosBiennale.Search do
 
   def search(term, opts) do
     limit = Keyword.get(opts, :limit, @default_limit)
-    normalized = Transliterate.normalize(term)
+    _normalized = Transliterate.normalize(term)
     # normalize() returns both Greek and Latin forms joined by spaces.
     # For a single source word like "Βενιέρη", it returns "βενιερη venieri"
     # — these are alternatives (OR), not both required (AND).
@@ -280,7 +280,7 @@ defmodule MykonosBiennale.Search do
 
   defp entity_subtitle(%Entity{type: "biennale"}), do: "Biennale Edition"
 
-  defp entity_subtitle(%Entity{type: type, fields: fields} = entity) do
+  defp entity_subtitle(%Entity{type: type, fields: fields}) do
     cond do
       type == "event" ->
         date = Map.get(fields, "date")

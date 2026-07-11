@@ -55,7 +55,7 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Show do
   defp entity_link(%Entity{type: "event"} = e), do: "/admin/events/#{e.id}"
   defp entity_link(%Entity{type: "biennale"} = e), do: "/admin/biennales/#{e.id}"
   defp entity_link(%Entity{type: "project"} = e), do: "/admin/projects/#{e.id}"
-  defp entity_link(%Entity{} = e), do: "/admin"
+  defp entity_link(%Entity{}), do: "/admin"
 
   defp media_source_url(%Media{source_type: "upload"} = media),
     do: MykonosBiennale.Uploads.media_url(media, size: "hero")

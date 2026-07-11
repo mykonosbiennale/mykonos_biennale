@@ -1,76 +1,79 @@
 defmodule MykonosBiennaleWeb.UserLive.RegistrationTest do
-  use MykonosBiennaleWeb.ConnCase
+  use MykonosBiennaleWeb.ConnCase, async: true
 
+  # Public registration is disabled in this app — no /users/register route exists.
+  # These tests are kept for reference but skipped.
   import Phoenix.LiveViewTest
   import MykonosBiennale.AccountsFixtures
+  alias MykonosBiennale.Accounts
 
-  describe "Registration page" do
+  @register_path "/users/register"
+
+  describe "Registration page (disabled)" do
+    @tag :skip
     test "renders registration page", %{conn: conn} do
-      {:ok, _lv, html} = live(conn, ~p"/users/register")
+      {:ok, _lv, html} = live(conn, @register_path)
 
       assert html =~ "Register"
       assert html =~ "Log in"
     end
 
+    @tag :skip
     test "redirects if already logged in", %{conn: conn} do
-      result =
-        conn
-        |> log_in_user(user_fixture())
-        |> live(~p"/users/register")
-        |> follow_redirect(conn, ~p"/")
-
-      assert {:ok, _conn} = result
-    end
-
-    test "renders errors for invalid data", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/register")
-
-      result =
-        lv
-        |> element("#registration_form")
-        |> render_change(user: %{"email" => "with spaces"})
-
-      assert result =~ "Register"
-      assert result =~ "must have the @ sign and no spaces"
+      user = user_fixture()
+      conn = conn |> log_in_user(user) |> live(@register_path)
+      assert_redirect(conn, ~p"/")
     end
   end
 
-  describe "register user" do
+  describe "register user (disabled)" do
+    @tag :skip
     test "creates account but does not log in", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/register")
+      {:ok, lv, _html} = live(conn, @register_path)
 
       email = unique_user_email()
-      form = form(lv, "#registration_form", user: valid_user_attributes(email: email))
 
-      {:ok, _lv, html} =
-        render_submit(form)
-        |> follow_redirect(conn, ~p"/users/log-in")
+      lv
+      |> form("#registration_form", user: valid_user_attributes(email: email))
+      |> render_submit()
 
-      assert html =~
-               ~r/An email was sent to .*, please access it to confirm your account/
+      conn = follow_trigger_action(lv, conn)
+
+      assert redirected_to(conn) == ~p"/users/log-in"
+
+      user = Accounts.get_user_by_email(email)
+      refute user.confirmed_at
     end
 
-    test "renders errors for duplicated email", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/register")
+    @tag :skip
+    test "renders errors for duplicated email", %{conn: conn, user: user} do
+      {:ok, lv, _html} = live(conn, @register_path)
 
-      user = user_fixture(%{email: "test@email.com"})
+      lv
+      |> form("#registration_form", user: valid_user_attributes(email: user.email))
+      |> render_change()
 
-      result =
-        lv
-        |> form("#registration_form",
-          user: %{"email" => user.email}
-        )
-        |> render_submit()
+      assert lv |> element("#registration_form") |> render() =~ "has already been taken"
+    end
 
-      assert result =~ "has already been taken"
+    @tag :skip
+    test "renders errors for invalid data", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, @register_path)
+
+      lv
+      |> form("#registration_form", user: %{email: "not an email", password: "123"})
+      |> render_change()
+
+      assert lv |> element("#registration_form") |> render() =~ "must be a valid email"
     end
   end
 
-  describe "registration navigation" do
+  describe "registration navigation (disabled)" do
+    @tag :skip
     test "redirects to login page when the Log in button is clicked", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/register")
+      {:ok, lv, _html} = live(conn, @register_path)
 
-      {:ok, _login_live, login_html} =
+      {:ok, _registration_live, login_html} =
         lv
         |> element("main a", "Log in")
         |> render_click()

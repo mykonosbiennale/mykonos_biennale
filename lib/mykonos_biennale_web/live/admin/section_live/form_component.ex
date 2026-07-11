@@ -78,7 +78,7 @@ defmodule MykonosBiennaleWeb.Admin.SectionLive.FormComponent do
   end
 
   @impl true
-  def update(%{metadata: metadata} = assigns, socket) when is_map(metadata) do
+  def update(%{metadata: metadata} = _assigns, socket) when is_map(metadata) do
     changeset =
       socket.assigns[:form] &&
         Changeset.put_change(socket.assigns.form.source, :metadata, metadata)

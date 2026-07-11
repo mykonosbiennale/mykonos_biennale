@@ -164,11 +164,11 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
     Map.get(fields, to_string(key), Map.get(fields, key, default))
   end
 
+  defp field(%Content.Entity{}, _key, default), do: default
+
   defp patch_path(base, page, sort_by, sort_dir) do
     "#{base}?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
   end
-
-  defp field(%Content.Entity{}, _key, default), do: default
 
   defp event_biennale(%Content.Entity{as_subject: rels}) when is_list(rels) do
     case Enum.find(rels, &rel_type_slug?(&1, "biennale_event")) do

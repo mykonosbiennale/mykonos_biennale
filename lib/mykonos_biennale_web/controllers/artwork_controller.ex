@@ -6,7 +6,6 @@ defmodule MykonosBiennaleWeb.ArtworkController do
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
-  alias MykonosBiennaleWeb.ArtworkHTML
 
   def show(conn, %{"id" => id}) do
     case Repo.get(Entity, id) do

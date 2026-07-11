@@ -1,4 +1,9 @@
 <div class="min-h-screen bg-black text-white">
+  <%= if !@biennale do %>
+    <div class="min-h-screen flex items-center justify-center">
+      <h1 class="text-3xl font-bold uppercase">Mykonos Biennale</h1>
+    </div>
+  <% else %>
   <%!-- Hero Section --%>
   <div
     :if={@biennale_media != []}
@@ -111,4 +116,5 @@
       &copy; {@biennale.fields["year"]} Mykonos Biennale — All Rights Reserved
     </p>
   </footer>
+  <% end %>
 </div>

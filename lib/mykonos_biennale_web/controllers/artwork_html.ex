@@ -8,7 +8,9 @@ defmodule MykonosBiennaleWeb.ArtworkHTML do
   def media_url(media, opts \\ [])
   def media_url(media, opts), do: MykonosBiennale.Uploads.media_url(media, opts)
 
-  defp field(%Entity{fields: fields}, key, default \\ nil) when is_map(fields) do
+  defp field(entity, key, default \\ nil)
+
+  defp field(%Entity{fields: fields}, key, default) when is_map(fields) do
     Map.get(fields, to_string(key), Map.get(fields, key, default))
   end
 
@@ -22,8 +24,4 @@ defmodule MykonosBiennaleWeb.ArtworkHTML do
 
   defp participant_name(_), do: "Unknown"
 
-  defp dimensions(nil, nil), do: nil
-  defp dimensions(nil, h), do: "#{h} cm"
-  defp dimensions(w, nil), do: "#{w} cm"
-  defp dimensions(w, h), do: "#{w} × #{h} cm"
 end

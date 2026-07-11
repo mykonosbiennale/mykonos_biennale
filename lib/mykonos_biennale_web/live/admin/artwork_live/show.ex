@@ -5,7 +5,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Show do
 
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Media, Relationship, RelationshipType, EntityMedia}
+  alias MykonosBiennale.Content.{Entity, Media, RelationshipType}
   alias MykonosBiennale.Workers.MediaProcess
 
   @impl true
@@ -165,6 +165,8 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Show do
     {:noreply,
      put_flash(socket, :info, "Rotation #{degrees}° queued for #{media.original_name || media.caption}")}
   end
+
+  @impl true
 
   def handle_info({:fields_changed, %{content: content}}, socket) do
     case Jason.decode(content) do

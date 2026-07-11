@@ -43,7 +43,7 @@ defmodule MykonosBiennaleWeb.AdminCase do
   end
 
   @doc "Creates an admin-role user."
-  def admin_user_fixture(attrs \\ %{}) do
+  def admin_user_fixture(_attrs \\ %{}) do
     user = MykonosBiennale.AccountsFixtures.user_fixture()
 
     user

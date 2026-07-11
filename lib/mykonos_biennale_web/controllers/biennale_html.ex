@@ -47,7 +47,7 @@ defmodule MykonosBiennaleWeb.BiennaleHTML do
         {hour, ""} = Integer.parse(h)
 
         suffix = if hour >= 12, do: "PM", else: "AM"
-        display_hour = if hour > 12, do: hour - 12, else: if hour == 0, do: 12, else: hour
+        display_hour = if hour > 12, do: hour - 12, else: (if hour == 0, do: 12, else: hour)
         "#{display_hour}:#{m} #{suffix}"
 
       _ ->

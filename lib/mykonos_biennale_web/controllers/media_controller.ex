@@ -220,22 +220,6 @@ defmodule MykonosBiennaleWeb.MediaController do
     end
   end
 
-  defp serve_original_variant(conn, media, ext) do
-    original_path = MykonosBiennale.Uploads.uploads_path(media.source_path)
-
-    if File.exists?(original_path) do
-      mime = mime_type(ext)
-
-      conn
-      |> put_resp_header("content-type", mime)
-      |> put_resp_header("cache-control", "public, max-age=31536000, immutable")
-      |> send_file(200, original_path)
-    else
-      conn
-      |> put_status(404)
-      |> text("Not found")
-    end
-  end
 
   defp parse_dimensions(dim) do
     case Map.get(@sizes, dim) do

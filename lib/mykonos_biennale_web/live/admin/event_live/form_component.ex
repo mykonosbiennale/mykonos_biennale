@@ -3,8 +3,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.{Repo, Content}
-  alias MykonosBiennale.Content.{Relationship, RelationshipType, Media, Entity, EntityMedia}
+  alias MykonosBiennale.Content
+  alias MykonosBiennale.Content.{Relationship, Media, Entity}
   alias Ecto.Changeset
 
   defmodule EventForm do
@@ -1157,7 +1157,9 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     |> Enum.into(%{})
   end
 
-  defp field(%Entity{fields: fields}, key, default \\ nil) when is_map(fields) do
+  defp field(entity, key, default \\ nil)
+
+  defp field(%Entity{fields: fields}, key, default) when is_map(fields) do
     Map.get(fields, to_string(key), Map.get(fields, key, default))
   end
 
