@@ -90,6 +90,7 @@ defmodule MykonosBiennaleWeb.Router do
     live_session :admin,
       on_mount: [
         {MykonosBiennaleWeb.UserAuth, :require_authenticated},
+        {MykonosBiennaleWeb.UserAuth, :require_admin},
         {MykonosBiennaleWeb.UserAuth, :admin_nav_assigns}
       ],
       root_layout: {MykonosBiennaleWeb.Layouts, :admin_root} do

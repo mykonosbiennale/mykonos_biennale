@@ -28,6 +28,7 @@ defmodule MykonosBiennaleWeb.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import MykonosBiennaleWeb.ConnCase
+      import Phoenix.LiveViewTest
     end
   end
 

@@ -42,12 +42,15 @@ defmodule MykonosBiennale.ContentFixtures do
 
     {:ok, biennale} =
       Content.create_biennale(%{
-        year: to_string(year),
+        year: year,
         theme: theme,
+        statement: Map.get(attrs, "statement") || Map.get(attrs, :statement),
+        description: Map.get(attrs, "description") || Map.get(attrs, :description),
         visible: Map.get(attrs, "visible") || Map.get(attrs, :visible, true),
         template: Map.get(attrs, "template") || Map.get(attrs, :template, "default"),
         start_date: Map.get(attrs, "start_date") || Map.get(attrs, :start_date, "2025-09-27"),
-        end_date: Map.get(attrs, "end_date") || Map.get(attrs, :end_date, "2025-10-05")
+        end_date: Map.get(attrs, "end_date") || Map.get(attrs, :end_date, "2025-10-05"),
+        show_program: Map.get(attrs, "show_program") || Map.get(attrs, :show_program, true)
       })
 
     biennale

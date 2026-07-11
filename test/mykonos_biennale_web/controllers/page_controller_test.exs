@@ -1,10 +1,27 @@
 defmodule MykonosBiennaleWeb.PageControllerTest do
   use MykonosBiennaleWeb.ConnCase
 
-  test "GET / returns a page", %{conn: conn} do
+  alias MykonosBiennale.ContentFixtures
+
+  test "GET / renders home page with active biennale", %{conn: conn} do
+    _biennale =
+      ContentFixtures.biennale_fixture(
+        year: 2025,
+        theme: "Test Biennale Theme",
+        template: "default",
+        start_date: "2025-09-27",
+        end_date: "2025-10-05"
+      )
+
     conn = get(conn, ~p"/")
-    # May be 200 or 500 depending on whether biennale data exists in test DB
-    # Just assert we can call the route without crashing the test runner
-    assert conn.status in [200, 302, 500]
+    html = html_response(conn, 200)
+    assert html =~ "Test Biennale Theme"
+    assert html =~ "2025"
+  end
+
+  test "GET / renders without biennale data (fallback)", %{conn: conn} do
+    conn = get(conn, ~p"/")
+    html = html_response(conn, 200)
+    assert html =~ "Mykonos Biennale"
   end
 end

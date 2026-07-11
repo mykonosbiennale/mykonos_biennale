@@ -76,8 +76,8 @@ defmodule MykonosBiennale.ContentTest do
       _b2 = ContentFixtures.biennale_fixture(year: 2025)
       biennales = Content.list_biennales()
       years = Enum.map(biennales, & &1.fields["year"])
-      assert "2025" in years
-      assert "2023" in years
+      assert 2025 in years
+      assert 2023 in years
     end
 
     test "update_biennale/2 updates biennale fields" do

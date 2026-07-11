@@ -30,8 +30,9 @@ defmodule MykonosBiennale.Content.Project do
           from rt in RelationshipType, where: rt.slug == "event_project", select: rt.id, limit: 1
         )
 
-      Repo.all(
-        from p in Entity,
+      if biennale_event_rt_id && event_project_rt_id do
+        Repo.all(
+          from p in Entity,
           join: ep in Relationship,
           on:
             ep.relationship_type_id == ^event_project_rt_id and
@@ -43,7 +44,10 @@ defmodule MykonosBiennale.Content.Project do
           where: p.type == "project" and be.object_id == ^biennale_entity.id,
           distinct: p.id,
           order_by: [asc: p.identity]
-      )
+        )
+      else
+        []
+      end
     else
       []
     end

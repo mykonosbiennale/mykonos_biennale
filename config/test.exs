@@ -1,4 +1,9 @@
 import Config
+
+config :mykonos_biennale, :uploads_dir, Path.expand("../tmp/test_uploads", __DIR__)
+
+config :mykonos_biennale, :media_host, ""
+
 config :mykonos_biennale, Oban, testing: :manual
 
 # Only in tests, remove the complexity from the password hashing algorithm
@@ -13,7 +18,7 @@ config :mykonos_biennale, MykonosBiennale.Repo,
   url:
     System.get_env("TEST_DATABASE_URL") ||
       "ecto://thanos@localhost/mykonos_biennale_test#{System.get_env("MIX_TEST_PARTITION")}",
-  pool_size: 5,
+  pool_size: 30,
   pool: Ecto.Adapters.SQL.Sandbox,
   ssl: false
 
