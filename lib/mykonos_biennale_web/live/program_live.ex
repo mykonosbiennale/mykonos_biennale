@@ -139,7 +139,10 @@ defmodule MykonosBiennaleWeb.ProgramLive do
                       <%= for event <- @events_by_type[type] do %>
                         <div class="bg-gray-900/50 border border-gray-800 p-6 hover:border-gray-700 transition-all">
                           <h3 class="text-2xl font-bold mb-3">
-                            <.link navigate={~p"/event/#{event.id}"} class="hover:text-gray-300 transition-colors">
+                            <.link
+                              navigate={~p"/event/#{event.id}"}
+                              class="hover:text-gray-300 transition-colors"
+                            >
                               {event.fields["title"]}
                             </.link>
                           </h3>

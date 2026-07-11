@@ -800,6 +800,7 @@ defmodule MykonosBiennaleWeb.CoreComponents do
   attr :current_sort, :atom, default: nil
   attr :current_dir, :atom, default: nil
   attr :class, :string, default: ""
+  slot :inner_block, required: true
 
   def sort_header(assigns) do
     ~H"""
@@ -932,7 +933,7 @@ defmodule MykonosBiennaleWeb.CoreComponents do
     "#{base_path}?#{URI.encode_query(params)}"
   end
 
-  defp page_range(current, total) when total <= 7 do
+  defp page_range(_current, total) when total <= 7 do
     Enum.to_list(1..total)
   end
 

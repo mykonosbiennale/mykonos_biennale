@@ -7,7 +7,15 @@ defmodule MykonosBiennale.SiteTest do
 
   describe "page CRUD" do
     test "create_page/1 creates a page" do
-      {:ok, page} = Site.create_page(%{title: "Test Page", slug: "test-page", content: "<p>Hello</p>", visible: true, template: "default"})
+      {:ok, page} =
+        Site.create_page(%{
+          title: "Test Page",
+          slug: "test-page",
+          content: "<p>Hello</p>",
+          visible: true,
+          template: "default"
+        })
+
       assert %Page{} = page
       assert page.title == "Test Page"
       assert page.slug == "test-page"
@@ -58,7 +66,17 @@ defmodule MykonosBiennale.SiteTest do
   describe "section CRUD" do
     test "create_section/1 creates a section linked to a page" do
       page = SiteFixtures.page_fixture()
-      {:ok, section} = Site.create_section(%{title: "Test", slug: "test", page_id: page.id, content: "x", visible: true, template: "default"})
+
+      {:ok, section} =
+        Site.create_section(%{
+          title: "Test",
+          slug: "test",
+          page_id: page.id,
+          content: "x",
+          visible: true,
+          template: "default"
+        })
+
       assert %Section{} = section
       assert section.page_id == page.id
     end

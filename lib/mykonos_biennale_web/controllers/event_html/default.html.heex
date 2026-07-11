@@ -1,125 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{@page_title}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.min.css" />
-  <style>
-    body { background: #0a0a0a; }
-    .pswp { --pswp-bg: #000; }
-  </style>
-</head>
-<body class="bg-neutral-950 text-neutral-200 min-h-screen">
-  <nav class="border-b border-neutral-800 px-6 py-4">
-    <div class="max-w-5xl mx-auto flex items-center justify-between">
-      <a href="/" class="text-lg font-semibold text-white tracking-wide">MYKONOS BIENNALE</a>
-      <div class="flex gap-6 text-sm">
-        <a href="/archive" class="text-neutral-400 hover:text-white transition-colors">Archive</a>
-        <a href="/program" class="text-neutral-400 hover:text-white transition-colors">Program</a>
-        <a href="/about" class="text-neutral-400 hover:text-white transition-colors">About</a>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{@page_title}</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.min.css"
+    />
+    <style>
+      body { background: #0a0a0a; }
+      .pswp { --pswp-bg: #000; }
+    </style>
+  </head>
+  <body class="bg-neutral-950 text-neutral-200 min-h-screen">
+    <nav class="border-b border-neutral-800 px-6 py-4">
+      <div class="max-w-5xl mx-auto flex items-center justify-between">
+        <a href="/" class="text-lg font-semibold text-white tracking-wide">MYKONOS BIENNALE</a>
+        <div class="flex gap-6 text-sm">
+          <a href="/archive" class="text-neutral-400 hover:text-white transition-colors">
+            Archive
+          </a>
+          <a href="/program" class="text-neutral-400 hover:text-white transition-colors">
+            Program
+          </a>
+          <a href="/about" class="text-neutral-400 hover:text-white transition-colors">About</a>
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <main class="max-w-5xl mx-auto px-6 py-12">
-    <article>
-      <.event_header event={@event} biennale={@biennale} />
+    <main class="max-w-5xl mx-auto px-6 py-12">
+      <article>
+        <.event_header event={@event} biennale={@biennale} />
 
-      <%!-- Poster --%>
-      <%= if @poster do %>
-        <div class="mb-8 overflow-hidden rounded-lg bg-neutral-900">
-          <img
-            src={media_url(@poster, size: "hero")}
-            alt={field(@event, "title")}
-            class="w-full h-auto object-contain"
-          />
-        </div>
-      <% end %>
+        <%!-- Poster --%>
+        <%= if @poster do %>
+          <div class="mb-8 overflow-hidden rounded-lg bg-neutral-900">
+            <img
+              src={media_url(@poster, size: "hero")}
+              alt={field(@event, "title")}
+              class="w-full h-auto object-contain"
+            />
+          </div>
+        <% end %>
 
-      <%!-- Description --%>
-      <%= if field(@event, "description") do %>
-        <div class="max-w-2xl mb-8">
-          <p class="text-neutral-400 leading-relaxed whitespace-pre-line">{field(@event, "description")}</p>
-        </div>
-      <% end %>
+        <%!-- Description --%>
+        <%= if field(@event, "description") do %>
+          <div class="max-w-2xl mb-8">
+            <p class="text-neutral-400 leading-relaxed whitespace-pre-line">
+              {field(@event, "description")}
+            </p>
+          </div>
+        <% end %>
 
-      <%!-- Media slideshow --%>
-      <section :if={@media != []} class="mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <%= for {m, idx} <- Enum.with_index(@media) do %>
-            <div class={"overflow-hidden rounded-lg bg-neutral-900 " <> if(idx == 0, do: "md:col-span-2", else: "")}>
-              <a
-                href={media_url(m, size: "hero")}
-                data-pswp-width="1920"
-                data-pswp-height="1080"
-                target="_blank"
-                class="block"
-              >
-                <img
-                  src={media_url(m, size: "card")}
-                  alt={m.alt_text || m.caption || field(@event, "title")}
-                  class="w-full h-auto object-contain"
-                  loading={if idx == 0, do: "eager", else: "lazy"}
-                />
-              </a>
-            </div>
-          <% end %>
-        </div>
-      </section>
+        <%!-- Media slideshow --%>
+        <section :if={@media != []} class="mb-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <%= for {m, idx} <- Enum.with_index(@media) do %>
+              <div class={"overflow-hidden rounded-lg bg-neutral-900 " <> if(idx == 0, do: "md:col-span-2", else: "")}>
+                <a
+                  href={media_url(m, size: "hero")}
+                  data-pswp-width="1920"
+                  data-pswp-height="1080"
+                  target="_blank"
+                  class="block"
+                >
+                  <img
+                    src={media_url(m, size: "card")}
+                    alt={m.alt_text || m.caption || field(@event, "title")}
+                    class="w-full h-auto object-contain"
+                    loading={if idx == 0, do: "eager", else: "lazy"}
+                  />
+                </a>
+              </div>
+            <% end %>
+          </div>
+        </section>
 
-      <%!-- Related artworks (if any) --%>
-      <section :if={@artworks != []} class="mt-12 border-t border-neutral-800 pt-8">
-        <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-6">Related Artworks</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <%= for item <- @artworks do %>
-            <div>
-              <a href={"/art/#{item.artwork.id}"} class="group block">
-                <div class="overflow-hidden rounded-lg bg-neutral-900 aspect-square mb-3">
-                  <%= if item.media != [] do %>
-                    <img
-                      src={media_url(List.first(item.media), size: "card")}
-                      alt={field(item.artwork, "title")}
-                      class="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
-                      loading="lazy"
-                    />
-                  <% else %>
-                    <div class="w-full h-full flex items-center justify-center">
-                      <span class="text-neutral-700 text-sm">No image</span>
-                    </div>
+        <%!-- Related artworks (if any) --%>
+        <section :if={@artworks != []} class="mt-12 border-t border-neutral-800 pt-8">
+          <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-6">
+            Related Artworks
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <%= for item <- @artworks do %>
+              <div>
+                <a href={"/art/#{item.artwork.id}"} class="group block">
+                  <div class="overflow-hidden rounded-lg bg-neutral-900 aspect-square mb-3">
+                    <%= if item.media != [] do %>
+                      <img
+                        src={media_url(List.first(item.media), size: "card")}
+                        alt={field(item.artwork, "title")}
+                        class="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+                        loading="lazy"
+                      />
+                    <% else %>
+                      <div class="w-full h-full flex items-center justify-center">
+                        <span class="text-neutral-700 text-sm">No image</span>
+                      </div>
+                    <% end %>
+                  </div>
+                  <h3 class="text-sm text-neutral-300 group-hover:text-white transition-colors">
+                    {field(item.artwork, "title")}
+                  </h3>
+                </a>
+                <p :if={item.creators != []} class="text-xs text-neutral-500 mt-1">
+                  <%= for c <- item.creators do %>
+                    <a href={"/artist/#{c.id}"} class="hover:text-neutral-300 transition-colors">
+                      {participant_name(c)}
+                    </a>
                   <% end %>
-                </div>
-                <h3 class="text-sm text-neutral-300 group-hover:text-white transition-colors">
-                  {field(item.artwork, "title")}
-                </h3>
-              </a>
-              <p :if={item.creators != []} class="text-xs text-neutral-500 mt-1">
-                <%= for c <- item.creators do %>
-                  <a href={"/artist/#{c.id}"} class="hover:text-neutral-300 transition-colors">{participant_name(c)}</a>
-                <% end %>
-              </p>
-            </div>
-          <% end %>
-        </div>
-      </section>
-    </article>
-  </main>
+                </p>
+              </div>
+            <% end %>
+          </div>
+        </section>
+      </article>
+    </main>
 
-  <footer class="border-t border-neutral-800 px-6 py-6 mt-12">
-    <div class="max-w-5xl mx-auto text-sm text-neutral-600">
-      Mykonos Biennale
-    </div>
-  </footer>
+    <footer class="border-t border-neutral-800 px-6 py-6 mt-12">
+      <div class="max-w-5xl mx-auto text-sm text-neutral-600">
+        Mykonos Biennale
+      </div>
+    </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe-lightbox.umd.min.js"></script>
-  <script>
-    const lightbox = new PhotoSwipeLightbox({
-      gallery: 'main',
-      children: 'a[data-pswp-width]',
-      pswpModule: () => import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.esm.js'),
-    });
-    lightbox.init();
-  </script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe-lightbox.umd.min.js">
+    </script>
+    <script>
+      const lightbox = new PhotoSwipeLightbox({
+        gallery: 'main',
+        children: 'a[data-pswp-width]',
+        pswpModule: () => import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.esm.js'),
+      });
+      lightbox.init();
+    </script>
+  </body>
 </html>

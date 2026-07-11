@@ -27,10 +27,16 @@
         <% end %>
       </div>
       <div class="flex gap-2">
-        <button phx-click="select_all" class="text-xs px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors">
+        <button
+          phx-click="select_all"
+          class="text-xs px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+        >
           Select All
         </button>
-        <button phx-click="clear_selection" class="text-xs px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors">
+        <button
+          phx-click="clear_selection"
+          class="text-xs px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+        >
           Clear
         </button>
       </div>
@@ -42,7 +48,10 @@
         <% rot = rotation_label(media) %>
         <div class={"relative rounded-lg overflow-hidden border-2 transition-all " <> if(selected, do: "border-blue-500 ring-2 ring-blue-500/30", else: "border-gray-700/30")}>
           <label class="block cursor-pointer">
-            <div class="bg-gray-800 relative flex items-center justify-center" style="min-height: 120px;">
+            <div
+              class="bg-gray-800 relative flex items-center justify-center"
+              style="min-height: 120px;"
+            >
               <img
                 src={media_thumb(media)}
                 alt={media.original_name || media.caption || ""}
@@ -58,7 +67,13 @@
                   checked={selected}
                 />
                 <%= if selected do %>
-                  <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                  <svg
+                    class="w-4 h-4 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="3"
+                  >
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 <% end %>
@@ -127,7 +142,10 @@
     <%!-- Pagination --%>
     <div class="flex items-center justify-between mt-6 mb-4">
       <%= if @current_page > 1 do %>
-        <.link patch={"/admin/media/rotate?page=#{@current_page - 1}&search=#{URI.encode_www_form(@search)}"} class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors">
+        <.link
+          patch={"/admin/media/rotate?page=#{@current_page - 1}&search=#{URI.encode_www_form(@search)}"}
+          class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors"
+        >
           ← Prev
         </.link>
       <% else %>
@@ -135,7 +153,10 @@
       <% end %>
       <span class="text-sm text-gray-500">Page {@current_page} of {@total_pages}</span>
       <%= if @current_page < @total_pages do %>
-        <.link patch={"/admin/media/rotate?page=#{@current_page + 1}&search=#{URI.encode_www_form(@search)}"} class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors">
+        <.link
+          patch={"/admin/media/rotate?page=#{@current_page + 1}&search=#{URI.encode_www_form(@search)}"}
+          class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors"
+        >
           Next →
         </.link>
       <% else %>

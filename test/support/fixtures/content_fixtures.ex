@@ -5,7 +5,7 @@ defmodule MykonosBiennale.ContentFixtures do
   """
 
   alias MykonosBiennale.{Repo, Content}
-  alias MykonosBiennale.Content.{Entity, Media, Relationship, RelationshipType, EntityMedia}
+  alias MykonosBiennale.Content.RelationshipType
 
   @doc "Ensures all standard relationship types exist. Call in setup."
   def ensure_relationship_types do
@@ -29,7 +29,7 @@ defmodule MykonosBiennale.ContentFixtures do
     :ok
   end
 
-  @doc "Converts keyword list or map to a map."
+  # Converts keyword list or map to a map.
   defp to_map(attrs) when is_list(attrs), do: Enum.into(attrs, %{})
   defp to_map(attrs) when is_map(attrs), do: attrs
   defp to_map(_), do: %{}
@@ -42,12 +42,15 @@ defmodule MykonosBiennale.ContentFixtures do
 
     {:ok, biennale} =
       Content.create_biennale(%{
-        year: to_string(year),
+        year: year,
         theme: theme,
+        statement: Map.get(attrs, "statement") || Map.get(attrs, :statement),
+        description: Map.get(attrs, "description") || Map.get(attrs, :description),
         visible: Map.get(attrs, "visible") || Map.get(attrs, :visible, true),
         template: Map.get(attrs, "template") || Map.get(attrs, :template, "default"),
         start_date: Map.get(attrs, "start_date") || Map.get(attrs, :start_date, "2025-09-27"),
-        end_date: Map.get(attrs, "end_date") || Map.get(attrs, :end_date, "2025-10-05")
+        end_date: Map.get(attrs, "end_date") || Map.get(attrs, :end_date, "2025-10-05"),
+        show_program: Map.get(attrs, "show_program") || Map.get(attrs, :show_program, true)
       })
 
     biennale
@@ -78,8 +81,15 @@ defmodule MykonosBiennale.ContentFixtures do
     attrs = to_map(attrs)
     ensure_relationship_types()
 
-    biennale = Map.get_lazy(attrs, "biennale", fn -> Map.get_lazy(attrs, :biennale, fn -> biennale_fixture() end) end)
-    project = Map.get_lazy(attrs, "project", fn -> Map.get_lazy(attrs, :project, fn -> project_fixture() end) end)
+    biennale =
+      Map.get_lazy(attrs, "biennale", fn ->
+        Map.get_lazy(attrs, :biennale, fn -> biennale_fixture() end)
+      end)
+
+    project =
+      Map.get_lazy(attrs, "project", fn ->
+        Map.get_lazy(attrs, :project, fn -> project_fixture() end)
+      end)
 
     {:ok, event} =
       Content.create_event(%{
@@ -90,7 +100,8 @@ defmodule MykonosBiennale.ContentFixtures do
         date: Map.get(attrs, "date") || Map.get(attrs, :date, "2025-09-28"),
         time: Map.get(attrs, "time") || Map.get(attrs, :time, "18:00"),
         location: Map.get(attrs, "location") || Map.get(attrs, :location, "Test Venue"),
-        description: Map.get(attrs, "description") || Map.get(attrs, :description, "A test event"),
+        description:
+          Map.get(attrs, "description") || Map.get(attrs, :description, "A test event"),
         show_project: Map.get(attrs, "show_project") || Map.get(attrs, :show_project, true),
         visible: Map.get(attrs, "visible") || Map.get(attrs, :visible, true)
       })
@@ -134,7 +145,8 @@ defmodule MykonosBiennale.ContentFixtures do
         date: Map.get(attrs, "date") || Map.get(attrs, :date, "2025"),
         medium: Map.get(attrs, "medium") || Map.get(attrs, :medium, "Oil on canvas"),
         size: Map.get(attrs, "size") || Map.get(attrs, :size, "100 x 80 cm"),
-        description: Map.get(attrs, "description") || Map.get(attrs, :description, "A test artwork"),
+        description:
+          Map.get(attrs, "description") || Map.get(attrs, :description, "A test artwork"),
         type: Map.get(attrs, "artwork_type") || Map.get(attrs, :artwork_type, "artwork"),
         visible: Map.get(attrs, "visible") || Map.get(attrs, :visible, true)
       })
@@ -154,7 +166,8 @@ defmodule MykonosBiennale.ContentFixtures do
         dir_by: Map.get(attrs, "dir_by") || Map.get(attrs, :dir_by, "Test Director"),
         country: Map.get(attrs, "country") || Map.get(attrs, :country, "Greece"),
         runtime: Map.get(attrs, "runtime") || Map.get(attrs, :runtime, 10),
-        log_line: Map.get(attrs, "log_line") || Map.get(attrs, :log_line, "A test film about testing."),
+        log_line:
+          Map.get(attrs, "log_line") || Map.get(attrs, :log_line, "A test film about testing."),
         visible: Map.get(attrs, "visible") || Map.get(attrs, :visible, true)
       })
 
@@ -184,9 +197,12 @@ defmodule MykonosBiennale.ContentFixtures do
     {:ok, media} =
       Content.create_media(%{
         source_type: Map.get(attrs, "source_type") || Map.get(attrs, :source_type, "upload"),
-        source_path: Map.get(attrs, "source_path") || Map.get(attrs, :source_path, "test-#{System.unique_integer()}.jpg"),
+        source_path:
+          Map.get(attrs, "source_path") ||
+            Map.get(attrs, :source_path, "test-#{System.unique_integer()}.jpg"),
         caption: Map.get(attrs, "caption") || Map.get(attrs, :caption, "Test Media"),
-        original_name: Map.get(attrs, "original_name") || Map.get(attrs, :original_name, "test-image.jpg"),
+        original_name:
+          Map.get(attrs, "original_name") || Map.get(attrs, :original_name, "test-image.jpg"),
         alt_text: Map.get(attrs, "alt_text") || Map.get(attrs, :alt_text)
       })
 

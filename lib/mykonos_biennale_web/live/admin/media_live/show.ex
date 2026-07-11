@@ -55,7 +55,7 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Show do
   defp entity_link(%Entity{type: "event"} = e), do: "/admin/events/#{e.id}"
   defp entity_link(%Entity{type: "biennale"} = e), do: "/admin/biennales/#{e.id}"
   defp entity_link(%Entity{type: "project"} = e), do: "/admin/projects/#{e.id}"
-  defp entity_link(%Entity{} = e), do: "/admin"
+  defp entity_link(%Entity{}), do: "/admin"
 
   defp media_source_url(%Media{source_type: "upload"} = media),
     do: MykonosBiennale.Uploads.media_url(media, size: "hero")
@@ -69,6 +69,10 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Show do
     MediaProcess.enqueue_rotate(media.id, String.to_integer(degrees))
 
     {:noreply,
-      put_flash(socket, :info, "Rotation #{degrees}° queued for #{media.original_name || media.caption}")}
+     put_flash(
+       socket,
+       :info,
+       "Rotation #{degrees}° queued for #{media.original_name || media.caption}"
+     )}
   end
 end

@@ -3,9 +3,8 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.ReimportPreview do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.ReimportArtworks
-  alias MykonosBiennale.Content.{Media, EntityMedia}
+  alias MykonosBiennale.Content.Media
 
   @impl true
   def mount(_params, _session, socket) do

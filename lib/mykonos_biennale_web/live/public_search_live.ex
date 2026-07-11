@@ -37,7 +37,16 @@ defmodule MykonosBiennaleWeb.PublicSearchLive do
     {:noreply, push_patch(socket, to: ~p"/search")}
   end
 
-  defp empty_results, do: %{biennales: [], events: [], participants: [], artworks: [], films: [], performances: [], total: 0}
+  defp empty_results,
+    do: %{
+      biennales: [],
+      events: [],
+      participants: [],
+      artworks: [],
+      films: [],
+      performances: [],
+      total: 0
+    }
 
   @impl true
   def render(assigns) do

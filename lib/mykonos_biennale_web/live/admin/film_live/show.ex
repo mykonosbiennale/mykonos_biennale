@@ -5,7 +5,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Show do
 
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.Entity
 
   @impl true
   def mount(_params, _session, socket) do
@@ -66,6 +66,8 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Show do
 
     {:noreply, push_navigate(socket, to: "/admin/films")}
   end
+
+  @impl true
 
   def handle_info({:fields_changed, %{content: content}}, socket) do
     case Jason.decode(content) do

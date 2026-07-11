@@ -1,172 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{@page_title}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.min.css" />
-  <style>
-    body { background: #0a0a0a; }
-    .pswp { --pswp-bg: #000; }
-  </style>
-</head>
-<body class="bg-neutral-950 text-neutral-200 min-h-screen">
-  <nav class="border-b border-neutral-800 px-6 py-4">
-    <div class="max-w-5xl mx-auto flex items-center justify-between">
-      <a href="/" class="text-lg font-semibold text-white tracking-wide">MYKONOS BIENNALE</a>
-      <div class="flex gap-6 text-sm">
-        <a href="/archive" class="text-neutral-400 hover:text-white transition-colors">Archive</a>
-        <a href="/program" class="text-neutral-400 hover:text-white transition-colors">Program</a>
-        <a href="/about" class="text-neutral-400 hover:text-white transition-colors">About</a>
-      </div>
-    </div>
-  </nav>
-
-  <main class="max-w-5xl mx-auto px-6 py-12">
-    <article>
-      <%!-- Artist --%>
-      <div :if={@participants != []} class="mb-2">
-        <%= for p <- @participants do %>
-          <a href={"/artist/#{p.id}"} class="text-lg text-neutral-400 hover:text-white transition-colors">
-            {participant_name(p)}
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{@page_title}</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.min.css"
+    />
+    <style>
+      body { background: #0a0a0a; }
+      .pswp { --pswp-bg: #000; }
+    </style>
+  </head>
+  <body class="bg-neutral-950 text-neutral-200 min-h-screen">
+    <nav class="border-b border-neutral-800 px-6 py-4">
+      <div class="max-w-5xl mx-auto flex items-center justify-between">
+        <a href="/" class="text-lg font-semibold text-white tracking-wide">MYKONOS BIENNALE</a>
+        <div class="flex gap-6 text-sm">
+          <a href="/archive" class="text-neutral-400 hover:text-white transition-colors">
+            Archive
           </a>
-        <% end %>
+          <a href="/program" class="text-neutral-400 hover:text-white transition-colors">
+            Program
+          </a>
+          <a href="/about" class="text-neutral-400 hover:text-white transition-colors">About</a>
+        </div>
       </div>
+    </nav>
 
-      <%!-- Title --%>
-      <h1 class="text-4xl md:text-5xl font-light text-white mb-2">
-        {field(@artwork, "title", "Untitled")}
-      </h1>
+    <main class="max-w-5xl mx-auto px-6 py-12">
+      <article>
+        <%!-- Artist --%>
+        <div :if={@participants != []} class="mb-2">
+          <%= for p <- @participants do %>
+            <a
+              href={"/artist/#{p.id}"}
+              class="text-lg text-neutral-400 hover:text-white transition-colors"
+            >
+              {participant_name(p)}
+            </a>
+          <% end %>
+        </div>
 
-      <%!-- Year --%>
-      <p :if={field(@artwork, "date")} class="text-lg text-neutral-500 mb-4">
-        {field(@artwork, "date")}
-      </p>
+        <%!-- Title --%>
+        <h1 class="text-4xl md:text-5xl font-light text-white mb-2">
+          {field(@artwork, "title", "Untitled")}
+        </h1>
 
-      <%!-- Size, Material --%>
-      <div :if={field(@artwork, "size") || field(@artwork, "medium")} class="text-sm text-neutral-500 mb-6">
-        <span :if={field(@artwork, "medium")}>{field(@artwork, "medium")}</span>
-        <span :if={field(@artwork, "medium") && field(@artwork, "size")}>, </span>
-        <span :if={field(@artwork, "size")}>{field(@artwork, "size")}</span>
-      </div>
+        <%!-- Year --%>
+        <p :if={field(@artwork, "date")} class="text-lg text-neutral-500 mb-4">
+          {field(@artwork, "date")}
+        </p>
 
-      <%!-- Gallery — Full layout on mobile, Gallery layout on large screens --%>
-      <div :if={@media != []} class="mb-8">
-        <% all_media = @media %>
-        <% first = List.first(all_media) %>
-        <% rest = Enum.drop(all_media, 1) %>
+        <%!-- Size, Material --%>
+        <div
+          :if={field(@artwork, "size") || field(@artwork, "medium")}
+          class="text-sm text-neutral-500 mb-6"
+        >
+          <span :if={field(@artwork, "medium")}>{field(@artwork, "medium")}</span>
+          <span :if={field(@artwork, "medium") && field(@artwork, "size")}>, </span>
+          <span :if={field(@artwork, "size")}>{field(@artwork, "size")}</span>
+        </div>
 
-        <%!-- Mobile: full grid (all images, no cropping) --%>
-        <div class="md:hidden grid grid-cols-1 gap-4">
-          <%= for {m, idx} <- Enum.with_index(all_media) do %>
-            <div class="overflow-hidden rounded-lg bg-neutral-900">
+        <%!-- Gallery — Full layout on mobile, Gallery layout on large screens --%>
+        <div :if={@media != []} class="mb-8">
+          <% all_media = @media %>
+          <% first = List.first(all_media) %>
+          <% rest = Enum.drop(all_media, 1) %>
+
+          <%!-- Mobile: full grid (all images, no cropping) --%>
+          <div class="md:hidden grid grid-cols-1 gap-4">
+            <%= for {m, idx} <- Enum.with_index(all_media) do %>
+              <div class="overflow-hidden rounded-lg bg-neutral-900">
+                <a
+                  href={media_url(m, size: "hero")}
+                  data-pswp-width="1920"
+                  data-pswp-height="1080"
+                  target="_blank"
+                  class="block"
+                >
+                  <img
+                    src={media_url(m, size: "card")}
+                    alt={m.alt_text || m.caption || field(@artwork, "title")}
+                    class="w-full h-auto object-contain"
+                    loading={if idx == 0, do: "eager", else: "lazy"}
+                  />
+                </a>
+              </div>
+            <% end %>
+          </div>
+
+          <%!-- Desktop: gallery (main image + thumbnail strip) --%>
+          <div class="hidden md:block">
+            <div class="overflow-hidden rounded-lg bg-neutral-900 mb-4">
               <a
-                href={media_url(m, size: "hero")}
+                href={media_url(first, size: "hero")}
                 data-pswp-width="1920"
                 data-pswp-height="1080"
                 target="_blank"
                 class="block"
+                id="featured-main-link"
               >
                 <img
-                  src={media_url(m, size: "card")}
-                  alt={m.alt_text || m.caption || field(@artwork, "title")}
+                  src={media_url(first, size: "hero")}
+                  alt={first.alt_text || first.caption || field(@artwork, "title")}
                   class="w-full h-auto object-contain"
-                  loading={if idx == 0, do: "eager", else: "lazy"}
+                  loading="eager"
+                  id="featured-main-img"
                 />
               </a>
             </div>
-          <% end %>
-        </div>
-
-        <%!-- Desktop: gallery (main image + thumbnail strip) --%>
-        <div class="hidden md:block">
-          <div class="overflow-hidden rounded-lg bg-neutral-900 mb-4">
-            <a
-              href={media_url(first, size: "hero")}
-              data-pswp-width="1920"
-              data-pswp-height="1080"
-              target="_blank"
-              class="block"
-              id="featured-main-link"
-            >
-              <img
-                src={media_url(first, size: "hero")}
-                alt={first.alt_text || first.caption || field(@artwork, "title")}
-                class="w-full h-auto object-contain"
-                loading="eager"
-                id="featured-main-img"
-              />
-            </a>
+            <%= if rest != [] do %>
+              <div class="flex flex-wrap justify-center gap-2">
+                <%= for {m, idx} <- Enum.with_index(all_media) do %>
+                  <button
+                    type="button"
+                    data-hero-url={media_url(m, size: "hero")}
+                    data-alt={m.alt_text || m.caption || field(@artwork, "title")}
+                    onclick="event.preventDefault(); var img=document.getElementById('featured-main-img'); img.src=this.dataset.heroUrl; img.alt=this.dataset.alt; document.getElementById('featured-main-link').href=this.dataset.heroUrl;"
+                    class={"overflow-hidden rounded-lg bg-neutral-900 aspect-square border-2 transition-all w-[calc((100%-1rem)/3)] " <> if(idx == 0, do: "border-neutral-400", else: "border-transparent hover:border-neutral-500")}
+                  >
+                    <img
+                      src={media_url(m, size: "thumb")}
+                      alt={m.alt_text || m.caption || field(@artwork, "title")}
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                <% end %>
+              </div>
+            <% end %>
           </div>
-          <%= if rest != [] do %>
-            <div class="flex flex-wrap justify-center gap-2">
-              <%= for {m, idx} <- Enum.with_index(all_media) do %>
-                <button
-                  type="button"
-                  data-hero-url={media_url(m, size: "hero")}
-                  data-alt={m.alt_text || m.caption || field(@artwork, "title")}
-                  onclick="event.preventDefault(); var img=document.getElementById('featured-main-img'); img.src=this.dataset.heroUrl; img.alt=this.dataset.alt; document.getElementById('featured-main-link').href=this.dataset.heroUrl;"
-                  class={"overflow-hidden rounded-lg bg-neutral-900 aspect-square border-2 transition-all w-[calc((100%-1rem)/3)] " <> if(idx == 0, do: "border-neutral-400", else: "border-transparent hover:border-neutral-500")}
-                >
-                  <img
-                    src={media_url(m, size: "thumb")}
-                    alt={m.alt_text || m.caption || field(@artwork, "title")}
-                    class="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </button>
-              <% end %>
-            </div>
-          <% end %>
         </div>
-      </div>
 
-      <%!-- Description / Statement --%>
-      <div :if={field(@artwork, "description")} class="mt-10 flex justify-center">
-        <div class="w-full lg:w-3/4 prose prose-invert prose-neutral">
-          <p class="text-neutral-400 leading-relaxed whitespace-pre-line">
-            {field(@artwork, "description")}
-          </p>
+        <%!-- Description / Statement --%>
+        <div :if={field(@artwork, "description")} class="mt-10 flex justify-center">
+          <div class="w-full lg:w-3/4 prose prose-invert prose-neutral">
+            <p class="text-neutral-400 leading-relaxed whitespace-pre-line">
+              {field(@artwork, "description")}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <%!-- Events / Projects --%>
-      <div :if={@events != []} class="mt-12 border-t border-neutral-800 pt-8">
-        <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-4">Exhibited at</h2>
-        <div class="flex flex-wrap gap-3">
-          <%= for event <- @events do %>
-            <div class="text-sm">
-              <span class="text-neutral-300">{event.title}</span>
-              <span :if={event.date} class="text-neutral-600 ml-2">{event.date}</span>
-              <%= if event.biennale do %>
-                <span class="text-neutral-600 ml-2">
-                  <a href={"/biennale/#{event.biennale.slug}"} class="hover:text-neutral-400 transition-colors">
-                    Mykonos Biennale {field(event.biennale, "year")}
-                  </a>
-                </span>
-              <% end %>
-            </div>
-          <% end %>
+        <%!-- Events / Projects --%>
+        <div :if={@events != []} class="mt-12 border-t border-neutral-800 pt-8">
+          <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-4">Exhibited at</h2>
+          <div class="flex flex-wrap gap-3">
+            <%= for event <- @events do %>
+              <div class="text-sm">
+                <span class="text-neutral-300">{event.title}</span>
+                <span :if={event.date} class="text-neutral-600 ml-2">{event.date}</span>
+                <%= if event.biennale do %>
+                  <span class="text-neutral-600 ml-2">
+                    <a
+                      href={"/biennale/#{event.biennale.slug}"}
+                      class="hover:text-neutral-400 transition-colors"
+                    >
+                      Mykonos Biennale {field(event.biennale, "year")}
+                    </a>
+                  </span>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
         </div>
+      </article>
+    </main>
+
+    <footer class="border-t border-neutral-800 px-6 py-6 mt-12">
+      <div class="max-w-5xl mx-auto text-sm text-neutral-600">
+        Mykonos Biennale
       </div>
-    </article>
-  </main>
+    </footer>
 
-  <footer class="border-t border-neutral-800 px-6 py-6 mt-12">
-    <div class="max-w-5xl mx-auto text-sm text-neutral-600">
-      Mykonos Biennale
-    </div>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe-lightbox.umd.min.js"></script>
-  <script>
-    const lightbox = new PhotoSwipeLightbox({
-      gallery: 'main',
-      children: 'a[data-pswp-width]',
-      pswpModule: () => import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.esm.js'),
-    });
-    lightbox.init();
-  </script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe-lightbox.umd.min.js">
+    </script>
+    <script>
+      const lightbox = new PhotoSwipeLightbox({
+        gallery: 'main',
+        children: 'a[data-pswp-width]',
+        pswpModule: () => import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.esm.js'),
+      });
+      lightbox.init();
+    </script>
+  </body>
 </html>

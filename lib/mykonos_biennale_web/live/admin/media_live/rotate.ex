@@ -3,8 +3,8 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Rotate do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.{Repo, Content}
-  alias MykonosBiennale.Content.{Media, EntityMedia}
+  alias MykonosBiennale.Repo
+  alias MykonosBiennale.Content.Media
   alias MykonosBiennale.Workers.MediaProcess
   alias MykonosBiennale.Uploads
 
@@ -13,13 +13,13 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Rotate do
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
-      socket
-      |> assign(:selected, MapSet.new())
-      |> assign(:search, "")
-      |> assign(:current_page, 1)
-      |> assign(:total_pages, 1)
-      |> assign(:total_count, 0)
-      |> assign(:page_title, "Batch Rotate Media")}
+     socket
+     |> assign(:selected, MapSet.new())
+     |> assign(:search, "")
+     |> assign(:current_page, 1)
+     |> assign(:total_pages, 1)
+     |> assign(:total_count, 0)
+     |> assign(:page_title, "Batch Rotate Media")}
   end
 
   @impl true
@@ -31,12 +31,12 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Rotate do
     total_pages = max(1, ceil(total_count / @per_page))
 
     {:noreply,
-      socket
-      |> assign(:current_page, page)
-      |> assign(:total_pages, total_pages)
-      |> assign(:total_count, total_count)
-      |> assign(:search, search)
-      |> assign(:items, items)}
+     socket
+     |> assign(:current_page, page)
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
+     |> assign(:search, search)
+     |> assign(:items, items)}
   end
 
   @impl true
@@ -62,7 +62,8 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Rotate do
   end
 
   def handle_event("search", %{"search" => search}, socket) do
-    {:noreply, push_patch(socket, to: "/admin/media/rotate?search=#{URI.encode_www_form(search)}")}
+    {:noreply,
+     push_patch(socket, to: "/admin/media/rotate?search=#{URI.encode_www_form(search)}")}
   end
 
   def handle_event("rotate_selected", %{"degrees" => degrees}, socket) do
@@ -79,9 +80,9 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Rotate do
       end)
 
       {:noreply,
-        socket
-        |> assign(:selected, MapSet.new())
-        |> put_flash(:info, "Rotation #{deg}° queued for #{MapSet.size(selected)} images")}
+       socket
+       |> assign(:selected, MapSet.new())
+       |> put_flash(:info, "Rotation #{deg}° queued for #{MapSet.size(selected)} images")}
     end
   end
 
@@ -92,7 +93,11 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Rotate do
       from m in Media,
         where: m.source_type == "upload" and not is_nil(m.source_path),
         where:
-          fragment("lower(coalesce(?, '')) LIKE ?", m.original_name, ^"%#{String.downcase(search)}%") or
+          fragment(
+            "lower(coalesce(?, '')) LIKE ?",
+            m.original_name,
+            ^"%#{String.downcase(search)}%"
+          ) or
             fragment("lower(coalesce(?, '')) LIKE ?", m.caption, ^"%#{String.downcase(search)}%")
 
     total_count = Repo.aggregate(base_query, :count)

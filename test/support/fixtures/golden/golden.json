@@ -1,0 +1,3678 @@
+{
+  "core_ids": [
+    7,
+    64,
+    98,
+    2956,
+    3363
+  ],
+  "entities": [
+    {
+      "fields": {
+        "date": "2025-09-27",
+        "description": null,
+        "location": "YELLOW TOWER, ANO MERA",
+        "show_project": true,
+        "tickets": null,
+        "time": "21:00",
+        "title": "The Allegoria Ball",
+        "type": "performance"
+      },
+      "id": 2960,
+      "identity": "The Allegoria Ball",
+      "slug": "the-allegoria-ball--576456230769983771",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": null,
+        "description": "This work addresses the suffering of childhood, confiend in a world that imposes hunger and fear before it knows the meaning of life. The doll here is not just a toy, but a symbol of a small, helpless body, its mouth sown shut with silence, its eyes closed to hope, and its limbs bound with merciless threads .he heavy brown color in the background encapsulates the weight of suffering. ",
+        "medium": "technique: Watercolor on paper, hand-embroidered threads",
+        "size": "40 x 40cm",
+        "title": "Threads of Silence",
+        "type": "artwork"
+      },
+      "id": 3335,
+      "identity": "Threads of Silence",
+      "slug": "threads-of-silence--576447251402510766",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Turkey",
+        "dir_by": "Onur Yagiz",
+        "import_model": "filmfestival.film",
+        "import_pk": "1320",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/8a7005f5c0-poster.jpg",
+        "import_slug": "fatih-the-conqueror-onur-yagiz",
+        "language": "French, Turkish",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "This Saturday is a Turkish wedding day at Espace Venise (France). Huddled in a car in the parling lot, Fatih, 21, wants to ge",
+            "year": "2023",
+            "contact_email": "festivalsbaxterfilms@gmail.com",
+            "genres": "",
+            "trailer_url": "https://vimeo.com/802432484",
+            "present": false,
+            "screenwriters": "Onur Yagiz",
+            "actors": null,
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": null,
+            "product_designers": "",
+            "screenings": "Clermont-Ferrand International Short Film Festival\r\nClermont-Ferrand\r\nJanuary 29, 2023\r\nWorld Premiere\r\nFrance\r\n\r\n50 Festivals / 29 Awards",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1468",
+            "original_title": null,
+            "production_notes": "",
+            "dir_by": "Onur Yagiz",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 15,
+            "producers": "Pierre-Louis Garnon",
+            "info": "",
+            "sub_by": "Pierre-Louis Garnon",
+            "log_line": null,
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/8a7005f5c0-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "Turkey",
+            "language": "French, Turkish",
+            "co_producers": "",
+            "first_time": "False",
+            "editors": "",
+            "synopsis_250": null,
+            "crew": "",
+            "directors": "Onur Yagiz",
+            "slug": "fatih-the-conqueror-onur-yagiz",
+            "twitter": "",
+            "contact_phone": null,
+            "title": "Fatih the Conqueror",
+            "synopsis": null,
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "8a7005f5c0-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/8a7005f5c0-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1320
+        },
+        "projection_copy": false,
+        "ref": "FF1468",
+        "runtime": 15,
+        "sub_by": "Pierre-Louis Garnon",
+        "subtitles": false,
+        "synopsis_125": "This Saturday is a Turkish wedding day at Espace Venise (France). Huddled in a car in the parling lot, Fatih, 21, wants to ge",
+        "trailer_url": "https://vimeo.com/802432484",
+        "year": "2023"
+      },
+      "id": 1171,
+      "identity": "Fatih the Conqueror",
+      "slug": "fatih-the-conqueror--576460749901693834",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Mexico",
+        "dir_by": "Eugenia Llaguno",
+        "directors_statement": "I have always been attracted to understand and better comprehend the lives of people who live marginalized by society, as in this case like prostitutes. In one occasion I have learned from prostitutes who live and work in a really poor neighborhood in downtown of Mexico City, that they are hoping to find real love and they do not allow themselves to feel orgasms with any client  just the ones they feel like: \"As this is a business we decide to have something special with someone special\" Deep down they harbor the desire to find love with someone stable who loves and accepts them as they are. This is how this little short film came about, which is basically made with a lot of love and respect to them. ",
+        "genres": "Drama, Romance",
+        "import_model": "filmfestival.film",
+        "import_pk": "1308",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20b4ae5d8ceb-poster.jpg",
+        "import_slug": "strange-world-eugenia-llaguno",
+        "language": "Spanish",
+        "log_line": "A prostitute who does not know love discovers it in a night with a suicidal man",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "A prostitute who does not know love discovers it in a night with a suicidal man",
+            "year": "2022",
+            "contact_email": "es.cineprogramacion@gmail.com",
+            "genres": "Drama, Romance",
+            "trailer_url": "https://filmfreeway.com/submissions/26674371",
+            "present": false,
+            "screenwriters": "Eugenia Llaguno",
+            "actors": null,
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "I have always been attracted to understand and better comprehend the lives of people who live marginalized by society, as in this case like prostitutes. In one occasion I have learned from prostitutes who live and work in a really poor neighborhood in downtown of Mexico City, that they are hoping to find real love and they do not allow themselves to feel orgasms with any client  just the ones they feel like: \"As this is a business we decide to have something special with someone special\" Deep down they harbor the desire to find love with someone stable who loves and accepts them as they are. This is how this little short film came about, which is basically made with a lot of love and respect to them. ",
+            "product_designers": "",
+            "screenings": null,
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1422",
+            "original_title": "UN MUNDO RARO",
+            "production_notes": "",
+            "dir_by": "Eugenia Llaguno",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "https://www.instagram.com/unmundoraroashortfilm",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 19,
+            "producers": "Francisco Moreno, Alejandra Berumen",
+            "info": "",
+            "sub_by": "Eugenia Llaguno",
+            "log_line": "A prostitute who does not know love discovers it in a night with a suicidal man",
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20b4ae5d8ceb-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "Mexico",
+            "language": "Spanish",
+            "co_producers": "",
+            "first_time": "False",
+            "editors": "",
+            "synopsis_250": "A prostitute who does not know love discovers it in a night with a suicidal man",
+            "crew": "",
+            "directors": "Eugenia Llaguno",
+            "slug": "strange-world-eugenia-llaguno",
+            "twitter": "",
+            "contact_phone": "+525543494813",
+            "title": "STRANGE WORLD",
+            "synopsis": "A prostitute who does not know love discovers it in a night with a suicidal man\r\n\r\nUna prostituta que no conoce el amor lo descubre en una noche con un suicida. ",
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster b4ae5d8ceb-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20b4ae5d8ceb-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1308
+        },
+        "original_title": "UN MUNDO RARO",
+        "other_social_media": "https://www.instagram.com/unmundoraroashortfilm",
+        "projection_copy": false,
+        "ref": "FF1422",
+        "runtime": 19,
+        "sub_by": "Eugenia Llaguno",
+        "subtitles": false,
+        "synopsis": "A prostitute who does not know love discovers it in a night with a suicidal man\r\n\r\nUna prostituta que no conoce el amor lo descubre en una noche con un suicida. ",
+        "synopsis_125": "A prostitute who does not know love discovers it in a night with a suicidal man",
+        "synopsis_250": "A prostitute who does not know love discovers it in a night with a suicidal man",
+        "trailer_url": "https://filmfreeway.com/submissions/26674371",
+        "year": "2022"
+      },
+      "id": 1300,
+      "identity": "STRANGE WORLD",
+      "slug": "strange-world--576460749168811209",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Greece",
+        "dir_by": "Photini Economopoulou",
+        "import_model": "filmfestival.film",
+        "import_pk": "1367",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Screenshot%202023-09-16%20at%2014.55.27.png",
+        "import_slug": "arm-wrestler-photini-economopoulou",
+        "log_line": "The everyday routine of an arm wrestler who lives at Greek country side.",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "",
+            "year": "2022",
+            "contact_email": "alia@mykonosbiennale.com",
+            "genres": "",
+            "trailer_url": "",
+            "present": false,
+            "screenwriters": "",
+            "actors": "",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "",
+            "product_designers": "",
+            "screenings": "",
+            "source": "OUT",
+            "subtitles": false,
+            "ref": "2023-DN-24",
+            "original_title": "",
+            "production_notes": "",
+            "dir_by": "Photini Economopoulou",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 22,
+            "producers": "",
+            "info": "",
+            "sub_by": "Alia Tsagkari",
+            "log_line": "The everyday routine of an arm wrestler who lives at Greek country side.",
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Screenshot%202023-09-16%20at%2014.55.27.png",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "Greece",
+            "language": "",
+            "co_producers": "",
+            "first_time": "",
+            "editors": "",
+            "synopsis_250": "",
+            "crew": "",
+            "directors": "",
+            "slug": "arm-wrestler-photini-economopoulou",
+            "twitter": "",
+            "contact_phone": null,
+            "title": "Arm Wrestler",
+            "synopsis": "The everyday routine of an arm wrestler who lives at Greek country side.",
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Screenshot 2023-09-16 at 14.55.27.png",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Screenshot%202023-09-16%20at%2014.55.27.png"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1367
+        },
+        "projection_copy": false,
+        "ref": "2023-DN-24",
+        "runtime": 22,
+        "sub_by": "Alia Tsagkari",
+        "subtitles": false,
+        "synopsis": "The everyday routine of an arm wrestler who lives at Greek country side.",
+        "year": "2022"
+      },
+      "id": 1097,
+      "identity": "Arm Wrestler",
+      "slug": "arm-wrestler--576460750275177542",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Not Specified",
+        "dir_by": "Krystian Kornel",
+        "directors_statement": "I am intered in making Full-Length Feature Films, Music-Videos, Fashion Videos and Exceptional Commercials.\r\n\r\nOpen for cooperation\r\nNow based in Warsaw, but open to travel.\r\npage: krystiankornel.com",
+        "import_model": "filmfestival.film",
+        "import_pk": "1296",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20fc358be906-poster.jpg",
+        "import_slug": "brena-krystian-kornel",
+        "language": "Polish",
+        "log_line": "BRENA - Potash x Szurbo\r\nOfficial Music Video",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "BRENA - Potash x Szurbo\r\nOfficial Music Video",
+            "year": "2022",
+            "contact_email": "krystiankornel@wp.pl",
+            "genres": "",
+            "trailer_url": "",
+            "present": false,
+            "screenwriters": "Krystian Kornel, Daniel Potash",
+            "actors": "Magda Krawczyk",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "I am intered in making Full-Length Feature Films, Music-Videos, Fashion Videos and Exceptional Commercials.\r\n\r\nOpen for cooperation\r\nNow based in Warsaw, but open to travel.\r\npage: krystiankornel.com",
+            "product_designers": "",
+            "screenings": "Pan Eros Film Festival 2022\r\nSeattle, USA\r\nOfficial Selection\r\n\r\nStudent World Impact Film Festival 2023\r\nUSA\r\nOfficial Selection",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1395",
+            "original_title": "",
+            "production_notes": "",
+            "dir_by": "Krystian Kornel",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 4,
+            "producers": "Krystian Kornel, Daniel Potash, Anna Dywelska",
+            "info": "",
+            "sub_by": "Krystian Kornel",
+            "log_line": "BRENA - Potash x Szurbo\r\nOfficial Music Video",
+            "url": "https://youtu.be/0sQLPosLswg",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20fc358be906-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/0sQLPosLswg?si=afd_VmmafM0E5nEq\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe>",
+            "country": "Not Specified",
+            "language": "Polish",
+            "co_producers": "",
+            "first_time": "True",
+            "editors": "",
+            "synopsis_250": "BRENA - Potash x Szurbo\r\nOfficial Music Video",
+            "crew": "",
+            "directors": "Krystian Kornel",
+            "slug": "brena-krystian-kornel",
+            "twitter": "",
+            "contact_phone": "+48515279729",
+            "title": "Brena",
+            "synopsis": "BRENA - Potash x Szurbo\r\nOfficial Music Video\r\n\r\n",
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster fc358be906-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20fc358be906-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1296
+        },
+        "projection_copy": false,
+        "ref": "FF1395",
+        "runtime": 4,
+        "sub_by": "Krystian Kornel",
+        "subtitles": false,
+        "synopsis": "BRENA - Potash x Szurbo\r\nOfficial Music Video\r\n\r\n",
+        "synopsis_125": "BRENA - Potash x Szurbo\r\nOfficial Music Video",
+        "synopsis_250": "BRENA - Potash x Szurbo\r\nOfficial Music Video",
+        "trailer_embed": "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/0sQLPosLswg?si=afd_VmmafM0E5nEq\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe>",
+        "url": "https://youtu.be/0sQLPosLswg",
+        "year": "2022"
+      },
+      "id": 1120,
+      "identity": "Brena",
+      "slug": "brena--576460750164585709",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "South Africa",
+        "dir_by": "Jurg Slabbert",
+        "facebook": "https://www.facebook.com/AanAfFilm",
+        "genres": "Drama, Horror, Psychological, Thriller",
+        "import_model": "filmfestival.film",
+        "import_pk": "1319",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%2014b3fd880b-poster.jpg",
+        "import_slug": "onoff-jurg-slabbert",
+        "language": "Afrikaans, German",
+        "log_line": "An Afrikaans-speaking man helps his elderly German neighbour in a time of need, despite a language barrier. In the process, he learns volumes about himself.",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "An Afrikaans-speaking man helps his elderly German neighbour in a time of need, despite a language barrier. In the process, h",
+            "year": "2022",
+            "contact_email": "hi@christiaanboonzaier.com",
+            "genres": "Drama, Horror, Psychological, Thriller",
+            "trailer_url": "https://filmfreeway.com/submissions/26681193",
+            "present": false,
+            "screenwriters": "Christiaan Boonzaier",
+            "actors": "Marlo Minnaar, Aletta Bezuidenhout",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": null,
+            "product_designers": "",
+            "screenings": null,
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1456",
+            "original_title": "Aan/Af",
+            "production_notes": "",
+            "dir_by": "Jurg Slabbert",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "https://www.facebook.com/AanAfFilm",
+            "other_social_media": "",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 18,
+            "producers": "Mia Cilliers, Katharina Stehle",
+            "info": "",
+            "sub_by": "Jurg Slabbert",
+            "log_line": "An Afrikaans-speaking man helps his elderly German neighbour in a time of need, despite a language barrier. In the process, he learns volumes about himself.",
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%2014b3fd880b-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "South Africa",
+            "language": "Afrikaans, German",
+            "co_producers": "",
+            "first_time": "True",
+            "editors": "",
+            "synopsis_250": "An Afrikaans-speaking man helps his elderly German neighbour in a time of need, despite a language barrier. In the process, he learns volumes about himself.",
+            "crew": null,
+            "directors": "Jurg Slabbert",
+            "slug": "onoff-jurg-slabbert",
+            "twitter": "",
+            "contact_phone": "+27762792220",
+            "title": "On/Off",
+            "synopsis": null,
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster 14b3fd880b-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%2014b3fd880b-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1319
+        },
+        "original_title": "Aan/Af",
+        "projection_copy": false,
+        "ref": "FF1456",
+        "runtime": 18,
+        "sub_by": "Jurg Slabbert",
+        "subtitles": false,
+        "synopsis_125": "An Afrikaans-speaking man helps his elderly German neighbour in a time of need, despite a language barrier. In the process, h",
+        "synopsis_250": "An Afrikaans-speaking man helps his elderly German neighbour in a time of need, despite a language barrier. In the process, he learns volumes about himself.",
+        "trailer_url": "https://filmfreeway.com/submissions/26681193",
+        "year": "2022"
+      },
+      "id": 1272,
+      "identity": "On/Off",
+      "slug": "onoff--576460749340275542",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Canada",
+        "dir_by": "Zane",
+        "directors_statement": "The only language I really understand is creativity.",
+        "facebook": "https://www.facebook.com/SalvationMoviePage",
+        "genres": "Film noir, drama, narrative",
+        "import_model": "filmfestival.film",
+        "import_pk": "1332",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%2079a5cad0ce-poster.jpg",
+        "import_slug": "salvation-zane",
+        "log_line": "A man drives aimlessly questioning his life only to discover that the answers he is looking for have been with him all along.",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "A man drives aimlessly questioning his life only to discover that the answers he is looking for have been with him all along.",
+            "year": "2022",
+            "contact_email": "gman02@gmail.com",
+            "genres": "Film noir, drama, narrative",
+            "trailer_url": "https://filmfreeway.com/submissions/26833352",
+            "present": false,
+            "screenwriters": "Zane",
+            "actors": "Zane",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "The only language I really understand is creativity.",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1501",
+            "original_title": "",
+            "production_notes": "",
+            "dir_by": "Zane",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "https://www.facebook.com/SalvationMoviePage",
+            "other_social_media": "https://instagram.com/photosbyzane",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 3,
+            "producers": "Zane",
+            "info": "",
+            "sub_by": null,
+            "log_line": "A man drives aimlessly questioning his life only to discover that the answers he is looking for have been with him all along.",
+            "url": "https://www.photosbyzane.com/",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%2079a5cad0ce-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "Canada",
+            "language": "",
+            "co_producers": "",
+            "first_time": "False",
+            "editors": "",
+            "synopsis_250": "A man drives aimlessly questioning his life only to discover that the answers he is looking for have been with him all along.",
+            "crew": "",
+            "directors": "Zane",
+            "slug": "salvation-zane",
+            "twitter": "",
+            "contact_phone": "+15149527571",
+            "title": "Salvation",
+            "synopsis": "A man drives aimlessly questioning his life only to discover that the answers he is looking for have been with him all along.\r\n\r\n",
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster 79a5cad0ce-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%2079a5cad0ce-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1332
+        },
+        "other_social_media": "https://instagram.com/photosbyzane",
+        "projection_copy": false,
+        "ref": "FF1501",
+        "runtime": 3,
+        "subtitles": false,
+        "synopsis": "A man drives aimlessly questioning his life only to discover that the answers he is looking for have been with him all along.\r\n\r\n",
+        "synopsis_125": "A man drives aimlessly questioning his life only to discover that the answers he is looking for have been with him all along.",
+        "synopsis_250": "A man drives aimlessly questioning his life only to discover that the answers he is looking for have been with him all along.",
+        "trailer_url": "https://filmfreeway.com/submissions/26833352",
+        "url": "https://www.photosbyzane.com/",
+        "year": "2022"
+      },
+      "id": 1301,
+      "identity": "Salvation",
+      "slug": "salvation--576460749163276042",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "United Kingdom",
+        "dir_by": "Elizabeth Cassidy",
+        "directors_statement": "Aydan & Evan started from this disconnection I had with myself and my future. While reflecting on this, I was heavily influenced by themes of romance and memory and how they are portrayed in film. From this, I started writing the script, centring the story on my own experience of feeling lost, detached from myself, and how this could be explored through romance. Desire, as well as the memory of desire and how it lingers on your mind, almost obsessively, became the driving force of the story. I wanted the audience to not only feel the desire, but the hope desire brings to the protagonist for a fresh start.",
+        "genres": "Drama, Romance",
+        "import_model": "filmfestival.film",
+        "import_pk": "1336",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20ac9061ae03-poster.jpg",
+        "import_slug": "aydan-and-evan-elizabeth-cassidy",
+        "language": "English",
+        "log_line": "After a romantic chance encounter, Aydan tries to unravel his feelings for Evan as he obsessively recalls his memories of the night they met. ",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "After a romantic chance encounter, Aydan tries to unravel his feelings for Evan as he obsessively recalls his memories of the",
+            "year": "2023",
+            "contact_email": "contact@shortgirlproductions.com",
+            "genres": "Drama, Romance",
+            "trailer_url": "",
+            "present": false,
+            "screenwriters": "Elizabeth Cassidy",
+            "actors": "Aidan Cheng, Misia Butler, Thevindu Edirisinghe",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "Aydan & Evan started from this disconnection I had with myself and my future. While reflecting on this, I was heavily influenced by themes of romance and memory and how they are portrayed in film. From this, I started writing the script, centring the story on my own experience of feeling lost, detached from myself, and how this could be explored through romance. Desire, as well as the memory of desire and how it lingers on your mind, almost obsessively, became the driving force of the story. I wanted the audience to not only feel the desire, but the hope desire brings to the protagonist for a fresh start.",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1508",
+            "original_title": "",
+            "production_notes": "",
+            "dir_by": "Elizabeth Cassidy",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "https://www.instagram.com/aydanandevan/?hl=en-gb",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 18,
+            "producers": "Andriani Marina Scordellis, Elizabeth Cassidy",
+            "info": "",
+            "sub_by": "Short Girl Productions",
+            "log_line": "After a romantic chance encounter, Aydan tries to unravel his feelings for Evan as he obsessively recalls his memories of the night they met. ",
+            "url": "https://www.elizabeth-cassidy.com/aydan-evan-short-film",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20ac9061ae03-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "United Kingdom",
+            "language": "English",
+            "co_producers": "",
+            "first_time": "True",
+            "editors": "",
+            "synopsis_250": "After a romantic chance encounter, Aydan tries to unravel his feelings for Evan as he obsessively recalls his memories of the night they met. ",
+            "crew": "",
+            "directors": "Elizabeth Cassidy",
+            "slug": "aydan-and-evan-elizabeth-cassidy",
+            "twitter": "",
+            "contact_phone": "+447522491265",
+            "title": "Aydan and Evan",
+            "synopsis": "After a romantic chance encounter, Aydan tries to unravel his feelings for Evan as he obsessively recalls his memories of the night they met. \r\n\r\n",
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster ac9061ae03-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20ac9061ae03-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1336
+        },
+        "other_social_media": "https://www.instagram.com/aydanandevan/?hl=en-gb",
+        "projection_copy": false,
+        "ref": "FF1508",
+        "runtime": 18,
+        "sub_by": "Short Girl Productions",
+        "subtitles": false,
+        "synopsis": "After a romantic chance encounter, Aydan tries to unravel his feelings for Evan as he obsessively recalls his memories of the night they met. \r\n\r\n",
+        "synopsis_125": "After a romantic chance encounter, Aydan tries to unravel his feelings for Evan as he obsessively recalls his memories of the",
+        "synopsis_250": "After a romantic chance encounter, Aydan tries to unravel his feelings for Evan as he obsessively recalls his memories of the night they met. ",
+        "url": "https://www.elizabeth-cassidy.com/aydan-evan-short-film",
+        "year": "2023"
+      },
+      "id": 1100,
+      "identity": "Aydan and Evan",
+      "slug": "aydan-and-evan--576460750262580792",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "United States",
+        "dir_by": "Jackson Griffin",
+        "directors_statement": "Ancient peoples believed that the inner turmoil that pushes you to become your highest self was a spirit, a daimon. Jackson and DAIMONIC create film and art in service of self-actualization.",
+        "genres": "Drama",
+        "import_model": "filmfestival.film",
+        "import_pk": "1290",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%202f6e828358-poster.jpg",
+        "import_slug": "dark-mode-jackson-griffin",
+        "language": "English",
+        "log_line": "The black houses spreading through August's neighborhood lead him into Danny's world of conspiracy.",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "The black houses spreading through August's neighborhood lead him into Danny's world of conspiracy.",
+            "year": "2022",
+            "contact_email": "jacksongriffin1@protonmail.com",
+            "genres": "Drama",
+            "trailer_url": "https://vimeo.com/720324424",
+            "present": false,
+            "screenwriters": "Jackson Griffin",
+            "actors": "Matthew McCombs, J. Luke Wheeler",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "Ancient peoples believed that the inner turmoil that pushes you to become your highest self was a spirit, a daimon. Jackson and DAIMONIC create film and art in service of self-actualization.",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1362",
+            "original_title": "",
+            "production_notes": "",
+            "dir_by": "Jackson Griffin",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 20,
+            "producers": "Jackson Griffin, Lucas Cohen",
+            "info": "",
+            "sub_by": "Jackson Griffin",
+            "log_line": "The black houses spreading through August's neighborhood lead him into Danny's world of conspiracy.",
+            "url": "https://www.imdb.com/title/tt20255790/?ref_=ext_shr_lnk",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%202f6e828358-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "<iframe src=\"https://player.vimeo.com/video/720324424?h=b63fd572ee&portrait=0\" width=\"640\" height=\"360\" frameborder=\"0\" allow=\"autoplay; fullscreen; picture-in-picture\" allowfullscreen></iframe>\r\n<p><a href=\"https://vimeo.com/720324424\">DARK MODE Trailer</a> from <a href=\"https://vimeo.com/user110504650\">Jackson Griffin</a> on <a href=\"https://vimeo.com\">Vimeo</a>.</p>",
+            "country": "United States",
+            "language": "English",
+            "co_producers": "",
+            "first_time": "True",
+            "editors": "",
+            "synopsis_250": "The black houses spreading through August's neighborhood lead him into Danny's world of conspiracy.",
+            "crew": "Original Score: Elias Abid",
+            "directors": "Jackson Griffin",
+            "slug": "dark-mode-jackson-griffin",
+            "twitter": "",
+            "contact_phone": "+19136330769",
+            "title": "DARK MODE",
+            "synopsis": "The black houses spreading through August's neighborhood lead him into Danny's world of conspiracy.\r\n\r\n",
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster 2f6e828358-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%202f6e828358-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1290
+        },
+        "projection_copy": false,
+        "ref": "FF1362",
+        "runtime": 20,
+        "sub_by": "Jackson Griffin",
+        "subtitles": false,
+        "synopsis": "The black houses spreading through August's neighborhood lead him into Danny's world of conspiracy.\r\n\r\n",
+        "synopsis_125": "The black houses spreading through August's neighborhood lead him into Danny's world of conspiracy.",
+        "synopsis_250": "The black houses spreading through August's neighborhood lead him into Danny's world of conspiracy.",
+        "trailer_embed": "<iframe src=\"https://player.vimeo.com/video/720324424?h=b63fd572ee&portrait=0\" width=\"640\" height=\"360\" frameborder=\"0\" allow=\"autoplay; fullscreen; picture-in-picture\" allowfullscreen></iframe>\r\n<p><a href=\"https://vimeo.com/720324424\">DARK MODE Trailer</a> from <a href=\"https://vimeo.com/user110504650\">Jackson Griffin</a> on <a href=\"https://vimeo.com\">Vimeo</a>.</p>",
+        "trailer_url": "https://vimeo.com/720324424",
+        "url": "https://www.imdb.com/title/tt20255790/?ref_=ext_shr_lnk",
+        "year": "2022"
+      },
+      "id": 1146,
+      "identity": "DARK MODE",
+      "slug": "dark-mode--576460750031822792",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "France",
+        "dir_by": "Jean-Baptiste COURSAULT",
+        "facebook": "https://www.facebook.com/parakosmprod",
+        "genres": "SciFi, Comedy, Suspens",
+        "import_model": "filmfestival.film",
+        "import_pk": "1324",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/5e93f46752-poster.jpg",
+        "import_slug": "medeia-jean-baptiste-coursault",
+        "language": "French",
+        "log_line": "Iris, in her spaceship, approaches the MEDEIA space station after receiving a message from it. But what will she find inside?",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "Iris, in her spaceship, approaches the MEDEIA space station after receiving a message from it. But what will she find inside?",
+            "year": "2023",
+            "contact_email": "jb-coursault@hotmail.fr",
+            "genres": "SciFi, Comedy, Suspens",
+            "trailer_url": "",
+            "present": false,
+            "screenwriters": "Jean-Baptiste COURSAULT",
+            "actors": null,
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1480",
+            "original_title": "",
+            "production_notes": "",
+            "dir_by": "Jean-Baptiste COURSAULT",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "https://www.facebook.com/parakosmprod",
+            "other_social_media": "https://www.instagram.com/parakosmprod/",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 3,
+            "producers": "PARAKOSM",
+            "info": "",
+            "sub_by": "JB Coursault",
+            "log_line": "Iris, in her spaceship, approaches the MEDEIA space station after receiving a message from it. But what will she find inside?",
+            "url": "https://parakosmprod.fr/",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/5e93f46752-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "France",
+            "language": "French",
+            "co_producers": "",
+            "first_time": "False",
+            "editors": "",
+            "synopsis_250": "Iris, in her spaceship, approaches the MEDEIA space station after receiving a message from it. But what will she find inside?",
+            "crew": "",
+            "directors": "Jean-Baptiste COURSAULT",
+            "slug": "medeia-jean-baptiste-coursault",
+            "twitter": "https://twitter.com/ParakosmP",
+            "contact_phone": "+33676343847",
+            "title": "MEDEIA",
+            "synopsis": "Iris, in her spaceship, approaches the MEDEIA space station after receiving a message from it. But what will she find inside?\r\n\r\n",
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "5e93f46752-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/5e93f46752-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1324
+        },
+        "other_social_media": "https://www.instagram.com/parakosmprod/",
+        "projection_copy": false,
+        "ref": "FF1480",
+        "runtime": 3,
+        "sub_by": "JB Coursault",
+        "subtitles": false,
+        "synopsis": "Iris, in her spaceship, approaches the MEDEIA space station after receiving a message from it. But what will she find inside?\r\n\r\n",
+        "synopsis_125": "Iris, in her spaceship, approaches the MEDEIA space station after receiving a message from it. But what will she find inside?",
+        "synopsis_250": "Iris, in her spaceship, approaches the MEDEIA space station after receiving a message from it. But what will she find inside?",
+        "twitter": "https://twitter.com/ParakosmP",
+        "url": "https://parakosmprod.fr/",
+        "year": "2023"
+      },
+      "id": 1238,
+      "identity": "MEDEIA",
+      "slug": "medeia--576460749537084125",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Poland",
+        "dir_by": "Sabina",
+        "genres": "Drama, Horror, Road Movie",
+        "import_model": "filmfestival.film",
+        "import_pk": "1314",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%209f43f809b2-poster.jpg",
+        "import_slug": "blood-and-flowers-sabina",
+        "language": "English, Polish",
+        "log_line": "Once upon a time there was a Girl that had enough. So she decided to kill everyone she knew and go on a journey of self-discovery with a ghost of her beloved dog.",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "Once upon a time there was a Girl that had enough. So she decided to kill everyone she knew and go on a journey of self-disco",
+            "year": "2023",
+            "contact_email": "poorgirlsproduction@gmail.com",
+            "genres": "Drama, Horror, Road Movie",
+            "trailer_url": "https://filmfreeway.com/submissions/26678097",
+            "present": false,
+            "screenwriters": "Sabina",
+            "actors": "Sabina, Balbina",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1445",
+            "original_title": "Krew i Kwiaty",
+            "production_notes": "",
+            "dir_by": "Sabina",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 19,
+            "producers": "Poor Girl's Production",
+            "info": "",
+            "sub_by": "Poor Girl's Production by Sabina",
+            "log_line": "Once upon a time there was a Girl that had enough. So she decided to kill everyone she knew and go on a journey of self-discovery with a ghost of her beloved dog.",
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%209f43f809b2-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "Poland",
+            "language": "English, Polish",
+            "co_producers": "",
+            "first_time": "False",
+            "editors": "",
+            "synopsis_250": "Once upon a time there was a Girl that had enough. So she decided to kill everyone she knew and go on a journey of self-discovery with a ghost of her beloved dog.",
+            "crew": "Edited by: Sabina; Sound: Sabina",
+            "directors": "Sabina",
+            "slug": "blood-and-flowers-sabina",
+            "twitter": "",
+            "contact_phone": null,
+            "title": "Blood and Flowers",
+            "synopsis": "Once upon a time there was a Girl that had enough. So she decided to kill everyone she knew and go on a journey of self-discovery with a ghost of her beloved dog.\r\n\r\n",
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster 9f43f809b2-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%209f43f809b2-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1314
+        },
+        "original_title": "Krew i Kwiaty",
+        "projection_copy": false,
+        "ref": "FF1445",
+        "runtime": 19,
+        "sub_by": "Poor Girl's Production by Sabina",
+        "subtitles": false,
+        "synopsis": "Once upon a time there was a Girl that had enough. So she decided to kill everyone she knew and go on a journey of self-discovery with a ghost of her beloved dog.\r\n\r\n",
+        "synopsis_125": "Once upon a time there was a Girl that had enough. So she decided to kill everyone she knew and go on a journey of self-disco",
+        "synopsis_250": "Once upon a time there was a Girl that had enough. So she decided to kill everyone she knew and go on a journey of self-discovery with a ghost of her beloved dog.",
+        "trailer_url": "https://filmfreeway.com/submissions/26678097",
+        "year": "2023"
+      },
+      "id": 1112,
+      "identity": "Blood and Flowers",
+      "slug": "blood-and-flowers--576460750203311625",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025-09-30",
+        "description": "A sculpting workshop led by Lydia Venieri on the double sexuality of Hyenas.",
+        "location": "YELLOW TOWER, ANO MERA",
+        "show_project": true,
+        "tickets": null,
+        "time": "16:00",
+        "title": "Exploring the Hyena workshop",
+        "type": "performance"
+      },
+      "id": 2963,
+      "identity": "Exploring the Hyena workshop",
+      "slug": "exploring-the-hyena-workshop--576455215945434202",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Poland",
+        "dir_by": "Jerzy Czachowski",
+        "facebook": "https://www.facebook.com/granatorstudio",
+        "genres": "Drama, Thriller, Comedy, Psychological",
+        "import_model": "filmfestival.film",
+        "import_pk": "1341",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%207d75da27f3-poster.jpg",
+        "import_slug": "burial-jerzy-czachowski",
+        "language": "Polish",
+        "log_line": "Poland today - after the publication of the near total abortion ban regulations. A man and a woman bury a chest on the random field. Meanwhile, the owner of the plot calls the police. The couple is being accused of commiting a crime. As it turns out the chest hides a different secret than the police and the plot's owner suspected. Will the painful confrontation with the emotions and the loss, in addition to the life-changing news be the end or the beginning of a new relationship between the couple?",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "Poland today - after the publication of the near total abortion ban regulations. A man and a woman bury a chest on the random",
+            "year": "2023",
+            "contact_email": "jerzy.czachowski@granator.com",
+            "genres": "Drama, Thriller, Comedy, Psychological",
+            "trailer_url": "https://vimeo.com/715327729",
+            "present": false,
+            "screenwriters": "Jerzy Czachowski",
+            "actors": null,
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": null,
+            "product_designers": "",
+            "screenings": "Not Film Fest\r\nSantarcangelo di Romagn\r\nItaly\r\n\r\nPune Short Film Festival\r\nPune\r\nIndia\r\n\r\nSamizdat Eastern European Film Festival\r\nGlasgow\r\nUnited Kingdom\r\n\r\nGarofano Rosso Film Festival\r\nForme\r\nItaly\r\n\r\nShort/Age - Shortfilms for a New Age\r\nViseu\r\nPortugal\r\n\r\nNorgs International Independent Festival\r\nIsfahan\r\nIran, Islamic Republic of\r\n\r\nCinergo International Film Festival\r\nAthens\r\nGreece",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1518",
+            "original_title": "Pogrzebanie",
+            "production_notes": "",
+            "dir_by": "Jerzy Czachowski",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "https://www.facebook.com/granatorstudio",
+            "other_social_media": "https://www.instagram.com/granator_film/",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 15,
+            "producers": "Filip Gawel",
+            "info": "",
+            "sub_by": "Granator Film",
+            "log_line": "Poland today - after the publication of the near total abortion ban regulations. A man and a woman bury a chest on the random field. Meanwhile, the owner of the plot calls the police. The couple is being accused of commiting a crime. As it turns out the chest hides a different secret than the police and the plot's owner suspected. Will the painful confrontation with the emotions and the loss, in addition to the life-changing news be the end or the beginning of a new relationship between the couple?",
+            "url": "https://www.granator.com/produkcje/pogrzebanie",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%207d75da27f3-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "<iframe src=\"https://player.vimeo.com/video/715327729?h=3abd039910\" width=\"640\" height=\"360\" frameborder=\"0\" allow=\"autoplay; fullscreen; picture-in-picture\" allowfullscreen></iframe>\r\n<p><a href=\"https://vimeo.com/715327729\">Burial / teaser / short film</a> from <a href=\"https://vimeo.com/granator\">GRANATOR FILM</a> on <a href=\"https://vimeo.com\">Vimeo</a>.</p>",
+            "country": "Poland",
+            "language": "Polish",
+            "co_producers": "",
+            "first_time": "False",
+            "editors": "",
+            "synopsis_250": "Poland today - after the publication of the near total abortion ban regulations. A man and a woman bury a chest on the random field. Meanwhile, the owner of the plot calls the police. The couple is being accused of commiting a crime. As it turns out ",
+            "crew": null,
+            "directors": "Jerzy Czachowski",
+            "slug": "burial-jerzy-czachowski",
+            "twitter": "",
+            "contact_phone": null,
+            "title": "Burial",
+            "synopsis": null,
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster 7d75da27f3-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%207d75da27f3-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1341
+        },
+        "original_title": "Pogrzebanie",
+        "other_social_media": "https://www.instagram.com/granator_film/",
+        "projection_copy": false,
+        "ref": "FF1518",
+        "runtime": 15,
+        "sub_by": "Granator Film",
+        "subtitles": false,
+        "synopsis_125": "Poland today - after the publication of the near total abortion ban regulations. A man and a woman bury a chest on the random",
+        "synopsis_250": "Poland today - after the publication of the near total abortion ban regulations. A man and a woman bury a chest on the random field. Meanwhile, the owner of the plot calls the police. The couple is being accused of commiting a crime. As it turns out ",
+        "trailer_embed": "<iframe src=\"https://player.vimeo.com/video/715327729?h=3abd039910\" width=\"640\" height=\"360\" frameborder=\"0\" allow=\"autoplay; fullscreen; picture-in-picture\" allowfullscreen></iframe>\r\n<p><a href=\"https://vimeo.com/715327729\">Burial / teaser / short film</a> from <a href=\"https://vimeo.com/granator\">GRANATOR FILM</a> on <a href=\"https://vimeo.com\">Vimeo</a>.</p>",
+        "trailer_url": "https://vimeo.com/715327729",
+        "url": "https://www.granator.com/produkcje/pogrzebanie",
+        "year": "2023"
+      },
+      "id": 1123,
+      "identity": "Burial",
+      "slug": "burial--576460750150802959",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "France",
+        "dir_by": "Nicolas Benoit",
+        "import_model": "filmfestival.film",
+        "import_pk": "1342",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20ca179097a9-poster.jpg",
+        "import_slug": "parallax-nicolas-benoit",
+        "language": "French",
+        "log_line": "A young woman turns a drone pilot's world upside down when they meet in a movie theater, forcing him to question everything he thought he knew about himself and his personal goals.",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "A young woman turns a drone pilot's world upside down when they meet in a movie theater, forcing him to question everything h",
+            "year": "2022",
+            "contact_email": "nicolas.benoit7@gmail.com",
+            "genres": "",
+            "trailer_url": "https://vimeo.com/795073814",
+            "present": false,
+            "screenwriters": "Laurent Deshayes",
+            "actors": "Laurent Deshayes, Sophie De Villenfagne",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1519",
+            "original_title": "Parallaxe",
+            "production_notes": "",
+            "dir_by": "Nicolas Benoit",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 11,
+            "producers": "Nicolas Benoit",
+            "info": "",
+            "sub_by": "Nicolas BENOIT",
+            "log_line": "A young woman turns a drone pilot's world upside down when they meet in a movie theater, forcing him to question everything he thought he knew about himself and his personal goals.",
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20ca179097a9-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "<iframe title=\"vimeo-player\" src=\"https://player.vimeo.com/video/795073814?h=bd74a3673b\" width=\"640\" height=\"360\" frameborder=\"0\"    allowfullscreen></iframe>",
+            "country": "France",
+            "language": "French",
+            "co_producers": "",
+            "first_time": "True",
+            "editors": "",
+            "synopsis_250": "A young woman turns a drone pilot's world upside down when they meet in a movie theater, forcing him to question everything he thought he knew about himself and his personal goals.",
+            "crew": "Editing: Sophie Miereanu; Image: Jean Pierre Olivares, Nicolas Benoit; Music: Olivier Daubry",
+            "directors": "Nicolas Benoit",
+            "slug": "parallax-nicolas-benoit",
+            "twitter": "",
+            "contact_phone": "+33664376262",
+            "title": "Parallax",
+            "synopsis": null,
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster ca179097a9-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20ca179097a9-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1342
+        },
+        "original_title": "Parallaxe",
+        "projection_copy": false,
+        "ref": "FF1519",
+        "runtime": 11,
+        "sub_by": "Nicolas BENOIT",
+        "subtitles": false,
+        "synopsis_125": "A young woman turns a drone pilot's world upside down when they meet in a movie theater, forcing him to question everything h",
+        "synopsis_250": "A young woman turns a drone pilot's world upside down when they meet in a movie theater, forcing him to question everything he thought he knew about himself and his personal goals.",
+        "trailer_embed": "<iframe title=\"vimeo-player\" src=\"https://player.vimeo.com/video/795073814?h=bd74a3673b\" width=\"640\" height=\"360\" frameborder=\"0\"    allowfullscreen></iframe>",
+        "trailer_url": "https://vimeo.com/795073814",
+        "year": "2022"
+      },
+      "id": 1277,
+      "identity": "Parallax",
+      "slug": "parallax--576460749313646209",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Greece",
+        "dir_by": "Fotis Giarentis",
+        "import_model": "filmfestival.film",
+        "import_pk": "1307",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20da02e52be9-poster.jpg",
+        "import_slug": "fossil-tree-fotis-giarentis",
+        "language": "Modern Greek (1453-)",
+        "log_line": "A hitman named Nikos encounters a person from his past in order to settle things over an old agreement .",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "A hitman named Nikos encounters a person from his past in order to settle things over an old agreement .",
+            "year": "2023",
+            "contact_email": "fotisgiarentis@gmail.com",
+            "genres": "",
+            "trailer_url": "https://filmfreeway.com/submissions/26674332",
+            "present": false,
+            "screenwriters": "Fotis Giarentis",
+            "actors": "Fotis Giarentis, Nikos Mpon",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1421",
+            "original_title": "",
+            "production_notes": "",
+            "dir_by": "Fotis Giarentis",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 11,
+            "producers": "Fotis Giarentis, Akis Rapanakis",
+            "info": "",
+            "sub_by": "fotis giarentis",
+            "log_line": "A hitman named Nikos encounters a person from his past in order to settle things over an old agreement .",
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20da02e52be9-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "Greece",
+            "language": "Modern Greek (1453-)",
+            "co_producers": "",
+            "first_time": "False",
+            "editors": "",
+            "synopsis_250": "A hitman named Nikos encounters a person from his past in order to settle things over an old agreement .",
+            "crew": "",
+            "directors": "Fotis Giarentis",
+            "slug": "fossil-tree-fotis-giarentis",
+            "twitter": "",
+            "contact_phone": "+306946348608",
+            "title": "Fossil Tree",
+            "synopsis": "A hitman named Nikos encounters a person from his past in order to settle things over an old agreement .\r\n\r\n",
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster da02e52be9-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20da02e52be9-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1307
+        },
+        "projection_copy": false,
+        "ref": "FF1421",
+        "runtime": 11,
+        "sub_by": "fotis giarentis",
+        "subtitles": false,
+        "synopsis": "A hitman named Nikos encounters a person from his past in order to settle things over an old agreement .\r\n\r\n",
+        "synopsis_125": "A hitman named Nikos encounters a person from his past in order to settle things over an old agreement .",
+        "synopsis_250": "A hitman named Nikos encounters a person from his past in order to settle things over an old agreement .",
+        "trailer_url": "https://filmfreeway.com/submissions/26674332",
+        "year": "2023"
+      },
+      "id": 1178,
+      "identity": "Fossil Tree",
+      "slug": "fossil-tree--576460749864893834",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Greece",
+        "dir_by": "Piro Gjylameti",
+        "import_model": "filmfestival.film",
+        "import_pk": "1305",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Screenshot%202023-09-10%20at%2016.55.55.png",
+        "import_slug": "if-i-knew-piro-gjylameti",
+        "language": "Modern Greek (1453-)",
+        "log_line": "A man, suffering from a psychiatric disorder, tries to understand what exactly is going on in his difficult life. ",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "A man, suffering from a psychiatric disorder, tries to understand what exactly is going on in his difficult life. ",
+            "year": "2023",
+            "contact_email": "pyrrosg7@gmail.com",
+            "genres": "",
+            "trailer_url": "https://filmfreeway.com/submissions/26674251",
+            "present": false,
+            "screenwriters": "Piro Gjylameti",
+            "actors": "Grigoris Pantazis",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1419",
+            "original_title": null,
+            "production_notes": "",
+            "dir_by": "Piro Gjylameti",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 15,
+            "producers": "Piro Gjylameti",
+            "info": "",
+            "sub_by": "Piro Gjylameti",
+            "log_line": "A man, suffering from a psychiatric disorder, tries to understand what exactly is going on in his difficult life. ",
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Screenshot%202023-09-10%20at%2016.55.55.png",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "Greece",
+            "language": "Modern Greek (1453-)",
+            "co_producers": "",
+            "first_time": "True",
+            "editors": "",
+            "synopsis_250": "A man, suffering from a psychiatric disorder, tries to understand what exactly is going on in his difficult life. ",
+            "crew": "",
+            "directors": "Piro Gjylameti",
+            "slug": "if-i-knew-piro-gjylameti",
+            "twitter": "",
+            "contact_phone": null,
+            "title": "If I Knew",
+            "synopsis": null,
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Screenshot 2023-09-10 at 16.55.55.png",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Screenshot%202023-09-10%20at%2016.55.55.png"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1305
+        },
+        "projection_copy": false,
+        "ref": "FF1419",
+        "runtime": 15,
+        "sub_by": "Piro Gjylameti",
+        "subtitles": false,
+        "synopsis_125": "A man, suffering from a psychiatric disorder, tries to understand what exactly is going on in his difficult life. ",
+        "synopsis_250": "A man, suffering from a psychiatric disorder, tries to understand what exactly is going on in his difficult life. ",
+        "trailer_url": "https://filmfreeway.com/submissions/26674251",
+        "year": "2023"
+      },
+      "id": 1197,
+      "identity": "If I Knew",
+      "slug": "if-i-knew--576460749757900000",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Spain",
+        "dir_by": "Marc Esquirol Cano",
+        "import_model": "filmfestival.film",
+        "import_pk": "1302",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20df421f1a44-poster.jpg",
+        "import_slug": "si-mai-no-ens-haguessim-separat-marc-esquirol-cano",
+        "language": "Catalan",
+        "log_line": "Manel and Judit travel to the snow after leaving it a few months ago.\r\n\r\nWe have english and spanish subtitles.",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "Manel and Judit travel to the snow after leaving it a few months ago.\r\n\r\nWe have english and spanish subtitles.",
+            "year": "2024",
+            "contact_email": "esquirolmarc@gmail.com",
+            "genres": "",
+            "trailer_url": "https://vimeo.com/manage/videos/778589470",
+            "present": false,
+            "screenwriters": "Marc Esquirol Cano, Pau Berlanga",
+            "actors": "",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dance",
+            "directors_statement": "",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1411",
+            "original_title": "",
+            "production_notes": "",
+            "dir_by": "Marc Esquirol Cano",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "https://instagram.com/marcesquirol",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 14,
+            "producers": "Marc Esquirol Cano",
+            "info": "",
+            "sub_by": "Marc Esquirol",
+            "log_line": "Manel and Judit travel to the snow after leaving it a few months ago.\r\n\r\nWe have english and spanish subtitles.",
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20df421f1a44-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "<iframe title=\"vimeo-player\" src=\"https://player.vimeo.com/video/778589470?h=7cd82f3942\" width=\"640\" height=\"360\" frameborder=\"0\"    allowfullscreen></iframe>",
+            "country": "Spain",
+            "language": "Catalan",
+            "co_producers": "",
+            "first_time": "False",
+            "editors": "",
+            "synopsis_250": "Manel and Judit travel to the snow after leaving it a few months ago.\r\n\r\nWe have english and spanish subtitles.",
+            "crew": "",
+            "directors": "Marc Esquirol Cano",
+            "slug": "si-mai-no-ens-haguessim-separat-marc-esquirol-cano",
+            "twitter": "",
+            "contact_phone": null,
+            "title": null,
+            "synopsis": "Manel and Judit travel to the snow after leaving it a few months ago.\r\n\r\nWe have english and spanish subtitles.\r\n\r\n",
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster df421f1a44-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20df421f1a44-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1302
+        },
+        "other_social_media": "https://instagram.com/marcesquirol",
+        "projection_copy": false,
+        "ref": "FF1411",
+        "runtime": 14,
+        "sub_by": "Marc Esquirol",
+        "subtitles": false,
+        "synopsis": "Manel and Judit travel to the snow after leaving it a few months ago.\r\n\r\nWe have english and spanish subtitles.\r\n\r\n",
+        "synopsis_125": "Manel and Judit travel to the snow after leaving it a few months ago.\r\n\r\nWe have english and spanish subtitles.",
+        "synopsis_250": "Manel and Judit travel to the snow after leaving it a few months ago.\r\n\r\nWe have english and spanish subtitles.",
+        "trailer_embed": "<iframe title=\"vimeo-player\" src=\"https://player.vimeo.com/video/778589470?h=7cd82f3942\" width=\"640\" height=\"360\" frameborder=\"0\"    allowfullscreen></iframe>",
+        "trailer_url": "https://vimeo.com/manage/videos/778589470",
+        "year": "2024"
+      },
+      "id": 1408,
+      "identity": "Untitled",
+      "slug": "untitled--576460748495146375",
+      "template": "default",
+      "type": "Dance",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2023-09-27",
+        "description": null,
+        "import_key": "6-14",
+        "import_model": "festival.project",
+        "import_pk": "37",
+        "import_slug": "dramatic-nights",
+        "location": "YELLOW TOWER, ANO MERA",
+        "original_record": {
+          "fields": {
+            "slug": "dramatic-nights",
+            "title": "Dramatic Nights"
+          },
+          "files": [],
+          "foreign_keys": {
+            "festival": {
+              "model": "festival.festival",
+              "pk": 7
+            }
+          },
+          "many_to_many": {},
+          "model": "festival.project",
+          "pk": 37
+        },
+        "show_project": true,
+        "tickets": null,
+        "time": "21:00",
+        "title": "DRAMATIC NIGHTS SCREENING DAY 1",
+        "type": "screening"
+      },
+      "id": 64,
+      "identity": "DRAMATIC NIGHTS SCREENING DAY 1",
+      "slug": "dramatic-nights--576460750167083875",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Greece",
+        "dir_by": "MANOLIS KLONARIS",
+        "import_model": "filmfestival.film",
+        "import_pk": "1340",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20715d4ad313-poster.jpg",
+        "import_slug": "agalliasi-manolis-klonaris",
+        "language": "Modern Greek (1453-)",
+        "log_line": "In the near future, Petros Hardamis will apply for a suicide permit. We all have the right to live, but to die?",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "In the near future, Petros Hardamis will apply for a suicide permit. We all have the right to live, but to die?",
+            "year": "2022",
+            "contact_email": "manosklonaris@hotmail.gr",
+            "genres": "",
+            "trailer_url": "",
+            "present": false,
+            "screenwriters": "LYTO TRIANTAFYLLIDOU",
+            "actors": "MANOLIS KLONARIS, CHRISTIANA DROSOU, MAROUSKA PANAGIOTOPOULOU, EUTHIMIS GEORGOPOULOS, IOANNA BITOUNI, JOYCE EVIDI, TASOS TSOUKALIS, ADRIANOS GATSOS, PETRA MAVRIDI",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1517",
+            "original_title": "",
+            "production_notes": "",
+            "dir_by": "MANOLIS KLONARIS",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 10,
+            "producers": "MANOLIS KLONARIS",
+            "info": "",
+            "sub_by": "Manolis Klonaris",
+            "log_line": "In the near future, Petros Hardamis will apply for a suicide permit. We all have the right to live, but to die?",
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20715d4ad313-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "Greece",
+            "language": "Modern Greek (1453-)",
+            "co_producers": "",
+            "first_time": "False",
+            "editors": "",
+            "synopsis_250": "In the near future, Petros Hardamis will apply for a suicide permit. We all have the right to live, but to die?",
+            "crew": "",
+            "directors": "MANOLIS KLONARIS",
+            "slug": "agalliasi-manolis-klonaris",
+            "twitter": "",
+            "contact_phone": "+306946905262",
+            "title": "AGALLIASI",
+            "synopsis": "In the near future, Petros Hardamis will apply for a suicide permit. We all have the right to live, but to die?\r\n\r\n",
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster 715d4ad313-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20715d4ad313-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1340
+        },
+        "projection_copy": false,
+        "ref": "FF1517",
+        "runtime": 10,
+        "sub_by": "Manolis Klonaris",
+        "subtitles": false,
+        "synopsis": "In the near future, Petros Hardamis will apply for a suicide permit. We all have the right to live, but to die?\r\n\r\n",
+        "synopsis_125": "In the near future, Petros Hardamis will apply for a suicide permit. We all have the right to live, but to die?",
+        "synopsis_250": "In the near future, Petros Hardamis will apply for a suicide permit. We all have the right to live, but to die?",
+        "year": "2022"
+      },
+      "id": 1084,
+      "identity": "AGALLIASI",
+      "slug": "agalliasi--576460750338414834",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "United States",
+        "dir_by": "Preston Bowe",
+        "genres": "Horror, Thriller, Psychological Horror, Fantasy, Science Fiction",
+        "import_model": "filmfestival.film",
+        "import_pk": "1338",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%204c8ab8d1a8-poster.jpg",
+        "import_slug": "fermata-preston-bowe",
+        "language": "English",
+        "log_line": "A struggling pianist makes a peculiar discovery.",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "A struggling pianist makes a peculiar discovery.",
+            "year": "2022",
+            "contact_email": "pbowe02@gmail.com",
+            "genres": "Horror, Thriller, Psychological Horror, Fantasy, Science Fiction",
+            "trailer_url": "https://youtu.be/pttQkX9zJ7U",
+            "present": false,
+            "screenwriters": "Preston Bowe",
+            "actors": "Emma Kiernan",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": null,
+            "product_designers": "",
+            "screenings": "Opificer Media Student Film Festival\r\nBrentwood, California\r\nNovember 18, 2022\r\nWINNER Best Screenplay & Best Actress (Emma Kiernan) | NOMINEE for Best Editing, Best Cinematography, Best Director, Best College, and Best In Show\r\nUnited States\r\n\r\nHollywood Blood Horror Festival\r\nLos Angeles, California\r\nWINNER Best Mystery, Best First Time Director, Best Cinematography, Best Original Score, & Best Young Actress (Emma Kiernan)\r\nUnited States",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1511",
+            "original_title": "",
+            "production_notes": "",
+            "dir_by": "Preston Bowe",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 5,
+            "producers": "Preston Bowe",
+            "info": "",
+            "sub_by": "Preston Bowe",
+            "log_line": "A struggling pianist makes a peculiar discovery.",
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%204c8ab8d1a8-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/pttQkX9zJ7U?si=AuJ0n6UvJlx1SUmV\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe>",
+            "country": "United States",
+            "language": "English",
+            "co_producers": "",
+            "first_time": "True",
+            "editors": "",
+            "synopsis_250": "A struggling pianist makes a peculiar discovery.",
+            "crew": "Director of Photography: Preston Bowe; Editor: Preston Bowe; Composer: Preston Bowe; Special Effects Artist: Preston Bowe",
+            "directors": "Preston Bowe",
+            "slug": "fermata-preston-bowe",
+            "twitter": "",
+            "contact_phone": "+16466123530",
+            "title": "Fermata",
+            "synopsis": "A struggling pianist makes a peculiar discovery.\r\n\r\n",
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster 4c8ab8d1a8-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%204c8ab8d1a8-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1338
+        },
+        "projection_copy": false,
+        "ref": "FF1511",
+        "runtime": 5,
+        "sub_by": "Preston Bowe",
+        "subtitles": false,
+        "synopsis": "A struggling pianist makes a peculiar discovery.\r\n\r\n",
+        "synopsis_125": "A struggling pianist makes a peculiar discovery.",
+        "synopsis_250": "A struggling pianist makes a peculiar discovery.",
+        "trailer_embed": "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/pttQkX9zJ7U?si=AuJ0n6UvJlx1SUmV\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe>",
+        "trailer_url": "https://youtu.be/pttQkX9zJ7U",
+        "year": "2022"
+      },
+      "id": 1172,
+      "identity": "Fermata",
+      "slug": "fermata--576460749896449042",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Spain",
+        "dir_by": "Nei Loya",
+        "directors_statement": "The reason why I decided to tell this true family story, is because it symbolizes the lives of millions of women from the same era who were silenced. It describes a society marked by inequality between men and women where they were forced from childhood to assume responsibilities of adulthood. Girls, born into humble families, who did not have access to a basic education, because they had to take care of the housework, work in the fields, or take care of their younger siblings, adopting the role of mothers. Women who suffered sexual abuse throughout their childhood, most at the hands of relatives, and were forced into silence. A time in history, which marked many of our grandmothers and mothers, and which conditioned their way of educating ourselves and seeing the world.\r\nThis short film, in each of its scenes, will remind us where we come from, and the long way we still have to travel as women, as a society, and as human beings.",
+        "import_model": "filmfestival.film",
+        "import_pk": "1337",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%200ae662a1a6-poster.jpg",
+        "import_slug": "the-summers-of-your-winter-nei-loya",
+        "language": "Spanish",
+        "log_line": "Sara, a teenager who has suffered from her mother's deep depression and her constant suicide attempts since she was a child, receives the opportunity to travel to the past and experience first-hand with her, the moments that marked her and made her what she is now.",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "Sara, a teenager who has suffered from her mother's deep depression and her constant suicide attempts since she was a child, ",
+            "year": "2022",
+            "contact_email": "neriumfilms@gmail.com",
+            "genres": "",
+            "trailer_url": "https://vimeo.com/750978532",
+            "present": false,
+            "screenwriters": "Nei Loya",
+            "actors": null,
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "The reason why I decided to tell this true family story, is because it symbolizes the lives of millions of women from the same era who were silenced. It describes a society marked by inequality between men and women where they were forced from childhood to assume responsibilities of adulthood. Girls, born into humble families, who did not have access to a basic education, because they had to take care of the housework, work in the fields, or take care of their younger siblings, adopting the role of mothers. Women who suffered sexual abuse throughout their childhood, most at the hands of relatives, and were forced into silence. A time in history, which marked many of our grandmothers and mothers, and which conditioned their way of educating ourselves and seeing the world.\r\nThis short film, in each of its scenes, will remind us where we come from, and the long way we still have to travel as women, as a society, and as human beings.",
+            "product_designers": "",
+            "screenings": "Frame Film Festival \r\nTarragona\r\nOfficial Selection\r\nSpain\r\n\r\nFescinab\r\nBerja\r\nBest Andalucian Shortfilm and Best Soundtrack\r\nSpain\r\n\r\nCerdanya Film Festival\r\nGirona\r\nAugust 11, 2023\r\nOfficial Selection\r\nSpain",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1509",
+            "original_title": "Los Veranos de tu Invierno",
+            "production_notes": "",
+            "dir_by": "Nei Loya",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "https://www.instagram.com/neriumfilms",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 18,
+            "producers": "Nei Loya, Jordi Calvet",
+            "info": "",
+            "sub_by": "NEI LOYA",
+            "log_line": "Sara, a teenager who has suffered from her mother's deep depression and her constant suicide attempts since she was a child, receives the opportunity to travel to the past and experience first-hand with her, the moments that marked her and made her what she is now.",
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%200ae662a1a6-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "<iframe title=\"vimeo-player\" src=\"https://player.vimeo.com/video/750978532?h=467209d3f6\" width=\"640\" height=\"360\" frameborder=\"0\"    allowfullscreen></iframe>",
+            "country": "Spain",
+            "language": "Spanish",
+            "co_producers": "",
+            "first_time": "False",
+            "editors": "",
+            "synopsis_250": "Sara, a teenager who has suffered from her mother's deep depression and her constant suicide attempts since she was a child, receives the opportunity to travel to the past and experience first-hand with her, the moments that marked her and made her w",
+            "crew": "",
+            "directors": "Nei Loya",
+            "slug": "the-summers-of-your-winter-nei-loya",
+            "twitter": "",
+            "contact_phone": "+34634531409",
+            "title": "The Summers of your Winter",
+            "synopsis": null,
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster 0ae662a1a6-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%200ae662a1a6-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1337
+        },
+        "original_title": "Los Veranos de tu Invierno",
+        "other_social_media": "https://www.instagram.com/neriumfilms",
+        "projection_copy": false,
+        "ref": "FF1509",
+        "runtime": 18,
+        "sub_by": "NEI LOYA",
+        "subtitles": false,
+        "synopsis_125": "Sara, a teenager who has suffered from her mother's deep depression and her constant suicide attempts since she was a child, ",
+        "synopsis_250": "Sara, a teenager who has suffered from her mother's deep depression and her constant suicide attempts since she was a child, receives the opportunity to travel to the past and experience first-hand with her, the moments that marked her and made her w",
+        "trailer_embed": "<iframe title=\"vimeo-player\" src=\"https://player.vimeo.com/video/750978532?h=467209d3f6\" width=\"640\" height=\"360\" frameborder=\"0\"    allowfullscreen></iframe>",
+        "trailer_url": "https://vimeo.com/750978532",
+        "year": "2022"
+      },
+      "id": 1361,
+      "identity": "The Summers of your Winter",
+      "slug": "the-summers-of-your-winter--576460748790155042",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2023",
+        "description": "Laterns is comprisied of 13 printed (intalgio and relief) works on paper created in New York. They have been digitally reprinted and laminated in Mykonos, transposed onto outdoor laterns in collobration with Lydia Venieri. The 13 laterns illuminate the collobrative and communicative properties of the print medium, and how it can be used to translate and share images and ideas across borders and between people.",
+        "import_model": "festival.art",
+        "import_photo_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/artists/mykonos-biennale-2023-garden-of-mysteries-anna-molloy-laterns-2023-1.png",
+        "import_pks": [
+          "512",
+          "528",
+          "529"
+        ],
+        "leader": true,
+        "medium": null,
+        "reimported": true,
+        "size": null,
+        "title": "Laterns, 2023",
+        "type": "artwork"
+      },
+      "id": 2996,
+      "identity": "Laterns, 2023",
+      "slug": "laterns-2023--576456713731251833",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "description": null,
+        "end_date": null,
+        "import_model": "festival.festival",
+        "import_pk": "7",
+        "original_record": {
+          "fields": {
+            "slug": "orphic-mysteries",
+            "statement": "To be announced ",
+            "title": "Orphic Mysteries",
+            "year": 2023
+          },
+          "files": [],
+          "foreign_keys": {},
+          "many_to_many": {},
+          "model": "festival.festival",
+          "pk": 7
+        },
+        "show_program": true,
+        "start_date": null,
+        "statement": "Φ is the child of one and two, of the unit and its binary hypostasis.\n\nIt is the magical number that never ends: the eternal hermaphrodite, son of Rhea and Cronus, of the sphere and time. The Logos of the Golden Ratio, the eternal division of the genetic amoeba, the dance of the cosmic DNA, the endless fermentation. The greatest Orphic mystery is the Coherence that the celebration gives to the world. By celebrating, Dionysus defeated real armies. The power of Intoxication breaks the limits of restraint and strips man and feelings from Himself, seeking to share Himself: I am the Vine, the bread is our body, the wine is our blood, the dance is our soul united. The unit is divided and reunited in the dance. In the theater, the repeated pantomime of each drama, as roles are projected and cut off from oneself, brings catharsis.\n\nThe Orphic Mysteries are not conveyed by logical words but by feelings that reward instinct. They concern the click of a higher sensual knowledge, where the initiates communicate united. Then sadness and joy, mourning and resurrection, feeling and reason become our trial, our unique and indivisible, and panhuman memory.\n\n“Snake, monkey, and eagle\nwith the great feast\nwe will finish the ballos” …\n\nLydia Venieri\nMaroussi, May 2023",
+        "theme": "Orphic Mysteries",
+        "year": 2023
+      },
+      "id": 6,
+      "identity": "2023",
+      "slug": "2023",
+      "template": "festival-2023",
+      "type": "biennale",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025-09-28",
+        "description": null,
+        "import_key": "7-32",
+        "import_model": "festival.project",
+        "import_pk": "44",
+        "import_slug": "video-graffiti",
+        "location": "Chora",
+        "original_record": {
+          "fields": {
+            "slug": "video-graffiti",
+            "title": "Video Graffiti "
+          },
+          "files": [],
+          "foreign_keys": {
+            "festival": {
+              "model": "festival.festival",
+              "pk": 8
+            }
+          },
+          "many_to_many": {},
+          "model": "festival.project",
+          "pk": 44
+        },
+        "show_project": true,
+        "tickets": null,
+        "time": "21:00",
+        "title": "Video Graffiti ",
+        "type": "screening"
+      },
+      "id": 71,
+      "identity": "Video Graffiti ",
+      "slug": "video-graffiti--576460750132741625",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": null,
+        "description": null,
+        "medium": null,
+        "size": null,
+        "title": "Monsters inside and beyond us",
+        "type": null
+      },
+      "id": 3348,
+      "identity": "Monsters inside and beyond us",
+      "slug": "monsters-inside-and-beyond-us--576435217201868710",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025",
+        "description": null,
+        "medium": "acrylic on canvas",
+        "size": null,
+        "title": "Different Worlds from the Spaces of Places",
+        "type": "artwork"
+      },
+      "id": 3337,
+      "identity": "Different Worlds from the Spaces of Places",
+      "slug": "different-worlds-from-the-spaces-of-places--576440989312805599",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": null,
+        "description": "MOTHERS WOMB\nI can't see the light\nBut I can breathe\nFor me you put things aright\nCan I stay longer please\nYou carry me all the time\nO African woman\nWhat shall I render to recompense in due time\nIntroduce me to life as a new one\n",
+        "medium": null,
+        "size": null,
+        "title": "Mothers Wombs",
+        "type": null
+      },
+      "id": 3350,
+      "identity": "Mothers Wombs",
+      "slug": "mothers-wombs--576434578838598378",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": null,
+        "description": null,
+        "medium": null,
+        "size": null,
+        "title": "At the Door of Paradise",
+        "type": "artwork"
+      },
+      "id": 3346,
+      "identity": "At the Door of Paradise",
+      "slug": "at-the-door-of-paradise--576435823513748606",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": null,
+        "description": null,
+        "medium": "mosiac",
+        "size": null,
+        "title": "Christmas Shisha",
+        "type": "artwork"
+      },
+      "id": 3341,
+      "identity": "Christmas Shisha",
+      "slug": "christmas-shisha--576437220100620382",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": null,
+        "description": null,
+        "medium": null,
+        "size": null,
+        "title": "Flying Snakes",
+        "type": "artwork"
+      },
+      "id": 3352,
+      "identity": "Flying Snakes",
+      "slug": "flying-snakes--576433481363657762",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025",
+        "description": "\"This is not a scene from a movie, nor a comparison to the acts of Nazis or Tatars. If you wish to describe it, simply say these are the acts of the occupation - nothing more.\"",
+        "medium": null,
+        "size": null,
+        "title": "The \"Safe\" Hearth",
+        "type": null
+      },
+      "id": 3344,
+      "identity": "The \"Safe\" Hearth",
+      "slug": "the-safe-hearth--576436377782571543",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025",
+        "description": "This work addresses the suffering of childhood, confined in a world that imposes hunger and fear before it knows the meaning of life. The doll here is not just a toy, but a symbol of a small, helpless body, its mouth sewn shut with silence, its eyes closed to hope, and its limbs bound with merciless threads. The heavy brown color in the background encapsulates the weight of suffering.\nThe twisted threads represent the hidden restrictions that deprive children of their most basic rights: food, nourishment, and milk. This enforced silence not only kills the body, but also suffocates the soul, rendering the child a mere\n\"object\" suspended between life and death.\nUltimately, the work poses a painful question:\nHow many children live today as neglected puppets on the stage of a cruel world?\nTechnique: Watercolor on paper, hand-embroidered threads.",
+        "medium": "technique: Watercolor on paper, hand-embroidered threads ",
+        "size": "40x40cm",
+        "title": "Multiple Self Threads",
+        "type": "artwork"
+      },
+      "id": 3339,
+      "identity": "Multiple Self Threads",
+      "slug": "multiple-self-threads--576437811501640249",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "description": null,
+        "import_model": "festival.projectx",
+        "import_pk": "25",
+        "import_slug": "garden-of-mysteries",
+        "original_record": {
+          "project": {
+            "fields": {
+              "slug": "garden-of-mysteries",
+              "title": "Garden of Mysteries"
+            },
+            "files": [],
+            "foreign_keys": {
+              "festival": {
+                "model": "festival.festival",
+                "pk": 7
+              }
+            },
+            "many_to_many": {},
+            "model": "festival.project",
+            "pk": 41
+          },
+          "projectx": {
+            "fields": {
+              "slug": "garden-of-mysteries",
+              "statement": "INTERACTIVE FINE ART EXHIBITION AND PERFORMANCES",
+              "title": "Garden of Mysteries"
+            },
+            "files": [],
+            "foreign_keys": {},
+            "many_to_many": {
+              "festival": {
+                "entries": [
+                  {
+                    "model": "festival.festival",
+                    "pk": 7
+                  }
+                ],
+                "through_model": null
+              }
+            },
+            "model": "festival.projectx",
+            "pk": 25
+          }
+        },
+        "statement": "INTERACTIVE FINE ART EXHIBITION AND PERFORMANCES",
+        "title": "Garden of Mysteries"
+      },
+      "id": 18,
+      "identity": "Garden of Mysteries",
+      "slug": "garden-of-mysteries--576460750385418834",
+      "template": "default",
+      "type": "project",
+      "visible": true
+    },
+    {
+      "fields": {
+        "bio": null,
+        "country": null,
+        "email": "redacted@example.com",
+        "first_name": "Anna",
+        "import_event": "OTHER",
+        "import_model": "festival.artist",
+        "import_pk": "307",
+        "import_slug": "anna-molloy",
+        "last_name": "Molloy",
+        "name": "Anna Molloy",
+        "original_record": {
+          "fields": {
+            "bio": "",
+            "country": "",
+            "css": "",
+            "email": "",
+            "event": "OTHER",
+            "headshot": "https://s3.amazonaws.com/com.mykonosbiennale.static/artists/mykonos-biennale-mykonos-biennale-artist-anna-molloy.jpeg",
+            "homepage": "",
+            "javascript": "",
+            "last_festival": 2023,
+            "name": "Anna Molloy",
+            "phone": null,
+            "poster": null,
+            "slug": "anna-molloy",
+            "statement": "",
+            "template": "2015-artist.html",
+            "visible": true
+          },
+          "files": [
+            {
+              "field": "headshot",
+              "path": "artists/mykonos-biennale-mykonos-biennale-artist-anna-molloy.jpeg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/artists/mykonos-biennale-mykonos-biennale-artist-anna-molloy.jpeg"
+            }
+          ],
+          "foreign_keys": {},
+          "many_to_many": {},
+          "model": "festival.artist",
+          "pk": 307
+        },
+        "phone": "+30 0000000000",
+        "social_media": [],
+        "statement": null,
+        "website": null
+      },
+      "id": 98,
+      "identity": "Anna Molloy",
+      "slug": "anna-molloy--576460750366730792",
+      "template": "default",
+      "type": "participant",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025",
+        "description": null,
+        "medium": null,
+        "size": null,
+        "title": "Garden of Mysteries",
+        "type": "artwork"
+      },
+      "id": 3357,
+      "identity": "Garden of Mysteries",
+      "slug": "garden-of-mysteries--576307334359822017",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": null,
+        "description": "\nThe cake slowly decays. Its sweetness fading. A slow death, a degradation like the unraveling of reality itself. What we live, what we feel, feels like a dream, like a simulation, proving we are real. But are we? Is this the reality we chose? The layers degrade away, revealing nothing but the hollow core beneath. ",
+        "medium": "Sculpture of aluminium, silicone, cream)aluminium, silicone, cream",
+        "size": null,
+        "title": "I'm busy saving the world today",
+        "type": "artwork"
+      },
+      "id": 3358,
+      "identity": "I'm busy saving the world today",
+      "slug": "im-busy-saving-the-world-today--576307150617921243",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": null,
+        "description": null,
+        "medium": "acrylic on canvas",
+        "size": "270x140cm ",
+        "title": "How do you feel today? Better? ",
+        "type": null
+      },
+      "id": 3359,
+      "identity": "How do you feel today? Better? ",
+      "slug": "how-do-you-feel-today-better--576306210435111890",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2023",
+        "description": null,
+        "medium": null,
+        "size": "150x200cm",
+        "title": "cyanotypes on cotton sheets",
+        "type": "artwork"
+      },
+      "id": 3361,
+      "identity": "cyanotypes on cotton sheets",
+      "slug": "untitled--576305461609546049",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "artboard_media_ids": [
+          2847,
+          2842,
+          2843,
+          2875,
+          2845,
+          2852,
+          2887,
+          2849,
+          2853,
+          2856,
+          2862,
+          2861,
+          2865,
+          2868
+        ],
+        "date": "2025-09-27",
+        "description": "An installation of works in the old garden of the Venieri house in Ano Mera.",
+        "location": "YELLOW TOWER, ANO MERA, MYKONOS",
+        "show_project": true,
+        "tickets": null,
+        "time": "20:00",
+        "title": "Mystic Garden",
+        "type": "exhibition"
+      },
+      "id": 2956,
+      "identity": "Mystic Garden",
+      "slug": "mystic-garden--576362158237812875",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    },
+    {
+      "fields": {
+        "bio": null,
+        "country": "France",
+        "email": "redacted@example.com",
+        "first_name": "Max",
+        "last_name": "Brismontier",
+        "name": "Max Brismontier",
+        "phone": "+30 0000000000",
+        "social_media": [
+          {
+            "handle": "@monstre2poche",
+            "platform": "Instagram"
+          }
+        ],
+        "statement": "I am Max, a 23 years old french artist based in Brussels Belgium. I gratuated of a Political Science Bachelor Degree in 2021 and I am currently doing a master degree in fine arts at the Ecole de Recherche Graphique (ERG).\nI like to merge the use of sculpture, textile art, videography, photography, installation and performance. My work revolves around the exploration of folklore and collective imagination and the creation of ephemeral and hidden heterotopias.",
+        "website": null
+      },
+      "id": 3362,
+      "identity": "Max Brismontier",
+      "slug": "max-brismontier--576304835660455658",
+      "template": "default",
+      "type": "participant",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": null,
+        "description": null,
+        "medium": null,
+        "size": null,
+        "title": "collection",
+        "type": null
+      },
+      "id": 3363,
+      "identity": "collection",
+      "slug": "collection--576304125648872282",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025",
+        "description": null,
+        "medium": null,
+        "size": null,
+        "title": "Change",
+        "type": "artwork"
+      },
+      "id": 3365,
+      "identity": "Change",
+      "slug": "change--576303060740408356",
+      "template": "default",
+      "type": "artwork",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "Switzerland",
+        "dir_by": "Mit Jarouble, Hugues Beauregard",
+        "facebook": "https://www.facebook.com/drateppctrs",
+        "import_model": "filmfestival.film",
+        "import_pk": "1291",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20fda147dc88-poster.jpg",
+        "import_slug": "exit-federico-mit-jarouble-hugues-beauregard",
+        "language": "French",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "Federico is a young alter-globalist fighting against agro-industrial corporations. Everything changes in his life as Robberca",
+            "year": "2021",
+            "contact_email": "dratep.pictures@gmail.com",
+            "genres": "",
+            "trailer_url": "https://filmfreeway.com/submissions/26668111",
+            "present": false,
+            "screenwriters": "Mit Jarouble, Hugues Beauregard, Bussy Patrice",
+            "actors": null,
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1369",
+            "original_title": "",
+            "production_notes": "",
+            "dir_by": "Mit Jarouble, Hugues Beauregard",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "https://www.facebook.com/drateppctrs",
+            "other_social_media": "https://www.instagram.com/dratep.pictures/?hl=fr",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 13,
+            "producers": null,
+            "info": "",
+            "sub_by": "Dratep Pictures",
+            "log_line": null,
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20fda147dc88-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "Switzerland",
+            "language": "French",
+            "co_producers": "",
+            "first_time": "True",
+            "editors": "",
+            "synopsis_250": null,
+            "crew": null,
+            "directors": "Mit Jarouble, Hugues Beauregard",
+            "slug": "exit-federico-mit-jarouble-hugues-beauregard",
+            "twitter": "",
+            "contact_phone": null,
+            "title": "Exit Federico",
+            "synopsis": null,
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster fda147dc88-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20fda147dc88-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1291
+        },
+        "other_social_media": "https://www.instagram.com/dratep.pictures/?hl=fr",
+        "projection_copy": false,
+        "ref": "FF1369",
+        "runtime": 13,
+        "sub_by": "Dratep Pictures",
+        "subtitles": false,
+        "synopsis_125": "Federico is a young alter-globalist fighting against agro-industrial corporations. Everything changes in his life as Robberca",
+        "trailer_url": "https://filmfreeway.com/submissions/26668111",
+        "year": "2021"
+      },
+      "id": 1166,
+      "identity": "Exit Federico",
+      "slug": "exit-federico--576460749928628417",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "France",
+        "dir_by": "Jason Boussioux",
+        "genres": "Musical film, Surrealist film, Mystery film, Neo-noir",
+        "import_model": "filmfestival.film",
+        "import_pk": "1315",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%208acb54a278-poster.jpg",
+        "import_slug": "blaise-jason-boussioux",
+        "language": "English, French",
+        "log_line": "Paris by night, a taximan - former jazz saxophonist - drives a young woman to the place which appeared to her in a dream because she believes something very important will happen there.",
+        "original_record": {
+          "fields": {
+            "synopsis_125": "Paris by night, a taximan - former jazz saxophonist - drives a young woman to the place which appeared to her in a dream beca",
+            "year": "2023",
+            "contact_email": "jason.boussioux@gmail.com",
+            "genres": "Musical film, Surrealist film, Mystery film, Neo-noir",
+            "trailer_url": "https://vimeo.com/798208087",
+            "present": false,
+            "screenwriters": "Jason Boussioux",
+            "actors": null,
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1447",
+            "original_title": "Blaise",
+            "production_notes": "",
+            "dir_by": "Jason Boussioux",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 15,
+            "producers": "",
+            "info": "",
+            "sub_by": "Jason BOUSSIOUX",
+            "log_line": "Paris by night, a taximan - former jazz saxophonist - drives a young woman to the place which appeared to her in a dream because she believes something very important will happen there.",
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%208acb54a278-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "<iframe src=\"https://player.vimeo.com/video/798208087?h=634dd8c48a\" width=\"640\" height=\"268\" frameborder=\"0\" allow=\"autoplay; fullscreen; picture-in-picture\" allowfullscreen></iframe>\r\n<p><a href=\"https://vimeo.com/798208087\">Blaise - Trailer</a> from <a href=\"https://vimeo.com/user93626505\">Jason Boussioux</a> on <a href=\"https://vimeo.com\">Vimeo</a>.</p>",
+            "country": "France",
+            "language": "English, French",
+            "co_producers": "",
+            "first_time": "True",
+            "editors": "",
+            "synopsis_250": "Paris by night, a taximan - former jazz saxophonist - drives a young woman to the place which appeared to her in a dream because she believes something very important will happen there.",
+            "crew": null,
+            "directors": "Jason Boussioux",
+            "slug": "blaise-jason-boussioux",
+            "twitter": "",
+            "contact_phone": "+33647913476",
+            "title": "Blaise",
+            "synopsis": null,
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster 8acb54a278-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%208acb54a278-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1315
+        },
+        "original_title": "Blaise",
+        "projection_copy": false,
+        "ref": "FF1447",
+        "runtime": 15,
+        "sub_by": "Jason BOUSSIOUX",
+        "subtitles": false,
+        "synopsis_125": "Paris by night, a taximan - former jazz saxophonist - drives a young woman to the place which appeared to her in a dream beca",
+        "synopsis_250": "Paris by night, a taximan - former jazz saxophonist - drives a young woman to the place which appeared to her in a dream because she believes something very important will happen there.",
+        "trailer_embed": "<iframe src=\"https://player.vimeo.com/video/798208087?h=634dd8c48a\" width=\"640\" height=\"268\" frameborder=\"0\" allow=\"autoplay; fullscreen; picture-in-picture\" allowfullscreen></iframe>\r\n<p><a href=\"https://vimeo.com/798208087\">Blaise - Trailer</a> from <a href=\"https://vimeo.com/user93626505\">Jason Boussioux</a> on <a href=\"https://vimeo.com\">Vimeo</a>.</p>",
+        "trailer_url": "https://vimeo.com/798208087",
+        "year": "2023"
+      },
+      "id": 1110,
+      "identity": "Blaise",
+      "slug": "blaise--576460750213505250",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "country": "United States",
+        "dir_by": "Jonathan Onsuwan Johnson",
+        "import_model": "filmfestival.film",
+        "import_pk": "1285",
+        "import_poster_url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20ded241512d-poster.jpg",
+        "import_slug": "the-silent-garden-jonathan-onsuwan-johnson",
+        "original_record": {
+          "fields": {
+            "synopsis_125": null,
+            "year": "2023",
+            "contact_email": "photo.johnson@gmail.com",
+            "genres": "",
+            "trailer_url": "",
+            "present": false,
+            "screenwriters": "",
+            "actors": "",
+            "posted_on_facebook": false,
+            "cinematographers": "",
+            "film_type": "Dramatic Nights",
+            "directors_statement": "",
+            "product_designers": "",
+            "screenings": "",
+            "source": "UNDECIDED",
+            "subtitles": false,
+            "ref": "FF1305",
+            "original_title": "",
+            "production_notes": "",
+            "dir_by": "Jonathan Onsuwan Johnson",
+            "sound_editors": "",
+            "status": "SELECTED",
+            "facebook": "",
+            "other_social_media": "https://www.instagram.com/photo.johnson",
+            "niches": "",
+            "projection_copy_url": "",
+            "exec_producers": "",
+            "projection_copy": false,
+            "runtime": 3,
+            "producers": "",
+            "info": "",
+            "sub_by": "Jonathan Onsuwan Johnson",
+            "log_line": null,
+            "url": "",
+            "composers": "",
+            "poster": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20ded241512d-poster.jpg",
+            "art_directors": "",
+            "trailer_embed": "",
+            "country": "United States",
+            "language": "",
+            "co_producers": "",
+            "first_time": "False",
+            "editors": "",
+            "synopsis_250": null,
+            "crew": "",
+            "directors": "Jonathan Onsuwan Johnson",
+            "slug": "the-silent-garden-jonathan-onsuwan-johnson",
+            "twitter": "",
+            "contact_phone": null,
+            "title": "The Silent Garden",
+            "synopsis": null,
+            "when": ""
+          },
+          "files": [
+            {
+              "field": "poster",
+              "path": "Poster ded241512d-poster.jpg",
+              "url": "https://s3.amazonaws.com/com.mykonosbiennale.static/Poster%20ded241512d-poster.jpg"
+            }
+          ],
+          "foreign_keys": {
+            "project": {
+              "model": "festival.project",
+              "pk": 37
+            },
+            "stills": null
+          },
+          "many_to_many": {},
+          "model": "filmfestival.film",
+          "pk": 1285
+        },
+        "other_social_media": "https://www.instagram.com/photo.johnson",
+        "projection_copy": false,
+        "ref": "FF1305",
+        "runtime": 3,
+        "sub_by": "Jonathan Onsuwan Johnson",
+        "subtitles": false,
+        "year": "2023"
+      },
+      "id": 1359,
+      "identity": "The Silent Garden",
+      "slug": "the-silent-garden--576460748802347792",
+      "template": "default",
+      "type": "Short Film",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025-09-25",
+        "description": "Artists from all disciplines are invited to join us for the official welcome. This is an opportunity to meet, connect, and share ideas in the spirit of collaboration.",
+        "location": "YELLOW TOWER, ANO MERA",
+        "show_project": true,
+        "tickets": null,
+        "time": "12:00",
+        "title": "Astron Synodos",
+        "type": "workshop"
+      },
+      "id": 2957,
+      "identity": "Astron Synodos",
+      "slug": "astron-synodos--576459324920665660",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025-09-25",
+        "description": "Art installations begin for works featured in the Garden of Mysteries.",
+        "location": "YELLOW TOWER, ANO MERA",
+        "show_project": true,
+        "tickets": null,
+        "time": null,
+        "title": "Sculpture Playground",
+        "type": "performance"
+      },
+      "id": 2958,
+      "identity": "Sculpture Playground",
+      "slug": "sculpture-playground--576457814469741645",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    },
+    {
+      "fields": {
+        "description": "This time there will be no ark. Not even the Arians will return from Mars. New life will emerge from the sea that covers everything. Beings will emerge from the core of the Earth. Where Eros and Eris are magnetized. In her womb electrically, like lightning, the Amphibian will be conceived. From the fire of the core they will be ejected condensed and as they come to the surface they will be filled with water and air. And when the acceleration will exceed the speed of light they will acquire their visible mass.\nShellfish, flying reptiles,\ncoral-rocks alive will solidify the five elements again.\nThe amoebae will be fertilized by the blue flying mushrooms of the bottom. Orchids will nest in the trunks. Everything will be pleasure, and pain even, without fear.\nOnly nostalgia will remind here and there, stirring the salty seaweed,\nhard the Memory.",
+        "end_date": null,
+        "import_model": "festival.festival",
+        "import_pk": "8",
+        "original_record": {
+          "fields": {
+            "slug": "9-amphibian",
+            "statement": "This time there will be no ark. Not even the Arians will return from Mars. New life will emerge from the sea that covers everything. Beings will emerge from the core of the Earth. Where Eros and Eris are magnetized. In her womb electrically, like lightning, the Amphibian will be conceived. From the fire of the core they will be ejected condensed and as they come to the surface they will be filled with water and air. And when the acceleration will exceed the speed of light they will acquire their visible mass.\r\nShellfish, flying reptiles,\r\ncoral-rocks alive will solidify the five elements again.\r\nThe amoebae will be fertilized by the blue flying mushrooms of the bottom. Orchids will nest in the trunks. Everything will be pleasure, and pain even, without fear.\r\nOnly nostalgia will remind here and there, stirring the salty seaweed,\r\nhard the Memory.",
+            "title": "9 AMPHIBIAN",
+            "year": 2025
+          },
+          "files": [],
+          "foreign_keys": {},
+          "many_to_many": {},
+          "model": "festival.festival",
+          "pk": 8
+        },
+        "show_program": true,
+        "start_date": null,
+        "statement": "Numbers are akin to wine or narcotics; they intoxicate us. How many souls have vanished in the rooms of Monte Carlo or Las Vegas, mesmerized and lost? Money governs all. It is merely an abstract power, printed paper adorned with countless zeros. Money is god; when nature cries out that the emperor is naked, it simply does not exist.\n\nNine is a number—a number that the Nuer people, an African tribe, do not count. If you add or subtract nine from a series of numbers, nine remains invisible. Nine is the magnetic spiral. It embodies rhea, a force that assassinates time (chronos) through a divine conspiracy. Just as rhea, the feminine principle, cannot end her own existence while birthing.\n\nNine will consume all other numbers, devouring both odds and evens. Like an amoeba, it will emerge as the new unit. Nine is the python, which has hibernated for years. Apollo bound it with numbers when time stripped away the sanctuaries of Earth. Yet now we wander toward the sun of eternal night, and the python will stretch, preparing to burrow into the core of the Earth.\n\nFrom the pain of this world, a ring of tension encircles the nucleus of the Earth. Through internal light, it radiates. In the sea, lightning devours the elements, gaining mass and form. The flames, the water, and the air coalesce into lava. Lava envelops the children, the mountains, nature, and the souls. Into the abyss, the souls gestate within the seed, waiting for the ice age to pass, dreaming.\n\nThe spiral, the healing serpent of Asclepius and Imhotep, the thirteenth zodiac, Unuk Elhaija, the Ophiuchus constellation—nine, the amphibian, gestates.\n\nLydia Venieri\nNew York, November 2024\n",
+        "theme": "9 THE AMPHIBIAN",
+        "theme_config": {
+          "hero_title": {
+            "class": "text-5xl md:text-7xl font-bold uppercase mb-4 text-red-300",
+            "style": ""
+          }
+        },
+        "year": 2025
+      },
+      "id": 7,
+      "identity": "2025",
+      "slug": "2025",
+      "template": "festival-2025",
+      "type": "biennale",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025-09-29",
+        "description": null,
+        "location": "MYRSINI BEACH",
+        "show_project": true,
+        "tickets": null,
+        "time": "16:00",
+        "title": "Philosophical Picnic",
+        "type": "performance"
+      },
+      "id": 2961,
+      "identity": "Philosophical Picnic",
+      "slug": "philosophical-picnic--576455343458139322",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025-09-30",
+        "description": "A performance of selections from Mikis Theodorakis and Manos Hadjidakis, who were both born 100 years ago, 1925",
+        "location": "YELLOW TOWER, ANO MERA",
+        "show_project": true,
+        "tickets": null,
+        "time": "21:00",
+        "title": "Irini Karaianni& Nikos Platanos Dedication 100 Years to Miki & Manos Performance",
+        "type": "performance"
+      },
+      "id": 2964,
+      "identity": "Irini Karaianni& Nikos Platanos Dedication 100 Years to Miki & Manos Performance",
+      "slug": "irini-karaianni-nikos-platanos-dedication-100-years-to-miki-manos-performance--576455140351620353",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    },
+    {
+      "fields": {
+        "description": null,
+        "import_model": "festival.projectx",
+        "import_pk": "5",
+        "import_slug": "dramatic-nights",
+        "original_record": {
+          "project": {
+            "fields": {
+              "slug": "dramatic-nights",
+              "title": "Dramatic Nights"
+            },
+            "files": [],
+            "foreign_keys": {
+              "festival": {
+                "model": "festival.festival",
+                "pk": 1
+              }
+            },
+            "many_to_many": {},
+            "model": "festival.project",
+            "pk": 5
+          },
+          "projectx": {
+            "fields": {
+              "slug": "dramatic-nights",
+              "statement": "",
+              "title": "Dramatic Nights"
+            },
+            "files": [],
+            "foreign_keys": {},
+            "many_to_many": {
+              "festival": {
+                "entries": [
+                  {
+                    "model": "festival.festival",
+                    "pk": 1
+                  }
+                ],
+                "through_model": null
+              }
+            },
+            "model": "festival.projectx",
+            "pk": 5
+          }
+        },
+        "statement": null,
+        "title": "Dramatic Nights"
+      },
+      "id": 14,
+      "identity": "Dramatic Nights",
+      "slug": "dramatic-nights--576460750391018125",
+      "template": "default",
+      "type": "project",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025-09-09",
+        "description": null,
+        "location": "MYRSINI BEACH",
+        "show_project": true,
+        "tickets": null,
+        "time": "17:00",
+        "title": "Opening Ceremony of Antidote Boxes",
+        "type": "performance"
+      },
+      "id": 2962,
+      "identity": "Opening Ceremony of Antidote Boxes",
+      "slug": "opening-ceremony-of-antidote-boxes--576455278074878536",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025-09-25",
+        "description": "A selection of films from the dramatic nights collection dedicated to the Anima Mundis.",
+        "import_key": "7-14",
+        "import_model": "festival.project",
+        "import_pk": "43",
+        "import_slug": "dramatic-nights",
+        "location": "YELLOW TOWER, ANO MERA",
+        "original_record": {
+          "fields": {
+            "slug": "dramatic-nights",
+            "title": "Dramatic Nights"
+          },
+          "files": [],
+          "foreign_keys": {
+            "festival": {
+              "model": "festival.festival",
+              "pk": 8
+            }
+          },
+          "many_to_many": {},
+          "model": "festival.project",
+          "pk": 43
+        },
+        "show_project": true,
+        "tickets": null,
+        "time": "21:00",
+        "title": "Dramatic Nights",
+        "type": "screening"
+      },
+      "id": 70,
+      "identity": "Dramatic Nights",
+      "slug": "dramatic-nights--576460750135611750",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025-09-26",
+        "description": "A ritual led by Dr. Christos Sach and Dr. Napoleon Mitsis of Unifying Life Technologies X Lydia Venieri",
+        "location": "YELLOW TOWER, ANO MERA",
+        "show_project": true,
+        "tickets": null,
+        "time": "17:00",
+        "title": "ENΩΣIΣ: A Healing Resonance Temple",
+        "type": "performance"
+      },
+      "id": 2959,
+      "identity": "ENΩΣIΣ: A Healing Resonance Temple",
+      "slug": "eni-a-healing-resonance-temple--576456332331960412",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    },
+    {
+      "fields": {
+        "date": "2025-09-28",
+        "description": "Boxes with the label “Antidote” have been sent to artists from around the world. The artists will return the boxes with a piece of art inspired by the theme - Antidote. The boxes will be hidden on the sacred island of Delos. A treasure hunt will be organized, where visitors will scatter around the island to find the “treasures”. Our long term goal is to attain the first floating museum - maybe an old war ship- where the artworks of the Mykonos Biennale will be exhibited, the museum of Archipelago.\n",
+        "location": "Island of Delos",
+        "show_project": true,
+        "tickets": null,
+        "time": "13:00",
+        "title": "Treasure Hunt - Antidote",
+        "type": "exhibition"
+      },
+      "id": 2955,
+      "identity": "Treasure Hunt - Antidote",
+      "slug": "treasure-hunt---antidote--576362795732659009",
+      "template": "default",
+      "type": "event",
+      "visible": true
+    }
+  ],
+  "entity_media": [
+    {
+      "entity_id": 98,
+      "id": 24,
+      "media_id": 24,
+      "metadata": {},
+      "position": 0
+    },
+    {
+      "entity_id": 3363,
+      "id": 3715,
+      "media_id": 2868,
+      "metadata": {},
+      "position": 0
+    },
+    {
+      "entity_id": 3363,
+      "id": 3718,
+      "media_id": 2871,
+      "metadata": {},
+      "position": 3
+    },
+    {
+      "entity_id": 3363,
+      "id": 3719,
+      "media_id": 2872,
+      "metadata": {},
+      "position": 4
+    },
+    {
+      "entity_id": 7,
+      "id": 2832,
+      "media_id": 2832,
+      "metadata": {},
+      "position": 1
+    },
+    {
+      "entity_id": 2956,
+      "id": 2839,
+      "media_id": 2837,
+      "metadata": {},
+      "position": 0
+    },
+    {
+      "entity_id": 7,
+      "id": 2830,
+      "media_id": 2830,
+      "metadata": {},
+      "position": 0
+    },
+    {
+      "entity_id": 98,
+      "id": 3728,
+      "media_id": 2881,
+      "metadata": {
+        "role": "headshot"
+      },
+      "position": 1
+    },
+    {
+      "entity_id": 2956,
+      "id": 3705,
+      "media_id": 2858,
+      "metadata": {
+        "role": "poster"
+      },
+      "position": 1
+    },
+    {
+      "entity_id": 3363,
+      "id": 3716,
+      "media_id": 2869,
+      "metadata": {},
+      "position": 1
+    },
+    {
+      "entity_id": 3363,
+      "id": 3717,
+      "media_id": 2870,
+      "metadata": {},
+      "position": 2
+    }
+  ],
+  "media": [
+    {
+      "alt_text": null,
+      "caption": "Anna Molloy",
+      "id": 24,
+      "metadata": {
+        "imported_from": "https://s3.amazonaws.com/com.mykonosbiennale.static/artists/mykonos-biennale-mykonos-biennale-artist-anna-molloy.jpeg"
+      },
+      "mime_type": "image/jpeg",
+      "original_name": "mykonos-biennale-mykonos-biennale-artist-anna-molloy.jpeg",
+      "slug": "anna-molloy-0o",
+      "source_path": "87f82e1e-55b6-49b0-af85-04bba06fdbab.jpeg",
+      "source_type": "upload",
+      "source_url": null
+    },
+    {
+      "alt_text": null,
+      "caption": "2025 9 THE AMPHIBIAN",
+      "id": 2830,
+      "metadata": {},
+      "mime_type": "image/webp",
+      "original_name": "9f6f844f-2328-4a82-aa31-b9e1b1b927c9.webp",
+      "slug": "2025-9-the-amphibian-026m",
+      "source_path": "9f6f844f-2328-4a82-aa31-b9e1b1b927c9.webp",
+      "source_type": "upload",
+      "source_url": null
+    },
+    {
+      "alt_text": null,
+      "caption": "2025 Mykonos Biennale Statement Background",
+      "id": 2832,
+      "metadata": {},
+      "mime_type": "image/webp",
+      "original_name": "2025-mykonos-biennale-amphibian.webp",
+      "slug": "2025-mykonos-biennale-statement-background-026o",
+      "source_path": "408f9628-9261-45d7-bb01-d9dc143b5dd6.webp",
+      "source_type": "upload",
+      "source_url": null
+    },
+    {
+      "alt_text": null,
+      "caption": "Garden of Mysteries 2025",
+      "id": 2837,
+      "metadata": {},
+      "mime_type": "image/jpeg",
+      "original_name": "mykonos-biennale-2025-garden-of-mysteries - 1 (1).jpeg",
+      "slug": "garden-of-mysteries-2025-026t",
+      "source_path": "80fb023a-8ead-4651-82bd-aa33daff37e2.jpeg",
+      "source_type": "upload",
+      "source_url": null
+    },
+    {
+      "alt_text": null,
+      "caption": "Garden of Mysteries 2025",
+      "id": 2858,
+      "metadata": {},
+      "mime_type": "image/jpeg",
+      "original_name": "mykonos_beinnale-2025-mystic_garden - 1.jpeg",
+      "slug": "garden-of-mysteries-2025-027e",
+      "source_path": "c6fdfe28-5562-413f-a5f1-9feef686a496.jpeg",
+      "source_type": "upload",
+      "source_url": null
+    },
+    {
+      "alt_text": null,
+      "caption": "mykonos_beinnale-2025-mystic_garden-Max_Brismontier - 6 copy.jpg",
+      "id": 2868,
+      "metadata": {},
+      "mime_type": "image/jpeg",
+      "original_name": "mykonos_beinnale-2025-mystic_garden-Max_Brismontier - 6 copy.jpg",
+      "slug": "mykonos-beinnale-2025-mystic-garden-max-brismontier-6-copy-j-027o",
+      "source_path": "42b6e648-d560-4d62-89e4-26e9da798942.jpg",
+      "source_type": "upload",
+      "source_url": null
+    },
+    {
+      "alt_text": null,
+      "caption": "mykonos_beinnale-2025-mystic_garden-Max_Brismontier - 5.jpeg",
+      "id": 2869,
+      "metadata": {},
+      "mime_type": "image/jpeg",
+      "original_name": "mykonos_beinnale-2025-mystic_garden-Max_Brismontier - 5.jpeg",
+      "slug": "mykonos-beinnale-2025-mystic-garden-max-brismontier-5-jpeg-027p",
+      "source_path": "386699fd-b3d3-4c16-87e7-fbc300c4d67e.jpeg",
+      "source_type": "upload",
+      "source_url": null
+    },
+    {
+      "alt_text": null,
+      "caption": "mykonos_beinnale-2025-mystic_garden-Max_Brismontier - 3 copy.jpeg",
+      "id": 2870,
+      "metadata": {},
+      "mime_type": "image/jpeg",
+      "original_name": "mykonos_beinnale-2025-mystic_garden-Max_Brismontier - 3 copy.jpeg",
+      "slug": "mykonos-beinnale-2025-mystic-garden-max-brismontier-3-copy-j-027q",
+      "source_path": "6716d2af-213b-40ce-9429-88d8491d0db0.jpeg",
+      "source_type": "upload",
+      "source_url": null
+    },
+    {
+      "alt_text": null,
+      "caption": "mykonos_beinnale-2025-mystic_garden-Max_Brismontier - 2 copy.jpeg",
+      "id": 2871,
+      "metadata": {},
+      "mime_type": "image/jpeg",
+      "original_name": "mykonos_beinnale-2025-mystic_garden-Max_Brismontier - 2 copy.jpeg",
+      "slug": "mykonos-beinnale-2025-mystic-garden-max-brismontier-2-copy-j-027r",
+      "source_path": "9e8acaf7-ab73-4714-84ee-832a96c796ef.jpeg",
+      "source_type": "upload",
+      "source_url": null
+    },
+    {
+      "alt_text": null,
+      "caption": "mykonos_beinnale-2025-mystic_garden-Max_Brismontier - 1 copy.jpeg",
+      "id": 2872,
+      "metadata": {},
+      "mime_type": "image/jpeg",
+      "original_name": "mykonos_beinnale-2025-mystic_garden-Max_Brismontier - 1 copy.jpeg",
+      "slug": "mykonos-beinnale-2025-mystic-garden-max-brismontier-1-copy-j-027s",
+      "source_path": "9e32afbd-fbd6-45f7-9184-ad0aa30f9f0d.jpeg",
+      "source_type": "upload",
+      "source_url": null
+    },
+    {
+      "alt_text": null,
+      "caption": "Headshot - Anna Molloy",
+      "id": 2881,
+      "metadata": {},
+      "mime_type": "image/jpeg",
+      "original_name": "mykonos-biennale-mykonos-biennale-artist-anna-molloy.jpeg",
+      "slug": "headshot-anna-molloy-0281",
+      "source_path": "393b640f-7452-490f-912f-c07238182ba0.jpeg",
+      "source_type": "upload",
+      "source_url": null
+    }
+  ],
+  "relationship_types": [
+    {
+      "id": 1,
+      "label": "belongs_to_biennale",
+      "slug": "biennale_event"
+    },
+    {
+      "id": 2,
+      "label": "is_a",
+      "slug": "event_project"
+    },
+    {
+      "id": 3,
+      "label": "involved",
+      "slug": "artwork_participant"
+    },
+    {
+      "id": 4,
+      "label": "shown",
+      "slug": "artwork_event"
+    },
+    {
+      "id": 5,
+      "label": "screened_at",
+      "slug": "screened_at"
+    },
+    {
+      "id": 6,
+      "label": "directed",
+      "slug": "directed"
+    },
+    {
+      "id": 7,
+      "label": "produced",
+      "slug": "produced"
+    },
+    {
+      "id": 8,
+      "label": "screenwrote",
+      "slug": "screenwrote"
+    },
+    {
+      "id": 9,
+      "label": "acted_in",
+      "slug": "acted_in"
+    },
+    {
+      "id": 10,
+      "label": "composed_for",
+      "slug": "composed_for"
+    },
+    {
+      "id": 11,
+      "label": "shot",
+      "slug": "shot"
+    },
+    {
+      "id": 12,
+      "label": "edited",
+      "slug": "edited"
+    },
+    {
+      "id": 13,
+      "label": "exec_produced",
+      "slug": "exec_produced"
+    },
+    {
+      "id": 14,
+      "label": "participated_in",
+      "slug": "participated_in"
+    },
+    {
+      "id": 15,
+      "label": "part_of",
+      "slug": "event_festival"
+    }
+  ],
+  "relationships": [
+    {
+      "fields": {},
+      "id": 63,
+      "object_id": 6,
+      "relationship_type_id": 1,
+      "subject_id": 64
+    },
+    {
+      "fields": {},
+      "id": 64,
+      "object_id": 14,
+      "relationship_type_id": 2,
+      "subject_id": 64
+    },
+    {
+      "fields": {},
+      "id": 75,
+      "object_id": 7,
+      "relationship_type_id": 1,
+      "subject_id": 70
+    },
+    {
+      "fields": {},
+      "id": 77,
+      "object_id": 7,
+      "relationship_type_id": 1,
+      "subject_id": 71
+    },
+    {
+      "fields": {},
+      "id": 4706,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3357
+    },
+    {
+      "fields": {
+        "label": "shown",
+        "role": ""
+      },
+      "id": 4707,
+      "object_id": 98,
+      "relationship_type_id": 3,
+      "subject_id": 3357
+    },
+    {
+      "fields": {
+        "label": "shown",
+        "role": "creator"
+      },
+      "id": 3977,
+      "object_id": 98,
+      "relationship_type_id": 3,
+      "subject_id": 2996
+    },
+    {
+      "fields": {},
+      "id": 4709,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3358
+    },
+    {
+      "fields": {},
+      "id": 4713,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3361
+    },
+    {
+      "fields": {},
+      "id": 4716,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3359
+    },
+    {
+      "fields": {},
+      "id": 4696,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3348
+    },
+    {
+      "fields": {
+        "label": "shown",
+        "role": ""
+      },
+      "id": 4721,
+      "object_id": 3362,
+      "relationship_type_id": 3,
+      "subject_id": 3363
+    },
+    {
+      "fields": {},
+      "id": 4685,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3337
+    },
+    {
+      "fields": {},
+      "id": 4722,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3363
+    },
+    {
+      "fields": {},
+      "id": 4687,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3335
+    },
+    {
+      "fields": {},
+      "id": 4695,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3346
+    },
+    {
+      "fields": {},
+      "id": 4726,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3365
+    },
+    {
+      "fields": {},
+      "id": 4689,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3339
+    },
+    {
+      "fields": {},
+      "id": 4691,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3341
+    },
+    {
+      "fields": {},
+      "id": 4693,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3344
+    },
+    {
+      "fields": {},
+      "id": 4698,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3350
+    },
+    {
+      "fields": {},
+      "id": 4731,
+      "object_id": 7,
+      "relationship_type_id": 1,
+      "subject_id": 2956
+    },
+    {
+      "fields": {},
+      "id": 4700,
+      "object_id": 2956,
+      "relationship_type_id": 4,
+      "subject_id": 3352
+    },
+    {
+      "fields": {},
+      "id": 4732,
+      "object_id": 18,
+      "relationship_type_id": 2,
+      "subject_id": 2956
+    },
+    {
+      "fields": {},
+      "id": 1462,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1084
+    },
+    {
+      "fields": {},
+      "id": 1475,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1097
+    },
+    {
+      "fields": {},
+      "id": 1478,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1100
+    },
+    {
+      "fields": {},
+      "id": 1488,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1110
+    },
+    {
+      "fields": {},
+      "id": 1490,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1112
+    },
+    {
+      "fields": {},
+      "id": 1498,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1120
+    },
+    {
+      "fields": {},
+      "id": 1501,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1123
+    },
+    {
+      "fields": {},
+      "id": 1524,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1146
+    },
+    {
+      "fields": {},
+      "id": 1544,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1166
+    },
+    {
+      "fields": {},
+      "id": 1549,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1171
+    },
+    {
+      "fields": {},
+      "id": 1550,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1172
+    },
+    {
+      "fields": {},
+      "id": 1556,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1178
+    },
+    {
+      "fields": {},
+      "id": 1575,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1197
+    },
+    {
+      "fields": {},
+      "id": 1616,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1238
+    },
+    {
+      "fields": {},
+      "id": 1650,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1272
+    },
+    {
+      "fields": {},
+      "id": 1655,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1277
+    },
+    {
+      "fields": {},
+      "id": 1678,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1300
+    },
+    {
+      "fields": {},
+      "id": 1679,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1301
+    },
+    {
+      "fields": {},
+      "id": 1737,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1359
+    },
+    {
+      "fields": {},
+      "id": 1739,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1361
+    },
+    {
+      "fields": {},
+      "id": 1786,
+      "object_id": 64,
+      "relationship_type_id": 5,
+      "subject_id": 1408
+    },
+    {
+      "fields": {},
+      "id": 3932,
+      "object_id": 7,
+      "relationship_type_id": 1,
+      "subject_id": 2955
+    },
+    {
+      "fields": {},
+      "id": 3936,
+      "object_id": 7,
+      "relationship_type_id": 1,
+      "subject_id": 2957
+    },
+    {
+      "fields": {},
+      "id": 3937,
+      "object_id": 7,
+      "relationship_type_id": 1,
+      "subject_id": 2958
+    },
+    {
+      "fields": {},
+      "id": 3939,
+      "object_id": 7,
+      "relationship_type_id": 1,
+      "subject_id": 2959
+    },
+    {
+      "fields": {},
+      "id": 3940,
+      "object_id": 7,
+      "relationship_type_id": 1,
+      "subject_id": 2960
+    },
+    {
+      "fields": {},
+      "id": 3941,
+      "object_id": 7,
+      "relationship_type_id": 1,
+      "subject_id": 2961
+    },
+    {
+      "fields": {},
+      "id": 3942,
+      "object_id": 7,
+      "relationship_type_id": 1,
+      "subject_id": 2962
+    },
+    {
+      "fields": {},
+      "id": 3944,
+      "object_id": 7,
+      "relationship_type_id": 1,
+      "subject_id": 2963
+    },
+    {
+      "fields": {},
+      "id": 3945,
+      "object_id": 7,
+      "relationship_type_id": 1,
+      "subject_id": 2964
+    }
+  ]
+}

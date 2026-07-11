@@ -7,6 +7,7 @@ defmodule MykonosBiennale.MediaSlugTest do
     test "produces only lowercase alphanumeric characters (base36)" do
       for id <- 1..500 do
         encoded = MediaSlug.encode_id(id)
+
         assert Regex.match?(~r/^[0-9a-z]+$/, encoded),
                "ID #{id} produced non-lowercase slug: #{encoded}"
       end

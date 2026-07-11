@@ -10,21 +10,15 @@
     }
   >
     <div class="relative z-10 p-8 text-center">
-      <h1
-        class="text-5xl md:text-7xl font-bold uppercase mb-4 text-red-600"
-        >
+      <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4 text-red-600">
         MYKONOS BIENNALE
       </h1>
-      <p
-        class="text-2xl md:text-3xl text-red-600"
-      >
+      <p class="text-2xl md:text-3xl text-red-600">
         {@biennale.fields["year"]}
       </p>
-      <h1
-        class="text-5xl md:text-7xl font-bold uppercase mb-4 text-white"
-        >
-                <br />{@biennale.fields["theme"]}
-        </h1>
+      <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4 text-white">
+        <br />{@biennale.fields["theme"]}
+      </h1>
 
       <%= if @biennale.fields["start_date"] && @biennale.fields["end_date"] do %>
         <p
@@ -37,9 +31,7 @@
         </p>
       <% end %>
       <%= if @biennale.fields["statement"] do %>
-        <div
-          class="whitespace-pre-line leading-relaxed text-lg text-white mt-8 max-w-3xl mx-auto"
-         >
+        <div class="whitespace-pre-line leading-relaxed text-lg text-white mt-8 max-w-3xl mx-auto">
           {Phoenix.HTML.raw(@biennale.fields["statement"])}
         </div>
       <% end %>
@@ -69,7 +61,9 @@
   <%!-- Program Section --%>
   <%= if @biennale.fields["show_program"] != false and @events != [] do %>
     <% events_by_date = Enum.group_by(@events, & &1.date, & &1)
-      sorted_dates = Enum.sort(Enum.uniq(Enum.map(@events, & &1.date)), fn a, b ->
+
+    sorted_dates =
+      Enum.sort(Enum.uniq(Enum.map(@events, & &1.date)), fn a, b ->
         case {Date.from_iso8601(a), Date.from_iso8601(b)} do
           {{:ok, da}, {:ok, db}} -> Date.compare(da, db) != :gt
           _ -> a <= b
@@ -82,8 +76,8 @@
 
       <%= for date <- sorted_dates do %>
         <% day_events = Map.get(events_by_date, date, [])
-          events_by_time = Enum.group_by(day_events, & &1.time || "")
-          sorted_times = Enum.sort(Enum.uniq(Enum.map(day_events, & &1.time || ""))) %>
+        events_by_time = Enum.group_by(day_events, &(&1.time || ""))
+        sorted_times = Enum.sort(Enum.uniq(Enum.map(day_events, &(&1.time || "")))) %>
         <% location = Enum.find_value(day_events, & &1.location) %>
         <div class="mb-12">
           <h3 class="text-2xl font-bold uppercase mb-1 text-red-600">
@@ -106,7 +100,10 @@
                   <%= for event <- time_events do %>
                     <div>
                       <h4 class="text-lg font-bold text-green-400">
-                        <a href={"/event/#{event.id}"} class="hover:text-green-300 transition-colors">
+                        <a
+                          href={"/event/#{event.id}"}
+                          class="hover:text-green-300 transition-colors"
+                        >
                           {event.title}
                         </a>
                       </h4>

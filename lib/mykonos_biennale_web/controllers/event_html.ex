@@ -44,7 +44,9 @@ defmodule MykonosBiennaleWeb.EventHTML do
   def media_url(media, opts \\ []),
     do: Uploads.media_url(media, opts)
 
-  defp field(%Entity{fields: fields}, key, default \\ nil) when is_map(fields) do
+  defp field(entity, key, default \\ nil)
+
+  defp field(%Entity{fields: fields}, key, default) when is_map(fields) do
     Map.get(fields, to_string(key), Map.get(fields, key, default))
   end
 

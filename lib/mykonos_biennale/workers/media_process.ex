@@ -194,7 +194,10 @@ defmodule MykonosBiennale.Workers.MediaProcess do
     :ok
   end
 
-  defp rotate_media(%Media{id: id, slug: slug, source_type: "upload", source_path: path, metadata: metadata}, degrees)
+  defp rotate_media(
+         %Media{id: id, slug: slug, source_type: "upload", source_path: path, metadata: metadata},
+         degrees
+       )
        when is_binary(path) and is_binary(slug) do
     unless image_ext?(path) do
       {:ok, :skipped}

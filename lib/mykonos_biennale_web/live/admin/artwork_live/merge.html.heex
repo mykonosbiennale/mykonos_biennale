@@ -8,7 +8,9 @@
         <h1 class="text-3xl font-bold text-white">Merge Duplicate Artworks</h1>
       </div>
       <div class="flex items-center gap-4">
-        <span class="text-sm text-gray-400">{@all_groups_count} groups · page {@page}/{@total_pages}</span>
+        <span class="text-sm text-gray-400">
+          {@all_groups_count} groups · page {@page}/{@total_pages}
+        </span>
         <%= if @merged_count > 0 do %>
           <span class="text-sm text-green-400">{@merged_count} groups merged</span>
         <% end %>
@@ -47,14 +49,22 @@
           <div class="flex items-center gap-2">
             <.link
               patch={"/admin/artworks/merge?page=#{max(@page - 1, 1)}"}
-              class={if @page == 1, do: "px-3 py-1.5 text-sm text-gray-600", else: "px-3 py-1.5 text-sm text-gray-400 hover:text-white"}
+              class={
+                if @page == 1,
+                  do: "px-3 py-1.5 text-sm text-gray-600",
+                  else: "px-3 py-1.5 text-sm text-gray-400 hover:text-white"
+              }
             >
               Prev
             </.link>
             <span class="text-sm text-gray-500">{@page} / {@total_pages}</span>
             <.link
               patch={"/admin/artworks/merge?page=#{min(@page + 1, @total_pages)}"}
-              class={if @page == @total_pages, do: "px-3 py-1.5 text-sm text-gray-600", else: "px-3 py-1.5 text-sm text-gray-400 hover:text-white"}
+              class={
+                if @page == @total_pages,
+                  do: "px-3 py-1.5 text-sm text-gray-600",
+                  else: "px-3 py-1.5 text-sm text-gray-400 hover:text-white"
+              }
             >
               Next
             </.link>
@@ -139,7 +149,10 @@
                     </div>
                     <div class="px-1.5 py-1 bg-gray-800/80">
                       <div class="text-[10px] text-gray-300 truncate">
-                        <.link patch={"/admin/artworks/#{entry.artwork.id}"} class="hover:text-purple-300">
+                        <.link
+                          patch={"/admin/artworks/#{entry.artwork.id}"}
+                          class="hover:text-purple-300"
+                        >
                           {pfield(entry.artwork, "title", "Untitled")}
                         </.link>
                       </div>

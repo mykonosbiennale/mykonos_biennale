@@ -3,7 +3,7 @@ defmodule MykonosBiennale.ContentTest do
 
   alias MykonosBiennale.Content
   alias MykonosBiennale.ContentFixtures
-  alias MykonosBiennale.Content.{Entity, Media, Relationship, RelationshipType, EntityMedia}
+  alias MykonosBiennale.Content.{Entity, Media, Relationship}
 
   describe "entity CRUD" do
     test "create_entity/1 creates an entity with valid attrs" do
@@ -35,7 +35,10 @@ defmodule MykonosBiennale.ContentTest do
 
     test "update_entity/2 updates entity fields" do
       entity = ContentFixtures.artwork_fixture()
-      {:ok, updated} = Content.update_entity(entity, %{fields: Map.put(entity.fields, "title", "Updated")})
+
+      {:ok, updated} =
+        Content.update_entity(entity, %{fields: Map.put(entity.fields, "title", "Updated")})
+
       assert updated.fields["title"] == "Updated"
     end
 
@@ -76,8 +79,8 @@ defmodule MykonosBiennale.ContentTest do
       _b2 = ContentFixtures.biennale_fixture(year: 2025)
       biennales = Content.list_biennales()
       years = Enum.map(biennales, & &1.fields["year"])
-      assert "2025" in years
-      assert "2023" in years
+      assert 2025 in years
+      assert 2023 in years
     end
 
     test "update_biennale/2 updates biennale fields" do
@@ -177,7 +180,9 @@ defmodule MykonosBiennale.ContentTest do
 
   describe "media CRUD" do
     test "create_media/1 creates a media record with auto-generated slug" do
-      {:ok, media} = Content.create_media(%{source_type: "upload", source_path: "test.jpg", caption: "Test"})
+      {:ok, media} =
+        Content.create_media(%{source_type: "upload", source_path: "test.jpg", caption: "Test"})
+
       assert %Media{} = media
       assert media.slug != nil
       assert media.caption == "Test"
