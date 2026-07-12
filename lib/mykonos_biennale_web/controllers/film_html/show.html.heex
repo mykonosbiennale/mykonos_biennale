@@ -93,19 +93,10 @@
               <% end %>
             </div>
 
-            <%= if field(@film, "log_line") do %>
-              <p class="text-neutral-400 leading-relaxed mb-6">
-                {field(@film, "log_line")}
+            <%= if @description do %>
+              <p class="text-neutral-400 leading-relaxed mb-6 whitespace-pre-line">
+                {@description}
               </p>
-            <% end %>
-
-            <%= if field(@film, "synopsis") do %>
-              <div class="mb-6">
-                <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-2">Synopsis</h2>
-                <p class="text-neutral-400 leading-relaxed whitespace-pre-line">
-                  {field(@film, "synopsis")}
-                </p>
-              </div>
             <% end %>
 
             <%= if @events != [] do %>
