@@ -5,7 +5,7 @@ defmodule MykonosBiennaleWeb.ParticipantController do
 
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.Entity
 
   def show(conn, %{"id" => id}) do
     case Repo.get(Entity, id) do
@@ -29,12 +29,12 @@ defmodule MykonosBiennaleWeb.ParticipantController do
 
   defp render_participant(conn, participant) do
     headshot = get_headshot(participant)
-    artworks = list_artworks(participant)
+    biennale_groups = Content.list_participant_works_by_biennale(participant)
 
     conn
     |> assign(:participant, participant)
     |> assign(:headshot, headshot)
-    |> assign(:artworks, artworks)
+    |> assign(:biennale_groups, biennale_groups)
     |> assign(:page_title, "#{participant_name(participant)} — Mykonos Biennale")
     |> render(:show)
   end
@@ -45,35 +45,6 @@ defmodule MykonosBiennaleWeb.ParticipantController do
     Enum.find_value(links, fn link ->
       if link.metadata && link.metadata["role"] == "headshot", do: link.media
     end)
-  end
-
-  defp list_artworks(participant) do
-    rels = Content.list_participant_linked_artworks(participant)
-
-    rels
-    |> Enum.map(fn rel -> rel.subject end)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.sort_by(fn a -> a.fields["date"] || "" end, :desc)
-    |> Enum.map(fn artwork ->
-      media = Content.list_media_for_entity(artwork)
-      events = list_artwork_events(artwork)
-      {artwork, media, events}
-    end)
-  end
-
-  defp list_artwork_events(artwork) do
-    rt = Repo.get_by(RelationshipType, slug: "artwork_event")
-
-    if rt do
-      Repo.all(
-        from r in Relationship,
-          where: r.subject_id == ^artwork.id and r.relationship_type_id == ^rt.id,
-          preload: [:object]
-      )
-      |> Enum.map(& &1.object)
-    else
-      []
-    end
   end
 
   defp participant_name(%Entity{fields: %{"name" => name}}) when is_binary(name) and name != "",

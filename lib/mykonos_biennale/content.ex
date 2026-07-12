@@ -72,6 +72,10 @@ defmodule MykonosBiennale.Content do
     to: MykonosBiennale.Content.Participant,
     as: :list_linked_artworks
 
+  defdelegate list_participant_works_by_biennale(entity),
+    to: MykonosBiennale.Content.Participant,
+    as: :list_works_by_biennale
+
   defdelegate detach_artwork_from_participant(entity, artwork_id),
     to: MykonosBiennale.Content.Participant,
     as: :detach_artwork

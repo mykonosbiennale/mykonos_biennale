@@ -26,11 +26,12 @@ defmodule MykonosBiennale.Content.Film do
   def create(attrs) do
     title = Map.get(attrs, :title) || Map.get(attrs, "title")
     type = Map.get(attrs, :type) || Map.get(attrs, "type") || "Short Film"
+    visible = Map.get(attrs, :visible, Map.get(attrs, "visible", true))
     slug = Content.slugify(title || "untitled-film")
 
     fields =
       attrs
-      |> Map.drop([:title, :type, "title", "type"])
+      |> Map.drop([:title, :type, :visible, "title", "type", "visible"])
       |> Enum.map(fn
         {k, v} when is_atom(k) -> {to_string(k), v}
         {k, v} -> {k, v}
@@ -43,7 +44,7 @@ defmodule MykonosBiennale.Content.Film do
       type: type,
       identity: title,
       slug: slug,
-      visible: true,
+      visible: visible,
       fields: fields
     })
     |> Repo.insert()
