@@ -159,17 +159,39 @@ defmodule MykonosBiennale.ContentFixtures do
     attrs = to_map(attrs)
     title = Map.get(attrs, "title") || Map.get(attrs, :title, "Test Film")
 
-    {:ok, film} =
-      Content.Film.create(%{
-        title: title,
-        type: Map.get(attrs, "type") || Map.get(attrs, :type, "Short Film"),
-        dir_by: Map.get(attrs, "dir_by") || Map.get(attrs, :dir_by, "Test Director"),
-        country: Map.get(attrs, "country") || Map.get(attrs, :country, "Greece"),
-        runtime: Map.get(attrs, "runtime") || Map.get(attrs, :runtime, 10),
-        log_line:
-          Map.get(attrs, "log_line") || Map.get(attrs, :log_line, "A test film about testing."),
-        visible: Map.get(attrs, "visible") || Map.get(attrs, :visible, true)
-      })
+    base = %{
+      title: title,
+      type: Map.get(attrs, "type") || Map.get(attrs, :type, "Short Film"),
+      dir_by: Map.get(attrs, "dir_by") || Map.get(attrs, :dir_by, "Test Director"),
+      country: Map.get(attrs, "country") || Map.get(attrs, :country, "Greece"),
+      runtime: Map.get(attrs, "runtime") || Map.get(attrs, :runtime, 10),
+      log_line:
+        Map.get(attrs, "log_line") || Map.get(attrs, :log_line, "A test film about testing."),
+      visible: Map.get(attrs, "visible", Map.get(attrs, :visible, true))
+    }
+
+    extra =
+      attrs
+      |> Map.drop([
+        "title",
+        "type",
+        "dir_by",
+        "country",
+        "runtime",
+        "log_line",
+        "visible",
+        :title,
+        :type,
+        :dir_by,
+        :country,
+        :runtime,
+        :log_line,
+        :visible
+      ])
+      |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+      |> Enum.into(%{})
+
+    {:ok, film} = Content.Film.create(Map.merge(base, extra))
 
     film
   end

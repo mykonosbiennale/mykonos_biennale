@@ -45,11 +45,15 @@ defmodule MykonosBiennaleWeb.GoldenSmokeTest do
       assert html =~ ~s(<h1 class="text-4xl md:text-5xl font-light text-white mb-2">)
       assert html =~ "Anna Molloy"
 
-      assert html =~ "Works"
-      assert html =~ ~s(href="/art/2996")
-      assert html =~ "Laterns, 2023"
+      assert html =~ "Mykonos Biennale 2025"
+      assert html =~ "9 THE AMPHIBIAN"
       assert html =~ ~s(href="/art/3357")
       assert html =~ "Garden of Mysteries"
+
+      assert html =~ "Mykonos Biennale 2023"
+      assert html =~ "Orphic Mysteries"
+      assert html =~ ~s(href="/art/2996")
+      assert html =~ "Laterns, 2023"
     end
 
     test "404 for unknown participant id", %{conn: conn} do

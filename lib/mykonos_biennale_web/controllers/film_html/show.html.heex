@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{@page_title}</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.min.css"
+    />
+    <style>
+      body { background: #0a0a0a; }
+      .pswp { --pswp-bg: #000; }
+    </style>
+  </head>
+  <body class="bg-neutral-950 text-neutral-200 min-h-screen">
+    <nav class="border-b border-neutral-800 px-6 py-4">
+      <div class="max-w-5xl mx-auto flex items-center justify-between">
+        <a href="/" class="text-lg font-semibold text-white tracking-wide">MYKONOS BIENNALE</a>
+        <div class="flex gap-6 text-sm">
+          <a href="/archive" class="text-neutral-400 hover:text-white transition-colors">
+            Archive
+          </a>
+          <a href="/program" class="text-neutral-400 hover:text-white transition-colors">
+            Program
+          </a>
+          <a href="/about" class="text-neutral-400 hover:text-white transition-colors">About</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-6 py-12">
+      <article>
+        <%!-- Breadcrumb --%>
+        <nav class="text-xs text-neutral-600 mb-4 flex items-center gap-2">
+          <a href="/" class="hover:text-neutral-400 transition-colors">Home</a>
+          <span>/</span>
+          <%= if @biennale do %>
+            <a
+              href={"/biennale/#{@biennale.slug}"}
+              class="hover:text-neutral-400 transition-colors"
+            >
+              Mykonos Biennale {field(@biennale, "year")}
+            </a>
+            <span>/</span>
+          <% end %>
+          <%= if @events != [] do %>
+            <a
+              href={"/event/#{List.first(@events).id}"}
+              class="hover:text-neutral-400 transition-colors"
+            >
+              {field(List.first(@events), "title")}
+            </a>
+            <span>/</span>
+          <% end %>
+          <span class="text-neutral-500">{@film.identity}</span>
+        </nav>
+
+        <div class="grid md:grid-cols-3 gap-8 mb-8">
+          <%!-- Poster --%>
+          <%= if @poster do %>
+            <div class="md:col-span-1">
+              <div class="overflow-hidden rounded-lg bg-neutral-900">
+                <img
+                  src={media_url(@poster, size: "hero")}
+                  alt={@film.identity}
+                  class="w-full h-auto object-contain"
+                />
+              </div>
+            </div>
+          <% end %>
+
+          <%!-- Title + Details --%>
+          <div class={if @poster, do: "md:col-span-2", else: "md:col-span-3"}>
+            <h1 class="text-4xl md:text-5xl font-light text-white mb-2">
+              {@film.identity}
+            </h1>
+
+            <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-neutral-500 mb-4">
+              <%= if field(@film, "dir_by") do %>
+                <span>Dir. by {field(@film, "dir_by")}</span>
+              <% end %>
+              <%= if field(@film, "country") do %>
+                <span>{String.trim(field(@film, "country"))}</span>
+              <% end %>
+              <%= if field(@film, "runtime") do %>
+                <span>{field(@film, "runtime")} min</span>
+              <% end %>
+              <%= if field(@film, "year") do %>
+                <span>{field(@film, "year")}</span>
+              <% end %>
+            </div>
+
+            <%= if field(@film, "log_line") do %>
+              <p class="text-neutral-400 leading-relaxed mb-6">
+                {field(@film, "log_line")}
+              </p>
+            <% end %>
+
+            <%= if field(@film, "synopsis") do %>
+              <div class="mb-6">
+                <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-2">Synopsis</h2>
+                <p class="text-neutral-400 leading-relaxed whitespace-pre-line">
+                  {field(@film, "synopsis")}
+                </p>
+              </div>
+            <% end %>
+
+            <%= if @events != [] do %>
+              <div class="mb-6">
+                <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-2">
+                  Screened at
+                </h2>
+                <div class="flex flex-wrap gap-3">
+                  <%= for event <- @events do %>
+                    <a
+                      href={"/event/#{event.id}"}
+                      class="text-sm text-neutral-300 hover:text-white transition-colors"
+                    >
+                      {field(event, "title")}
+                      <%= if field(event, "date") do %>
+                        , {field(event, "date")}
+                      <% end %>
+                    </a>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <%!-- Crew --%>
+        <%= if @crew != [] do %>
+          <div class="mt-12 border-t border-neutral-800 pt-8">
+            <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-6">Credits</h2>
+            <dl class="space-y-3">
+              <%= for {role, people} <- @crew do %>
+                <div class="flex gap-4">
+                  <dt class="text-sm text-neutral-600 w-32 shrink-0">{role}</dt>
+                  <dd class="text-sm text-neutral-300">
+                    <%= for person <- people do %>
+                      <a
+                        href={"/artist/#{person.id}"}
+                        class="hover:text-white transition-colors"
+                      >
+                        {participant_name(person)}
+                      </a>
+                      <%= if person != List.last(people) do %>
+                        <span class="text-neutral-600">, </span>
+                      <% end %>
+                    <% end %>
+                  </dd>
+                </div>
+              <% end %>
+            </dl>
+          </div>
+        <% end %>
+
+        <%!-- Trailer --%>
+        <%= if field(@film, "trailer_embed") do %>
+          <section class="mt-12 border-t border-neutral-800 pt-8">
+            <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-6">Trailer</h2>
+            <div class="aspect-video max-w-3xl">
+              {trailer_embed(field(@film, "trailer_embed"))}
+            </div>
+          </section>
+        <% else %>
+          <%= if field(@film, "trailer_url") do %>
+            <section class="mt-12 border-t border-neutral-800 pt-8">
+              <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-6">Trailer</h2>
+              <div>
+                <a
+                  href={field(@film, "trailer_url")}
+                  target="_blank"
+                  class="inline-block px-6 py-3 bg-neutral-800 hover:bg-neutral-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Watch trailer
+                </a>
+              </div>
+            </section>
+          <% end %>
+        <% end %>
+
+        <%!-- Stills / Screenshots --%>
+        <%= if @stills != [] do %>
+          <section class="mt-12 border-t border-neutral-800 pt-8">
+            <h2 class="text-xs uppercase tracking-widest text-neutral-600 mb-6">Stills</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <%= for {m, idx} <- Enum.with_index(@stills) do %>
+                <div class={"overflow-hidden rounded-lg bg-neutral-900 " <> if(idx == 0, do: "md:col-span-2", else: "")}>
+                  <a
+                    href={media_url(m, size: "hero")}
+                    data-pswp-width="1920"
+                    data-pswp-height="1080"
+                    target="_blank"
+                    class="block"
+                  >
+                    <img
+                      src={media_url(m, size: "card")}
+                      alt={m.caption || @film.identity}
+                      class="w-full h-auto object-contain"
+                      loading={if idx == 0, do: "eager", else: "lazy"}
+                    />
+                  </a>
+                </div>
+              <% end %>
+            </div>
+          </section>
+        <% end %>
+      </article>
+    </main>
+
+    <footer class="border-t border-neutral-800 px-6 py-6 mt-12">
+      <div class="max-w-5xl mx-auto text-sm text-neutral-600">
+        Mykonos Biennale
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe-lightbox.umd.min.js">
+    </script>
+    <script>
+      const lightbox = new PhotoSwipeLightbox({
+        gallery: 'main',
+        children: 'a[data-pswp-width]',
+        pswpModule: () => import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.esm.js'),
+      });
+      lightbox.init();
+    </script>
+  </body>
+</html>

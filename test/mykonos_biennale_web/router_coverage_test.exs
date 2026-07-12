@@ -27,6 +27,8 @@ defmodule MykonosBiennaleWeb.RouterCoverageTest do
     {:get, "/artist/s/:slug"},
     {:get, "/event/:id"},
     {:get, "/event/s/:slug"},
+    {:get, "/film/:id"},
+    {:get, "/film/s/:slug"},
     {:get, "/biennale/:slug"},
     {:get, "/biennale/:slug/festival"},
     {:get, "/users/settings"},

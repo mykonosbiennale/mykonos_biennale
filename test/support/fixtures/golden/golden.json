@@ -2988,6 +2988,44 @@
       "template": "default",
       "type": "event",
       "visible": true
+    },
+    {
+      "id": 68,
+      "type": "event",
+      "visible": true,
+      "fields": {
+        "date": "2023-09-27",
+        "description": null,
+        "import_key": "6-18",
+        "import_model": "festival.project",
+        "import_pk": "41",
+        "import_slug": "garden-of-mysteries",
+        "location": "YELLOW TOWER, ANO MERA",
+        "original_record": {
+          "fields": {
+            "slug": "garden-of-mysteries",
+            "title": "Garden of Mysteries"
+          },
+          "files": [],
+          "foreign_keys": {
+            "festival": {
+              "model": "festival.festival",
+              "pk": 7
+            }
+          },
+          "many_to_many": {},
+          "model": "festival.project",
+          "pk": 41
+        },
+        "show_project": true,
+        "tickets": null,
+        "time": "18:00",
+        "title": "PRELUDE AT THE GARDEN OF MYSTERIES",
+        "type": "exhibition"
+      },
+      "template": "default",
+      "identity": "PRELUDE AT THE GARDEN OF MYSTERIES",
+      "slug": "garden-of-mysteries--576460750148432084"
     }
   ],
   "entity_media": [
@@ -3673,6 +3711,20 @@
       "object_id": 7,
       "relationship_type_id": 1,
       "subject_id": 2964
+    },
+    {
+      "id": 71,
+      "fields": {},
+      "subject_id": 68,
+      "relationship_type_id": 1,
+      "object_id": 6
+    },
+    {
+      "id": 4415,
+      "fields": {},
+      "subject_id": 2996,
+      "relationship_type_id": 4,
+      "object_id": 68
     }
   ]
 }
