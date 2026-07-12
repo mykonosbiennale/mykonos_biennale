@@ -42,6 +42,7 @@ defmodule MykonosBiennaleWeb.FilmController do
     events = list_film_events(film)
     biennale = get_event_biennale(events)
     crew = group_crew_by_role(relationships)
+    description = pick_description(film)
 
     conn
     |> assign(:film, film)
@@ -50,9 +51,26 @@ defmodule MykonosBiennaleWeb.FilmController do
     |> assign(:events, events)
     |> assign(:biennale, biennale)
     |> assign(:crew, crew)
+    |> assign(:description, description)
     |> assign(:page_title, "#{film.identity} — Mykonos Biennale")
     |> put_view(FilmHTML)
     |> render(:show)
+  end
+
+  defp pick_description(film) do
+    log_line = film.fields["log_line"] || ""
+    synopsis = film.fields["synopsis"] || ""
+
+    cond do
+      String.trim(synopsis) != "" and String.length(synopsis) > String.length(log_line) ->
+        String.trim(synopsis)
+
+      String.trim(log_line) != "" ->
+        String.trim(log_line)
+
+      true ->
+        nil
+    end
   end
 
   defp get_film_poster(media_links) do
