@@ -49,5 +49,10 @@ jobs:
             sudo mkdir -p /data/uploads /data/thumbnails
             sudo chown -R ubuntu:ubuntu /data
             sudo systemctl restart mykonos-biennale
-            sleep 5
-            sudo systemctl is-active mykonos-biennale
+
+            timeout 90 bash -c 'until sudo systemctl is-active --quiet mykonos-biennale; do sleep 2; done' || {
+              echo "=== SERVICE FAILED TO START ==="
+              sudo systemctl status mykonos-biennale --no-pager -l || true
+              sudo journalctl -u mykonos-biennale -n 200 --no-pager || true
+              exit 1
+            }
