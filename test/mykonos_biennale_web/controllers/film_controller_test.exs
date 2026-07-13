@@ -119,6 +119,16 @@ defmodule MykonosBiennaleWeb.FilmControllerTest do
       assert html =~ "Scene 1"
     end
 
+    test "does not render duplicate or exposed img attributes", %{conn: conn} do
+      film = ContentFixtures.film_fixture(title: "Clean HTML Film")
+      screenshot = ContentFixtures.media_fixture(caption: "Clean Shot")
+      ContentFixtures.attach_media(film, screenshot, metadata: %{"role" => "screenshot"})
+
+      html = html_response(get(conn, "/film/#{film.id}"), 200)
+      refute html =~ ~s(/> loading=)
+      refute html =~ ~s(loading="eager" /> loading=)
+    end
+
     test "does not show poster in stills section", %{conn: conn} do
       film = ContentFixtures.film_fixture(title: "No Poster In Stills")
       poster = ContentFixtures.media_fixture(caption: "The Poster")
