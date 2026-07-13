@@ -18,6 +18,8 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
     "Other"
   ]
 
+  def social_platforms, do: @social_platforms
+
   defmodule ParticipantForm do
     @moduledoc false
     use Ecto.Schema
@@ -325,6 +327,197 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
           <% end %>
         </div>
 
+        <%= if @participant.id do %>
+          <div class="mt-6">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-semibold text-gray-700">
+                Relationships ({length(@relationships)})
+              </h3>
+              <button
+                type="button"
+                phx-click="toggle_add_relationship"
+                phx-target={@myself}
+                class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors"
+              >
+                + Add
+              </button>
+            </div>
+
+            <div class="overflow-x-auto border border-gray-200 rounded-lg">
+              <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">
+                      Type
+                    </th>
+                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">
+                      Dir
+                    </th>
+                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">
+                      Entity
+                    </th>
+                    <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">
+                      Fields
+                    </th>
+                    <th class="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <%= if @show_add_relationship do %>
+                    <tr class="bg-purple-50">
+                      <td class="px-3 py-2">
+                        <select
+                          name="new_rel_type"
+                          phx-change="new_rel_type_changed"
+                          phx-target={@myself}
+                          class="w-full rounded border border-gray-300 text-xs px-2 py-1"
+                        >
+                          <option value="">Select...</option>
+                          <%= for rt <- @all_relationship_types do %>
+                            <option value={rt.id} selected={to_string(rt.id) == @new_rel_type}>
+                              {rt.slug}
+                            </option>
+                          <% end %>
+                        </select>
+                      </td>
+                      <td class="px-3 py-2">
+                        <select
+                          name="new_rel_direction"
+                          phx-change="new_rel_direction_changed"
+                          phx-target={@myself}
+                          class="w-full rounded border border-gray-300 text-xs px-2 py-1"
+                        >
+                          <option value="object" selected={@new_rel_direction == "object"}>←</option>
+                          <option value="subject" selected={@new_rel_direction == "subject"}>
+                            →
+                          </option>
+                        </select>
+                      </td>
+                      <td class="px-3 py-2 relative">
+                        <%= if @new_rel_selected_entity do %>
+                          <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-700">
+                              {@new_rel_selected_entity.identity}
+                              <span class="text-gray-400">({@new_rel_selected_entity.type})</span>
+                            </span>
+                            <button
+                              type="button"
+                              phx-click="new_rel_clear_entity"
+                              phx-target={@myself}
+                              class="text-xs text-red-400 hover:text-red-600"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        <% else %>
+                          <input
+                            type="text"
+                            name="new_rel_search"
+                            value={@new_rel_search}
+                            phx-change="new_rel_search_changed"
+                            phx-debounce="300"
+                            phx-target={@myself}
+                            placeholder="Search..."
+                            class="w-full rounded border border-gray-300 text-xs px-2 py-1"
+                          />
+                          <%= if @new_rel_results != [] do %>
+                            <div class="absolute z-10 mt-1 max-h-48 overflow-y-auto border border-gray-200 rounded bg-white shadow-lg min-w-[300px]">
+                              <%= for entity <- @new_rel_results do %>
+                                <button
+                                  type="button"
+                                  phx-click="new_rel_select_entity"
+                                  phx-value-entity-id={entity.id}
+                                  phx-target={@myself}
+                                  class="block w-full text-left px-3 py-1.5 text-xs hover:bg-purple-50 border-b border-gray-100 last:border-0"
+                                >
+                                  {entity.identity}
+                                  <span class="text-gray-400 ml-1">({entity.type})</span>
+                                </button>
+                              <% end %>
+                            </div>
+                          <% end %>
+                        <% end %>
+                      </td>
+                      <td class="px-3 py-2">
+                        <input
+                          type="text"
+                          name="new_rel_fields"
+                          phx-change="new_rel_fields_changed"
+                          phx-target={@myself}
+                          value={@new_rel_fields}
+                          placeholder='{"role":"..."}'
+                          class="w-full rounded border border-gray-300 text-xs px-2 py-1 font-mono"
+                        />
+                      </td>
+                      <td class="px-3 py-2 text-right whitespace-nowrap">
+                        <button
+                          type="button"
+                          phx-click="create_relationship"
+                          phx-target={@myself}
+                          class="text-xs px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded"
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          phx-click="toggle_add_relationship"
+                          phx-target={@myself}
+                          class="text-xs px-2 py-1 text-gray-500 hover:text-gray-700 ml-1"
+                        >
+                          Cancel
+                        </button>
+                      </td>
+                    </tr>
+                  <% end %>
+                  <%= for rel <- @relationships do %>
+                    <% is_subject = rel.subject_id == @participant.id
+                    other = if is_subject, do: rel.object, else: rel.subject
+                    direction = if is_subject, do: "→", else: "←"
+
+                    other_name =
+                      other &&
+                        (other.fields["title"] || other.fields["name"] || other.identity ||
+                           "##{other.id}")
+
+                    other_type = other && other.type
+
+                    fields_str =
+                      if rel.fields && map_size(rel.fields) > 0,
+                        do: Jason.encode!(rel.fields),
+                        else: "" %>
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-3 py-2">
+                        <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          {rel.relationship_type.slug}
+                        </span>
+                      </td>
+                      <td class="px-3 py-2 text-gray-400 font-mono">{direction}</td>
+                      <td class="px-3 py-2 text-gray-700">
+                        {other_name}<span class="text-gray-400 text-xs ml-1">({other_type})</span>
+                      </td>
+                      <td class="px-3 py-2 text-gray-500 text-xs font-mono">{fields_str}</td>
+                      <td class="px-3 py-2 text-right">
+                        <button
+                          type="button"
+                          phx-click="delete_relationship"
+                          phx-value-rel-id={rel.id}
+                          phx-target={@myself}
+                          data-confirm="Delete this relationship?"
+                          class="text-red-500 hover:text-red-700 text-xs"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <% end %>
+
         <div class="mt-6 flex items-center justify-end gap-x-6">
           <.link patch={@patch} class="text-sm font-semibold text-gray-500 hover:text-gray-700">
             Cancel
@@ -350,6 +543,13 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
         []
       end
 
+    relationships =
+      if participant.id do
+        list_relationships(participant)
+      else
+        []
+      end
+
     {:ok,
      socket
      |> assign(assigns)
@@ -357,6 +557,15 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
      |> assign(:headshot_media, headshot_media)
      |> assign(:social_media_entries, form_attrs[:social_media] || [])
      |> assign(:linked_artworks, linked_artworks)
+     |> assign(:relationships, relationships)
+     |> assign(:all_relationship_types, Content.list_relationship_types())
+     |> assign(:show_add_relationship, false)
+     |> assign(:new_rel_type, nil)
+     |> assign(:new_rel_direction, "object")
+     |> assign(:new_rel_search, "")
+     |> assign(:new_rel_results, [])
+     |> assign(:new_rel_selected_entity, nil)
+     |> assign(:new_rel_fields, "")
      |> assign(:artwork_search, "")
      |> assign(:artwork_results, [])
      |> assign_new(:form, fn ->
@@ -480,6 +689,134 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
      socket
      |> assign(:linked_artworks, linked_artworks)
      |> put_flash(:info, "Artwork unlinked successfully")}
+  end
+
+  def handle_event("delete_relationship", %{"rel-id" => rel_id}, socket) do
+    rel = MykonosBiennale.Repo.get(MykonosBiennale.Content.Relationship, rel_id)
+
+    if rel do
+      {:ok, _} = Content.delete_relationship(rel)
+      relationships = list_relationships(socket.assigns.participant)
+
+      {:noreply,
+       socket |> assign(:relationships, relationships) |> put_flash(:info, "Relationship deleted")}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("toggle_add_relationship", _params, socket) do
+    {:noreply,
+     assign(socket, :show_add_relationship, !socket.assigns.show_add_relationship)
+     |> assign(:new_rel_search, "")
+     |> assign(:new_rel_results, [])
+     |> assign(:new_rel_selected_entity, nil)
+     |> assign(:new_rel_fields, "")}
+  end
+
+  def handle_event("new_rel_type_changed", %{"new_rel_type" => type_id}, socket) do
+    {:noreply, assign(socket, :new_rel_type, type_id)}
+  end
+
+  def handle_event("new_rel_direction_changed", %{"new_rel_direction" => dir}, socket) do
+    {:noreply, assign(socket, :new_rel_direction, dir)}
+  end
+
+  def handle_event("new_rel_fields_changed", %{"new_rel_fields" => fields}, socket) do
+    {:noreply, assign(socket, :new_rel_fields, fields)}
+  end
+
+  def handle_event("new_rel_clear_entity", _params, socket) do
+    {:noreply, assign(socket, :new_rel_selected_entity, nil)}
+  end
+
+  def handle_event("new_rel_search_changed", %{"new_rel_search" => search}, socket) do
+    results = search_entities(search)
+    {:noreply, socket |> assign(:new_rel_search, search) |> assign(:new_rel_results, results)}
+  end
+
+  def handle_event("new_rel_select_entity", %{"entity-id" => entity_id}, socket) do
+    entity = MykonosBiennale.Repo.get(MykonosBiennale.Content.Entity, entity_id)
+
+    {:noreply,
+     socket
+     |> assign(:new_rel_selected_entity, entity)
+     |> assign(:new_rel_search, "")
+     |> assign(:new_rel_results, [])}
+  end
+
+  def handle_event("create_relationship", _params, socket) do
+    participant = socket.assigns.participant
+    type_id = socket.assigns[:new_rel_type]
+    direction = socket.assigns[:new_rel_direction] || "object"
+    selected = socket.assigns[:new_rel_selected_entity]
+    fields_str = socket.assigns[:new_rel_fields]
+
+    cond do
+      is_nil(type_id) or type_id == "" ->
+        {:noreply, put_flash(socket, :error, "Select a relationship type")}
+
+      is_nil(selected) ->
+        {:noreply, put_flash(socket, :error, "Select an entity")}
+
+      true ->
+        {subject_id, object_id} =
+          case direction do
+            "subject" -> {participant.id, selected.id}
+            _ -> {selected.id, participant.id}
+          end
+
+        fields =
+          case fields_str do
+            nil ->
+              %{}
+
+            "" ->
+              %{}
+
+            str ->
+              case Jason.decode(str) do
+                {:ok, map} when is_map(map) -> map
+                _ -> %{}
+              end
+          end
+
+        rt =
+          MykonosBiennale.Repo.get!(
+            MykonosBiennale.Content.RelationshipType,
+            String.to_integer(type_id)
+          )
+
+        rel_attrs = %{
+          relationship_type_id: rt.id,
+          subject_id: subject_id,
+          object_id: object_id,
+          fields: fields
+        }
+
+        case MykonosBiennale.Content.Relationship.changeset(
+               %MykonosBiennale.Content.Relationship{},
+               rel_attrs
+             )
+             |> MykonosBiennale.Repo.insert() do
+          {:ok, _} ->
+            relationships = list_relationships(participant)
+
+            {:noreply,
+             socket
+             |> assign(:relationships, relationships)
+             |> assign(:show_add_relationship, false)
+             |> assign(:new_rel_type, nil)
+             |> assign(:new_rel_selected_entity, nil)
+             |> assign(:new_rel_search, "")
+             |> assign(:new_rel_results, [])
+             |> assign(:new_rel_fields, "")
+             |> put_flash(:info, "Relationship created")}
+
+          {:error, _} ->
+            {:noreply, put_flash(socket, :error, "Failed to create relationship")}
+        end
+    end
   end
 
   def handle_event("save", params, socket) do
@@ -881,4 +1218,27 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
   defp error_to_string(:not_accepted), do: "File type not accepted"
   defp error_to_string(:too_many_files), do: "Too many files selected"
   defp error_to_string(err), do: "Upload error: #{inspect(err)}"
+
+  defp list_relationships(participant) do
+    import Ecto.Query
+
+    MykonosBiennale.Repo.all(
+      from r in MykonosBiennale.Content.Relationship,
+        where: r.subject_id == ^participant.id or r.object_id == ^participant.id,
+        preload: [:subject, :object, :relationship_type]
+    )
+    |> Enum.sort_by(fn r -> {r.relationship_type.slug, r.subject_id != participant.id} end)
+  end
+
+  defp search_entities(search) when is_binary(search) and byte_size(search) > 0 do
+    import Ecto.Query
+
+    MykonosBiennale.Repo.all(
+      from e in MykonosBiennale.Content.Entity,
+        where: e.visible == true and ilike(e.identity, ^"%#{search}%"),
+        limit: 20
+    )
+  end
+
+  defp search_entities(_), do: []
 end

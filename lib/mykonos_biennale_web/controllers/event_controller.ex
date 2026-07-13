@@ -366,7 +366,15 @@ defmodule MykonosBiennaleWeb.EventController do
       Repo.all(
         from em in Content.EntityMedia,
           where: em.entity_id in ^artwork_ids,
-          order_by: em.position,
+          order_by: [
+            asc:
+              fragment(
+                "CASE WHEN ? ->> 'is_poster' = 'true' OR ? ->> 'role' = 'poster' THEN 0 ELSE 1 END",
+                em.metadata,
+                em.metadata
+              ),
+            asc: em.position
+          ],
           preload: [:media]
       )
 

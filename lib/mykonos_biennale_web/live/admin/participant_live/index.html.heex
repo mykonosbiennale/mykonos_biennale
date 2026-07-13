@@ -97,7 +97,7 @@
                   Show
                 </.link>
                 <.link
-                  patch={"/admin/participants/#{participant.id}/edit"}
+                  navigate={"/admin/participants/#{participant.id}/edit"}
                   class="text-purple-400 hover:text-purple-300 transition-colors"
                 >
                   Edit
@@ -137,7 +137,7 @@
   </.modal>
 
   <.modal
-    :if={@live_action in [:new, :edit]}
+    :if={@live_action == :new}
     id="participant-modal"
     show
     on_cancel={JS.patch(@return_path)}

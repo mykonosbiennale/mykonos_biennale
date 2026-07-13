@@ -55,7 +55,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLiveTest do
       |> form("#participant-form", participant: %{first_name: "Updated"})
       |> render_submit()
 
-      assert_patch(lv, ~p"/admin/participants")
+      assert_redirect(lv, ~p"/admin/participants/#{participant.id}")
     end
   end
 
