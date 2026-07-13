@@ -222,6 +222,90 @@
     <% end %>
   </div>
 
+  <%= if @relationships != [] do %>
+    <div class="mt-8 bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 p-6">
+      <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+        Relationships ({length(@relationships)})
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-700">
+              <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Type
+              </th>
+              <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Direction
+              </th>
+              <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Entity
+              </th>
+              <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Fields
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-700/50">
+            <%= for rel <- @relationships do %>
+              <% is_subject = rel.subject_id == @participant.id
+              other = if is_subject, do: rel.object, else: rel.subject
+              direction = if is_subject, do: "→", else: "←"
+
+              entity_path =
+                case other.type do
+                  "participant" ->
+                    "/admin/participants/#{other.id}"
+
+                  "artwork" ->
+                    "/admin/artworks/#{other.id}"
+
+                  "event" ->
+                    "/admin/events/#{other.id}"
+
+                  "project" ->
+                    "/admin/projects/#{other.id}"
+
+                  "biennale" ->
+                    "/admin/biennales/#{other.id}"
+
+                  t when t in ["Short Film", "Video", "Animation", "Documentary", "Dance"] ->
+                    "/admin/films/#{other.id}"
+
+                  _ ->
+                    nil
+                end
+
+              other_name =
+                other.fields["title"] || other.fields["name"] || other.identity || "##{other.id}"
+
+              fields_str =
+                if rel.fields && map_size(rel.fields) > 0, do: Jason.encode!(rel.fields), else: "" %>
+              <tr class="hover:bg-gray-700/20">
+                <td class="px-3 py-2">
+                  <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    {rel.relationship_type.slug}
+                  </span>
+                </td>
+                <td class="px-3 py-2 text-gray-400 font-mono">{direction}</td>
+                <td class="px-3 py-2">
+                  <%= if entity_path do %>
+                    <.link patch={entity_path} class="text-purple-400 hover:text-purple-300">
+                      {other_name}
+                    </.link>
+                  <% else %>
+                    {other_name}
+                  <% end %>
+                  <span class="text-gray-600 text-xs ml-1">({other.type})</span>
+                </td>
+                <td class="px-3 py-2 text-gray-500 text-xs font-mono">{fields_str}</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+
   <.modal
     :if={@live_action == :new_artwork}
     id="participant-artwork-modal"

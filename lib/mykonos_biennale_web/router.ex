@@ -78,7 +78,7 @@ defmodule MykonosBiennaleWeb.Router do
   # Enable Swoosh mailbox preview in development only
   if Application.compile_env(:mykonos_biennale, :dev_routes) do
     scope "/admin" do
-      pipe_through [:browser, :require_authenticated_user, :require_admin]
+      pipe_through [:browser]
 
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
@@ -107,7 +107,7 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/events/:id/edit", Admin.EventLive.Index, :edit
       live "/admin/participants", Admin.ParticipantLive.Index, :index
       live "/admin/participants/new", Admin.ParticipantLive.Index, :new
-      live "/admin/participants/:id/edit", Admin.ParticipantLive.Index, :edit
+      live "/admin/participants/:id/edit", Admin.ParticipantLive.Edit, :edit
       live "/admin/participants/:id/artworks/new", Admin.ParticipantLive.Show, :new_artwork
       live "/admin/participants/:id", Admin.ParticipantLive.Show, :show
       live "/admin/films", Admin.FilmLive.Index, :index

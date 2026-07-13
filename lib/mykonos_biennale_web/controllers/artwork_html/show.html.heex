@@ -6,13 +6,8 @@
     <title>{@page_title}</title>
     <script src="https://cdn.tailwindcss.com">
     </script>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.min.css"
-    />
     <style>
       body { background: #0a0a0a; }
-      .pswp { --pswp-bg: #000; }
     </style>
   </head>
   <body class="bg-neutral-950 text-neutral-200 min-h-screen">
@@ -75,20 +70,12 @@
           <div class="md:hidden grid grid-cols-1 gap-4">
             <%= for {m, idx} <- Enum.with_index(all_media) do %>
               <div class="overflow-hidden rounded-lg bg-neutral-900">
-                <a
-                  href={media_url(m, size: "hero")}
-                  data-pswp-width="1920"
-                  data-pswp-height="1080"
-                  target="_blank"
-                  class="block"
-                >
-                  <img
-                    src={media_url(m, size: "card")}
-                    alt={m.alt_text || m.caption || field(@artwork, "title")}
-                    class="w-full h-auto object-contain"
-                    loading={if idx == 0, do: "eager", else: "lazy"}
-                  />
-                </a>
+                <img
+                  src={media_url(m, size: "card")}
+                  alt={m.alt_text || m.caption || field(@artwork, "title")}
+                  class="w-full h-auto object-contain"
+                  loading={if idx == 0, do: "eager", else: "lazy"}
+                />
               </div>
             <% end %>
           </div>
@@ -96,22 +83,13 @@
           <%!-- Desktop: gallery (main image + thumbnail strip) --%>
           <div class="hidden md:block">
             <div class="overflow-hidden rounded-lg bg-neutral-900 mb-4">
-              <a
-                href={media_url(first, size: "hero")}
-                data-pswp-width="1920"
-                data-pswp-height="1080"
-                target="_blank"
-                class="block"
-                id="featured-main-link"
-              >
-                <img
-                  src={media_url(first, size: "hero")}
-                  alt={first.alt_text || first.caption || field(@artwork, "title")}
-                  class="w-full h-auto object-contain"
-                  loading="eager"
-                  id="featured-main-img"
-                />
-              </a>
+              <img
+                src={media_url(first, size: "hero")}
+                alt={first.alt_text || first.caption || field(@artwork, "title")}
+                class="w-full h-auto object-contain"
+                loading="eager"
+                id="featured-main-img"
+              />
             </div>
             <%= if rest != [] do %>
               <div class="flex flex-wrap justify-center gap-2">
@@ -175,16 +153,5 @@
         Mykonos Biennale
       </div>
     </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe-lightbox.umd.min.js">
-    </script>
-    <script>
-      const lightbox = new PhotoSwipeLightbox({
-        gallery: 'main',
-        children: 'a[data-pswp-width]',
-        pswpModule: () => import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.esm.js'),
-      });
-      lightbox.init();
-    </script>
   </body>
 </html>
