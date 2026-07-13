@@ -44,10 +44,10 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
     artwork_ids = Enum.map(artworks, & &1.id)
 
     socket =
-      if !socket.assigns.artworks_loaded do
-        socket |> assign(:artworks_loaded, true)
-      else
+      if socket.assigns.artworks_loaded do
         socket
+      else
+        socket |> assign(:artworks_loaded, true)
       end
 
     return_path =
