@@ -376,7 +376,9 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
                         >
                           <option value="">Select...</option>
                           <%= for rt <- @all_relationship_types do %>
-                            <option value={rt.id} selected={to_string(rt.id) == @new_rel_type}>{rt.slug}</option>
+                            <option value={rt.id} selected={to_string(rt.id) == @new_rel_type}>
+                              {rt.slug}
+                            </option>
                           <% end %>
                         </select>
                       </td>

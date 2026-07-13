@@ -16,7 +16,10 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.EditHTML do
         </.link>
       </div>
 
-      <div data-theme="light" class="bg-white rounded-xl p-6 [&_.label]:text-gray-900 [&_h1]:text-gray-900">
+      <div
+        data-theme="light"
+        class="bg-white rounded-xl p-6 [&_.label]:text-gray-900 [&_h1]:text-gray-900"
+      >
         <.form
           for={@form}
           id="participant-form"
@@ -295,7 +298,9 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.EditHTML do
                           >
                             <option value="">Select...</option>
                             <%= for rt <- @all_relationship_types do %>
-                              <option value={rt.id} selected={to_string(rt.id) == @new_rel_type}>{rt.slug}</option>
+                              <option value={rt.id} selected={to_string(rt.id) == @new_rel_type}>
+                                {rt.slug}
+                              </option>
                             <% end %>
                           </select>
                         </td>
@@ -305,7 +310,9 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.EditHTML do
                             phx-change="new_rel_direction_changed"
                             class="w-full rounded border border-gray-300 text-xs text-gray-900 bg-white px-2 py-1"
                           >
-                            <option value="object" selected={@new_rel_direction == "object"}>←</option>
+                            <option value="object" selected={@new_rel_direction == "object"}>
+                              ←
+                            </option>
                             <option value="subject" selected={@new_rel_direction == "subject"}>
                               →
                             </option>
@@ -403,7 +410,9 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.EditHTML do
                             class="w-full rounded border border-gray-300 text-xs text-gray-900 bg-white px-2 py-1"
                           >
                             <%= for rt <- @all_relationship_types do %>
-                              <option value={rt.id} selected={rt.id == rel.relationship_type_id}>{rt.slug}</option>
+                              <option value={rt.id} selected={rt.id == rel.relationship_type_id}>
+                                {rt.slug}
+                              </option>
                             <% end %>
                           </select>
                         </td>
@@ -442,7 +451,10 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.EditHTML do
           <% end %>
 
           <div class="mt-6 flex items-center justify-end gap-x-6">
-            <.link navigate={"/admin/participants/#{@participant.id}"} class="text-sm font-semibold text-gray-500 hover:text-gray-700">
+            <.link
+              navigate={"/admin/participants/#{@participant.id}"}
+              class="text-sm font-semibold text-gray-500 hover:text-gray-700"
+            >
               Cancel
             </.link>
             <button type="submit" phx-disable-with="Saving..." class="btn btn-primary">
@@ -466,7 +478,9 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.EditHTML do
   defp headshot_url(%MykonosBiennale.Content.Media{source_type: "upload"} = media),
     do: MykonosBiennale.Uploads.media_url(media, size: "admin")
 
-  defp headshot_url(%MykonosBiennale.Content.Media{source_type: "url", source_url: url}) when is_binary(url), do: url
+  defp headshot_url(%MykonosBiennale.Content.Media{source_type: "url", source_url: url})
+       when is_binary(url), do: url
+
   defp headshot_url(_), do: ""
 
   defp format_bytes(bytes) do
@@ -484,45 +498,200 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.EditHTML do
 
   defp country_options do
     [
-      "Afghanistan", "Albania", "Algeria", "Andorra", "Angola",
-      "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria",
-      "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados",
-      "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
-      "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei",
-      "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia",
-      "Cameroon", "Canada", "Central African Republic", "Chad", "Chile",
-      "China", "Colombia", "Comoros", "Congo", "Costa Rica",
-      "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark",
-      "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt",
-      "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini",
-      "Ethiopia", "Fiji", "Finland", "France", "Gabon",
-      "Gambia", "Georgia", "Germany", "Ghana", "Greece",
-      "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
-      "Haiti", "Honduras", "Hungary", "Iceland", "India",
-      "Indonesia", "Iran", "Iraq", "Ireland", "Israel",
-      "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan",
-      "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan",
-      "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia",
-      "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar",
-      "Malawi", "Malaysia", "Maldives", "Mali", "Malta",
-      "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
-      "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco",
-      "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal",
-      "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria",
-      "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan",
-      "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay",
-      "Peru", "Philippines", "Poland", "Portugal", "Qatar",
-      "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia",
-      "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
-      "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone",
-      "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia",
-      "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka",
-      "Sudan", "Suriname", "Sweden", "Switzerland", "Syria",
-      "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Togo",
-      "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan",
-      "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
-      "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City",
-      "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+      "Afghanistan",
+      "Albania",
+      "Algeria",
+      "Andorra",
+      "Angola",
+      "Antigua and Barbuda",
+      "Argentina",
+      "Armenia",
+      "Australia",
+      "Austria",
+      "Azerbaijan",
+      "Bahamas",
+      "Bahrain",
+      "Bangladesh",
+      "Barbados",
+      "Belarus",
+      "Belgium",
+      "Belize",
+      "Benin",
+      "Bhutan",
+      "Bolivia",
+      "Bosnia and Herzegovina",
+      "Botswana",
+      "Brazil",
+      "Brunei",
+      "Bulgaria",
+      "Burkina Faso",
+      "Burundi",
+      "Cabo Verde",
+      "Cambodia",
+      "Cameroon",
+      "Canada",
+      "Central African Republic",
+      "Chad",
+      "Chile",
+      "China",
+      "Colombia",
+      "Comoros",
+      "Congo",
+      "Costa Rica",
+      "Croatia",
+      "Cuba",
+      "Cyprus",
+      "Czech Republic",
+      "Denmark",
+      "Djibouti",
+      "Dominica",
+      "Dominican Republic",
+      "Ecuador",
+      "Egypt",
+      "El Salvador",
+      "Equatorial Guinea",
+      "Eritrea",
+      "Estonia",
+      "Eswatini",
+      "Ethiopia",
+      "Fiji",
+      "Finland",
+      "France",
+      "Gabon",
+      "Gambia",
+      "Georgia",
+      "Germany",
+      "Ghana",
+      "Greece",
+      "Grenada",
+      "Guatemala",
+      "Guinea",
+      "Guinea-Bissau",
+      "Guyana",
+      "Haiti",
+      "Honduras",
+      "Hungary",
+      "Iceland",
+      "India",
+      "Indonesia",
+      "Iran",
+      "Iraq",
+      "Ireland",
+      "Israel",
+      "Italy",
+      "Jamaica",
+      "Japan",
+      "Jordan",
+      "Kazakhstan",
+      "Kenya",
+      "Kiribati",
+      "Kosovo",
+      "Kuwait",
+      "Kyrgyzstan",
+      "Laos",
+      "Latvia",
+      "Lebanon",
+      "Lesotho",
+      "Liberia",
+      "Libya",
+      "Liechtenstein",
+      "Lithuania",
+      "Luxembourg",
+      "Madagascar",
+      "Malawi",
+      "Malaysia",
+      "Maldives",
+      "Mali",
+      "Malta",
+      "Marshall Islands",
+      "Mauritania",
+      "Mauritius",
+      "Mexico",
+      "Micronesia",
+      "Moldova",
+      "Monaco",
+      "Mongolia",
+      "Montenegro",
+      "Morocco",
+      "Mozambique",
+      "Myanmar",
+      "Namibia",
+      "Nauru",
+      "Nepal",
+      "Netherlands",
+      "New Zealand",
+      "Nicaragua",
+      "Niger",
+      "Nigeria",
+      "North Korea",
+      "North Macedonia",
+      "Norway",
+      "Oman",
+      "Pakistan",
+      "Palau",
+      "Palestine",
+      "Panama",
+      "Papua New Guinea",
+      "Paraguay",
+      "Peru",
+      "Philippines",
+      "Poland",
+      "Portugal",
+      "Qatar",
+      "Romania",
+      "Russia",
+      "Rwanda",
+      "Saint Kitts and Nevis",
+      "Saint Lucia",
+      "Saint Vincent and the Grenadines",
+      "Samoa",
+      "San Marino",
+      "Sao Tome and Principe",
+      "Saudi Arabia",
+      "Senegal",
+      "Serbia",
+      "Seychelles",
+      "Sierra Leone",
+      "Singapore",
+      "Slovakia",
+      "Slovenia",
+      "Solomon Islands",
+      "Somalia",
+      "South Africa",
+      "South Korea",
+      "South Sudan",
+      "Spain",
+      "Sri Lanka",
+      "Sudan",
+      "Suriname",
+      "Sweden",
+      "Switzerland",
+      "Syria",
+      "Taiwan",
+      "Tajikistan",
+      "Tanzania",
+      "Thailand",
+      "Togo",
+      "Tonga",
+      "Trinidad and Tobago",
+      "Tunisia",
+      "Turkey",
+      "Turkmenistan",
+      "Tuvalu",
+      "Uganda",
+      "Ukraine",
+      "United Arab Emirates",
+      "United Kingdom",
+      "United States",
+      "Uruguay",
+      "Uzbekistan",
+      "Vanuatu",
+      "Vatican City",
+      "Venezuela",
+      "Vietnam",
+      "Yemen",
+      "Zambia",
+      "Zimbabwe"
     ]
   end
 end

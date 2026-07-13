@@ -100,22 +100,37 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
           {:noreply,
            socket
            |> put_flash(:error, "Could not update participant")
-           |> assign(:form, to_form(Changeset.add_error(cs, :base, "Save failed"), as: :participant))}
+           |> assign(
+             :form,
+             to_form(Changeset.add_error(cs, :base, "Save failed"), as: :participant)
+           )}
       end
     else
-      {:noreply, assign(socket, form: to_form(%{changeset | action: :validate}, as: :participant))}
+      {:noreply,
+       assign(socket, form: to_form(%{changeset | action: :validate}, as: :participant))}
     end
   end
 
   # ── Social media ──
 
   def handle_event("add_social_media", _params, socket) do
-    {:noreply, assign(socket, :social_media_entries, socket.assigns.social_media_entries ++ [%{"platform" => "", "handle" => ""}])}
+    {:noreply,
+     assign(
+       socket,
+       :social_media_entries,
+       socket.assigns.social_media_entries ++ [%{"platform" => "", "handle" => ""}]
+     )}
   end
 
   def handle_event("remove_social_media", %{"index" => index_str}, socket) do
     index = String.to_integer(index_str)
-    {:noreply, assign(socket, :social_media_entries, List.delete_at(socket.assigns.social_media_entries, index))}
+
+    {:noreply,
+     assign(
+       socket,
+       :social_media_entries,
+       List.delete_at(socket.assigns.social_media_entries, index)
+     )}
   end
 
   # ── Headshot ──
@@ -241,7 +256,11 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
 
     if rel do
       {:ok, _} = Content.delete_relationship(rel)
-      {:noreply, socket |> assign(:relationships, list_relationships(socket.assigns.participant)) |> put_flash(:info, "Relationship deleted")}
+
+      {:noreply,
+       socket
+       |> assign(:relationships, list_relationships(socket.assigns.participant))
+       |> put_flash(:info, "Relationship deleted")}
     else
       {:noreply, socket}
     end
