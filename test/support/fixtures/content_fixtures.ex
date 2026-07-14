@@ -254,8 +254,9 @@ defmodule MykonosBiennale.ContentFixtures do
   end
 
   @doc "Links an artwork to a participant (artwork_participant)."
-  def link_artwork_to_participant(artwork, participant) do
-    create_relationship(artwork, participant, "artwork_participant")
+  def link_artwork_to_participant(artwork, participant, opts \\ []) do
+    fields = Keyword.get(opts, :fields, %{})
+    create_relationship(artwork, participant, "artwork_participant", fields)
   end
 
   @doc "Links a film to an event (screened_at)."

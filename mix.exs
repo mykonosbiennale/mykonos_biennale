@@ -4,7 +4,7 @@ defmodule MykonosBiennale.MixProject do
   def project do
     [
       app: :mykonos_biennale,
-      version: "0.1.10",
+      version: "0.1.11",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,

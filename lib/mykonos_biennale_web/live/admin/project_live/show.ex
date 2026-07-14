@@ -56,51 +56,49 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.Show do
     ae_rt = Repo.get_by(RelationshipType, slug: "artwork_event")
     ep_rt = Repo.get_by(RelationshipType, slug: "event_project")
 
-    cond do
-      ap_rt == nil or ae_rt == nil or ep_rt == nil ->
-        []
+    if ap_rt == nil or ae_rt == nil or ep_rt == nil do
+      []
+    else
+      event_ids =
+        Repo.all(
+          from r in Relationship,
+            where: r.object_id == ^project.id and r.relationship_type_id == ^ep_rt.id,
+            select: r.subject_id
+        )
 
-      true ->
-        event_ids =
+      if event_ids == [] do
+        []
+      else
+        artwork_ids =
           Repo.all(
             from r in Relationship,
-              where: r.object_id == ^project.id and r.relationship_type_id == ^ep_rt.id,
+              where: r.object_id in ^event_ids and r.relationship_type_id == ^ae_rt.id,
               select: r.subject_id
           )
 
-        if event_ids == [] do
+        if artwork_ids == [] do
           []
         else
-          artwork_ids =
+          participant_ids =
             Repo.all(
               from r in Relationship,
-                where: r.object_id in ^event_ids and r.relationship_type_id == ^ae_rt.id,
-                select: r.subject_id
+                where: r.subject_id in ^artwork_ids and r.relationship_type_id == ^ap_rt.id,
+                select: r.object_id
             )
+            |> Enum.uniq()
 
-          if artwork_ids == [] do
+          if participant_ids == [] do
             []
           else
-            participant_ids =
-              Repo.all(
-                from r in Relationship,
-                  where: r.subject_id in ^artwork_ids and r.relationship_type_id == ^ap_rt.id,
-                  select: r.object_id
-              )
-              |> Enum.uniq()
-
-            if participant_ids == [] do
-              []
-            else
-              Repo.all(from e in Entity, where: e.id in ^participant_ids)
-              |> Enum.sort_by(fn p ->
-                last = p.fields["last_name"] || ""
-                first = p.fields["first_name"] || ""
-                {last, first}
-              end)
-            end
+            Repo.all(from e in Entity, where: e.id in ^participant_ids)
+            |> Enum.sort_by(fn p ->
+              last = p.fields["last_name"] || ""
+              first = p.fields["first_name"] || ""
+              {last, first}
+            end)
           end
         end
+      end
     end
   end
 

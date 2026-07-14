@@ -179,19 +179,27 @@ defmodule MykonosBiennaleWeb.MediaController do
   end
 
   defp generate_avif_from_webp(webp_path, avif_path) do
-    cmd = System.find_executable("magick") || "convert"
+    media_dir = Path.expand(MykonosBiennale.MediaDir.media_dir())
 
-    args = [webp_path, "-quality", "65", "-strip", avif_path]
+    if not String.starts_with?(Path.expand(avif_path), media_dir) do
+      require Logger
+      Logger.warning("AVIF path outside media dir rejected: #{avif_path}")
+      :error
+    else
+      cmd = System.find_executable("magick") || "convert"
 
-    case System.cmd(cmd, args, stderr_to_stdout: true) do
-      {_, 0} ->
-        :ok
+      args = [webp_path, "-quality", "65", "-strip", avif_path]
 
-      {error, _code} ->
-        require Logger
-        Logger.warning("AVIF generation failed for #{webp_path}: #{error}")
-        File.rm(avif_path)
-        :error
+      case System.cmd(cmd, args, stderr_to_stdout: true) do
+        {_, 0} ->
+          :ok
+
+        {error, _code} ->
+          require Logger
+          Logger.warning("AVIF generation failed for #{webp_path}: #{error}")
+          File.rm(avif_path)
+          :error
+      end
     end
   end
 

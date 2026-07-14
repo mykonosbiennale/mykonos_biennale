@@ -241,8 +241,7 @@ defmodule MykonosBiennale.Search do
       chunk
       |> String.trim()
       |> String.split(~r/\s+/, trim: true)
-      |> Enum.reject(&(&1 in @role_noise))
-      |> Enum.reject(&String.match?(&1, ~r/^\p{L}{1,2}$/u))
+      |> Enum.reject(&(&1 in @role_noise or String.match?(&1, ~r/^\p{L}{1,2}$/u)))
       |> case do
         [] -> []
         tokens -> [Enum.join(tokens, " ")]
@@ -259,9 +258,8 @@ defmodule MykonosBiennale.Search do
     |> Regex.scan(index, capture: :all_but_first)
     |> List.flatten()
     |> Enum.map(&String.trim/1)
-    |> Enum.reject(&(&1 == ""))
+    |> Enum.reject(&(&1 == "" or String.match?(&1, ~r/^\d{4}-\d{2}-\d{2}$/)))
     |> Enum.uniq()
-    |> Enum.reject(&String.match?(&1, ~r/^\d{4}-\d{2}-\d{2}$/))
   end
 
   defp extract_participant_roles(nil), do: []
@@ -288,18 +286,19 @@ defmodule MykonosBiennale.Search do
       chunk
       |> String.trim()
       |> String.split(~r/\s+/, trim: true)
-      |> Enum.reject(&(&1 in @role_noise))
-      |> Enum.reject(&String.match?(&1, ~r/^\d{4}(-\d{2}(-\d{2})?)?$/))
-      |> Enum.reject(&String.match?(&1, ~r/^\d{4}-\d+$/))
-      |> Enum.reject(&String.match?(&1, ~r/^\p{L}{1,2}$/u))
-      |> Enum.reject(&(&1 in ~w(gr fr de us uk gb pk)))
+      |> Enum.reject(fn token ->
+        token in @role_noise or
+          String.match?(token, ~r/^\d{4}(-\d{2}(-\d{2})?)?$/) or
+          String.match?(token, ~r/^\d{4}-\d+$/) or
+          String.match?(token, ~r/^\p{L}{1,2}$/u) or
+          token in ~w(gr fr de us uk gb pk)
+      end)
       |> case do
         [] -> []
         tokens -> [Enum.join(tokens, " ")]
       end
     end)
-    |> Enum.reject(&(&1 == ""))
-    |> Enum.reject(&String.match?(&1, ~r/^['"]?\d{2}['"]?$/))
+    |> Enum.reject(&(&1 == "" or String.match?(&1, ~r/^['"]?\d{2}['"]?$/)))
     |> Enum.uniq()
   end
 

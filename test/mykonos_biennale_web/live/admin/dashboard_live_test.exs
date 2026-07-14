@@ -2,9 +2,9 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLiveTest do
   use MykonosBiennaleWeb.AdminCase
 
   describe "Dashboard" do
-    test "renders dashboard with stats", %{conn: conn} do
+    test "renders dashboard with recent changes", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/admin")
-      assert html =~ "Dashboard"
+      assert html =~ "Recent Changes"
     end
 
     test "shows quick action links", %{conn: conn} do

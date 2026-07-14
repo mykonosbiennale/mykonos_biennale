@@ -612,8 +612,7 @@ defmodule MykonosBiennaleWeb.CoreComponents do
   defp format_fields(fields) when is_map(fields) do
     fields
     |> Enum.sort_by(fn {k, _} -> to_string(k) end)
-    |> Enum.map(fn {k, v} -> format_field(k, v) end)
-    |> Enum.join("\n")
+    |> Enum.map_join("\n", fn {k, v} -> format_field(k, v) end)
   end
 
   defp format_fields(_), do: "(empty)"

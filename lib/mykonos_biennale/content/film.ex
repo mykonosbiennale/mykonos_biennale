@@ -20,7 +20,8 @@ defmodule MykonosBiennale.Content.Film do
     "shot",
     "edited",
     "exec_produced",
-    "participated_in"
+    "participated_in",
+    "submitted_by"
   ]
 
   def create(attrs) do

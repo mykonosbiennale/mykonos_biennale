@@ -308,7 +308,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
     dup_description =
       Enum.find_value(to_merge, fn entry ->
         d = entry.artwork.fields["description"]
-        if d not in [nil, ""], do: d, else: nil
+        if d in [nil, ""], do: nil, else: d
       end)
 
     if survivor.fields["description"] in [nil, ""] and dup_description do

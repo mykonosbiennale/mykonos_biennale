@@ -17,7 +17,8 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
     {"Shot", "shot"},
     {"Edited", "edited"},
     {"Exec Produced", "exec_produced"},
-    {"Participated In", "participated_in"}
+    {"Participated In", "participated_in"},
+    {"Submitted By", "submitted_by"}
   ]
 
   @film_type_options [
@@ -771,6 +772,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
       {:ok, film} ->
         process_uploads(socket, film)
         maybe_attach_event(film, event_id)
+        maybe_create_participant_relationships(film, attrs)
         send(self(), {__MODULE__, {:saved, film}})
 
         if save_and_more do
@@ -793,6 +795,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
       {:ok, film} ->
         process_uploads(socket, film)
         maybe_attach_event(film, event_id)
+        maybe_create_participant_relationships(film, attrs)
         send(self(), {__MODULE__, {:saved, film}})
 
         if save_and_more do
@@ -859,6 +862,50 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
     end
 
     :ok
+  end
+
+  defp maybe_create_participant_relationships(film, attrs) do
+    dir_by = Map.get(attrs, "dir_by") || Map.get(attrs, :dir_by)
+    sub_by = Map.get(attrs, "sub_by") || Map.get(attrs, :sub_by)
+
+    maybe_link_participant(film, dir_by, "directed")
+    maybe_link_participant(film, sub_by, "submitted_by")
+  end
+
+  defp maybe_link_participant(_film, nil, _slug), do: :ok
+  defp maybe_link_participant(_film, "", _slug), do: :ok
+
+  defp maybe_link_participant(film, name, slug) do
+    name = String.trim(name)
+    if name == "", do: :ok
+
+    rt = Repo.get_by(RelationshipType, slug: slug)
+
+    already_exists =
+      rt &&
+        Repo.exists?(
+          from r in Content.Relationship,
+            where:
+              r.subject_id == ^film.id and
+                r.relationship_type_id == ^rt.id
+        )
+
+    if rt && already_exists do
+      :ok
+    else
+      case Content.find_or_create_participant_by_name(name) do
+        {:ok, participant} ->
+          Content.create_relationship(%{
+            slug: slug,
+            subject_id: film.id,
+            object_id: participant.id,
+            fields: %{}
+          })
+
+        _ ->
+          :ok
+      end
+    end
   end
 
   defp format_bytes(bytes) do
