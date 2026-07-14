@@ -117,10 +117,10 @@ defmodule MykonosBiennaleWeb.RouterCoverageTest do
 
     assert MapSet.size(missing) == 0,
            "Routes missing from @tested_routes (add them and write regression tests):\n" <>
-             Enum.join(Enum.map(missing, fn {v, p} -> "#{v} #{p}" end), "\n")
+             Enum.map_join(missing, "\n", fn {v, p} -> "#{v} #{p}" end)
 
     assert MapSet.size(extra) == 0,
            "Routes in @tested_routes no longer exist in the router (remove them):\n" <>
-             Enum.join(Enum.map(extra, fn {v, p} -> "#{v} #{p}" end), "\n")
+             Enum.map_join(extra, "\n", fn {v, p} -> "#{v} #{p}" end)
   end
 end

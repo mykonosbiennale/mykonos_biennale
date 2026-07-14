@@ -57,6 +57,31 @@ defmodule MykonosBiennale.Content.Participant do
   end
 
   @doc """
+  Finds an existing participant by name (identity), or creates one if not found.
+  """
+  def find_or_create_by_name(name) when is_binary(name) do
+    name = String.trim(name)
+
+    if name == "" do
+      nil
+    else
+      case Repo.one(
+             from e in Entity,
+               where: e.type == "participant" and e.identity == ^name,
+               limit: 1
+           ) do
+        %Entity{} = existing ->
+          {:ok, existing}
+
+        nil ->
+          create(%{"name" => name})
+      end
+    end
+  end
+
+  def find_or_create_by_name(_), do: nil
+
+  @doc """
   Updates a participant entity.
   """
   def update(%Entity{} = participant_entity, attrs) do

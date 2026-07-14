@@ -91,7 +91,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
         group_ids = Enum.map(group.entries, & &1.artwork.id)
         selected_in_group = group_ids |> Enum.filter(&MapSet.member?(selected, &1))
 
-        if length(group.entries) >= 2 and length(selected_in_group) > 0 do
+        if length(group.entries) >= 2 and selected_in_group != [] do
           survivor_id = hd(selected_in_group)
           to_merge = Enum.reject(group.entries, fn e -> e.artwork.id == survivor_id end)
           survivor_entry = Enum.find(group.entries, &(&1.artwork.id == survivor_id))
@@ -308,7 +308,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
     dup_description =
       Enum.find_value(to_merge, fn entry ->
         d = entry.artwork.fields["description"]
-        if d not in [nil, ""], do: d, else: nil
+        if d in [nil, ""], do: nil, else: d
       end)
 
     if survivor.fields["description"] in [nil, ""] and dup_description do

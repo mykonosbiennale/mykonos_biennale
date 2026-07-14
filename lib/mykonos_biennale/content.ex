@@ -58,6 +58,10 @@ defmodule MykonosBiennale.Content do
     to: MykonosBiennale.Content.Participant,
     as: :create
 
+  defdelegate find_or_create_participant_by_name(name),
+    to: MykonosBiennale.Content.Participant,
+    as: :find_or_create_by_name
+
   defdelegate update_participant(entity, attrs),
     to: MykonosBiennale.Content.Participant,
     as: :update
@@ -415,7 +419,9 @@ defmodule MykonosBiennale.Content do
         pattern = MykonosBiennale.Search.entity_search_pattern(search)
 
         from(m in base_query,
-          where: not is_nil(m.search_index) and like(m.search_index, ^pattern)
+          where:
+            (not is_nil(m.search_index) and like(m.search_index, ^pattern)) or
+              like(m.caption, ^pattern)
         )
       else
         base_query
@@ -457,7 +463,9 @@ defmodule MykonosBiennale.Content do
         pattern = MykonosBiennale.Search.entity_search_pattern(search)
 
         from(e in base_query,
-          where: not is_nil(e.search_index) and like(e.search_index, ^pattern)
+          where:
+            (not is_nil(e.search_index) and like(e.search_index, ^pattern)) or
+              like(e.identity, ^pattern)
         )
       else
         base_query
@@ -489,7 +497,9 @@ defmodule MykonosBiennale.Content do
         pattern = MykonosBiennale.Search.entity_search_pattern(search)
 
         from(e in base_query,
-          where: not is_nil(e.search_index) and like(e.search_index, ^pattern)
+          where:
+            (not is_nil(e.search_index) and like(e.search_index, ^pattern)) or
+              like(e.identity, ^pattern)
         )
       else
         base_query
@@ -522,7 +532,9 @@ defmodule MykonosBiennale.Content do
         pattern = MykonosBiennale.Search.entity_search_pattern(search)
 
         from(e in base_query,
-          where: not is_nil(e.search_index) and like(e.search_index, ^pattern)
+          where:
+            (not is_nil(e.search_index) and like(e.search_index, ^pattern)) or
+              like(e.identity, ^pattern)
         )
       else
         base_query
@@ -565,7 +577,9 @@ defmodule MykonosBiennale.Content do
         pattern = MykonosBiennale.Search.entity_search_pattern(search)
 
         from(e in base_query,
-          where: not is_nil(e.search_index) and like(e.search_index, ^pattern)
+          where:
+            (not is_nil(e.search_index) and like(e.search_index, ^pattern)) or
+              like(e.identity, ^pattern)
         )
       else
         base_query

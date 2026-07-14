@@ -79,12 +79,20 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     |> render(:none)
   end
 
+  @biennale_templates ~w(biennale festival festival-2023 festival-2025 list none)a
+
   def render_template(conn, %{template: "default"}) do
     render(conn, :biennale)
   end
 
   def render_template(conn, %{template: template}) when is_binary(template) do
-    render(conn, String.to_atom(template))
+    template_atom = String.to_existing_atom(template)
+
+    if template_atom in @biennale_templates do
+      render(conn, template_atom)
+    else
+      render(conn, :biennale)
+    end
   end
 
   def render_template(conn, _template) do

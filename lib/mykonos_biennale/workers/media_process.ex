@@ -69,9 +69,9 @@ defmodule MykonosBiennale.Workers.MediaProcess do
 
   defp generate_webp_sizes(%Media{slug: slug, source_type: "upload", source_path: path})
        when is_binary(slug) and is_binary(path) do
-    unless image_ext?(path) do
+    if image_ext?(path) do
       {:ok, :skipped}
-    else
+
       Enum.each(@sizes, fn size ->
         case Thumbnail.ensure_slug_thumbnail(slug, path, size) do
           {:ok, _path} -> :ok
@@ -85,15 +85,15 @@ defmodule MykonosBiennale.Workers.MediaProcess do
       end)
 
       {:ok, :generated}
+    else
+      {:ok, :skipped}
     end
   end
 
   defp generate_webp_sizes(_), do: {:ok, :skipped}
 
   defp generate_avif(%Media{slug: slug, source_type: "upload", source_path: path}, size) do
-    unless image_ext?(path) do
-      {:ok, :skipped}
-    else
+    if image_ext?(path) do
       webp_path = MediaDir.path(slug, size, ".webp")
       avif_path = MediaDir.path(slug, size, ".avif")
 
@@ -113,6 +113,8 @@ defmodule MykonosBiennale.Workers.MediaProcess do
               {:ok, :no_source}
           end
       end
+    else
+      {:ok, :skipped}
     end
   end
 
@@ -143,9 +145,7 @@ defmodule MykonosBiennale.Workers.MediaProcess do
 
   defp generate_press(%Media{slug: slug, source_type: "upload", source_path: path})
        when is_binary(slug) and is_binary(path) do
-    unless image_ext?(path) do
-      {:ok, :skipped}
-    else
+    if image_ext?(path) do
       press_path = MediaDir.path(slug, "press", ".jpg")
       original_path = MykonosBiennale.Uploads.uploads_path(path)
 
@@ -175,6 +175,8 @@ defmodule MykonosBiennale.Workers.MediaProcess do
             {:error, :press_failed}
         end
       end
+    else
+      {:ok, :skipped}
     end
   end
 
@@ -199,9 +201,7 @@ defmodule MykonosBiennale.Workers.MediaProcess do
          degrees
        )
        when is_binary(path) and is_binary(slug) do
-    unless image_ext?(path) do
-      {:ok, :skipped}
-    else
+    if image_ext?(path) do
       original_path = MykonosBiennale.Uploads.uploads_path(path)
 
       if File.exists?(original_path) do
@@ -230,6 +230,8 @@ defmodule MykonosBiennale.Workers.MediaProcess do
       else
         {:ok, :no_source}
       end
+    else
+      {:ok, :skipped}
     end
   end
 

@@ -25,7 +25,7 @@ defmodule MykonosBiennale.Content.Relationship do
     |> cast(attrs, [:fields, :relationship_type_id, :subject_id, :object_id])
     |> validate_required([:relationship_type_id, :subject_id, :object_id])
     |> unique_constraint([:subject_id, :relationship_type_id, :object_id],
-      name: :relationship_index
+      name: :idx_22104194_relationship_index
     )
   end
 end

@@ -10,7 +10,19 @@ defmodule MykonosBiennaleWeb.Router do
     plug :fetch_live_flash
     plug :put_root_layout, html: {MykonosBiennaleWeb.Layouts, :root}
     plug :protect_from_forgery
-    plug :put_secure_browser_headers
+
+    plug :put_secure_browser_headers, %{
+      "content-security-policy" =>
+        "default-src 'self'; " <>
+          "img-src 'self' data: https:; " <>
+          "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; " <>
+          "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; " <>
+          "media-src 'self' https:; " <>
+          "font-src 'self'; " <>
+          "frame-src 'self' https://www.youtube.com https://player.vimeo.com; " <>
+          "connect-src 'self' ws: wss:"
+    }
+
     plug :fetch_current_scope_for_user
   end
 
@@ -20,7 +32,11 @@ defmodule MykonosBiennaleWeb.Router do
 
   pipeline :static_media do
     plug :accepts, ["html"]
-    plug :put_secure_browser_headers
+
+    plug :put_secure_browser_headers, %{
+      "content-security-policy" =>
+        "default-src 'self'; img-src 'self' data: https:; media-src 'self' https:"
+    }
   end
 
   scope "/", MykonosBiennaleWeb do

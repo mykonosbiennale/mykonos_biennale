@@ -189,48 +189,46 @@ defmodule MykonosBiennale.Workers.ImportFestival do
 
         existing = find_existing_by_slug(slug, "project")
 
-        cond do
-          existing ->
-            IO.puts("  Skipping #{slug} (already imported as project ID #{existing.id})")
-            {:skipped, existing}
+        if existing do
+          IO.puts("  Skipping #{slug} (already imported as project ID #{existing.id})")
+          {:skipped, existing}
+        else
+          title = project_title(px, proj, slug)
+          statement = clean_string(px && px["fields"]["statement"])
 
-          true ->
-            title = project_title(px, proj, slug)
-            statement = clean_string(px && px["fields"]["statement"])
+          original_records = %{
+            "projectx" => px,
+            "project" => proj
+          }
 
-            original_records = %{
-              "projectx" => px,
-              "project" => proj
-            }
+          primary_pk = if px, do: px["pk"], else: proj["pk"]
 
-            primary_pk = if px, do: px["pk"], else: proj["pk"]
+          attrs = %{
+            title: title,
+            statement: statement,
+            visible: true
+          }
 
-            attrs = %{
-              title: title,
-              statement: statement,
-              visible: true
-            }
+          case Content.create_project(attrs) do
+            {:ok, project} ->
+              updated_fields =
+                project.fields
+                |> Map.put("original_record", original_records)
+                |> Map.put("import_pk", to_string(primary_pk))
+                |> Map.put("import_model", "festival.projectx")
+                |> Map.put("import_slug", slug)
 
-            case Content.create_project(attrs) do
-              {:ok, project} ->
-                updated_fields =
-                  project.fields
-                  |> Map.put("original_record", original_records)
-                  |> Map.put("import_pk", to_string(primary_pk))
-                  |> Map.put("import_model", "festival.projectx")
-                  |> Map.put("import_slug", slug)
+              project
+              |> Ecto.Changeset.change(fields: updated_fields)
+              |> Repo.update!()
 
-                project
-                |> Ecto.Changeset.change(fields: updated_fields)
-                |> Repo.update!()
+              IO.puts("  Created project: #{title} (slug: #{slug}, ID #{project.id})")
+              {:created, project}
 
-                IO.puts("  Created project: #{title} (slug: #{slug}, ID #{project.id})")
-                {:created, project}
-
-              {:error, changeset} ->
-                IO.puts("  ERROR creating project #{slug}: #{inspect(changeset.errors)}")
-                {:error, changeset}
-            end
+            {:error, changeset} ->
+              IO.puts("  ERROR creating project #{slug}: #{inspect(changeset.errors)}")
+              {:error, changeset}
+          end
         end
       end
 
@@ -404,48 +402,44 @@ defmodule MykonosBiennale.Workers.ImportFestival do
 
         existing = find_existing_by_import_key(import_key, "event")
 
-        cond do
-          existing ->
-            IO.puts(
-              "  Skipping event #{import_key} (already imported as event ID #{existing.id})"
-            )
+        if existing do
+          IO.puts("  Skipping event #{import_key} (already imported as event ID #{existing.id})")
 
-            {:skipped, existing}
+          {:skipped, existing}
+        else
+          biennale = Content.get_biennale!(biennale_id)
+          year = biennale.fields["year"]
 
-          true ->
-            biennale = Content.get_biennale!(biennale_id)
-            year = biennale.fields["year"]
+          attrs = %{
+            title: title,
+            type: infer_event_type(proj_slug),
+            date: to_string(year),
+            biennale_id: biennale_id,
+            project_id: project_id,
+            visible: true
+          }
 
-            attrs = %{
-              title: title,
-              type: infer_event_type(proj_slug),
-              date: to_string(year),
-              biennale_id: biennale_id,
-              project_id: project_id,
-              visible: true
-            }
+          case Content.create_event(attrs) do
+            {:ok, event} ->
+              updated_fields =
+                event.fields
+                |> Map.put("original_record", source_record)
+                |> Map.put("import_pk", to_string(source_record["pk"]))
+                |> Map.put("import_model", source_record["model"])
+                |> Map.put("import_key", import_key)
+                |> Map.put("import_slug", proj_slug)
 
-            case Content.create_event(attrs) do
-              {:ok, event} ->
-                updated_fields =
-                  event.fields
-                  |> Map.put("original_record", source_record)
-                  |> Map.put("import_pk", to_string(source_record["pk"]))
-                  |> Map.put("import_model", source_record["model"])
-                  |> Map.put("import_key", import_key)
-                  |> Map.put("import_slug", proj_slug)
+              event
+              |> Ecto.Changeset.change(fields: updated_fields)
+              |> Repo.update!()
 
-                event
-                |> Ecto.Changeset.change(fields: updated_fields)
-                |> Repo.update!()
+              IO.puts("  Created event: #{title} (#{year}, #{proj_slug}, ID #{event.id})")
+              {:created, event}
 
-                IO.puts("  Created event: #{title} (#{year}, #{proj_slug}, ID #{event.id})")
-                {:created, event}
-
-              {:error, changeset} ->
-                IO.puts("  ERROR creating event #{import_key}: #{inspect(changeset.errors)}")
-                {:error, changeset}
-            end
+            {:error, changeset} ->
+              IO.puts("  ERROR creating event #{import_key}: #{inspect(changeset.errors)}")
+              {:error, changeset}
+          end
         end
       end
 

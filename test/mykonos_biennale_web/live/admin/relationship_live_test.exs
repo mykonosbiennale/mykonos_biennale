@@ -36,6 +36,20 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLiveTest do
       {:ok, _lv, html} = live(conn, ~p"/admin/relationships/#{rel.id}")
       assert html =~ "artwork_participant"
     end
+
+    test "renders relationship fields in show", %{conn: conn} do
+      artwork = ContentFixtures.artwork_fixture(title: "Fields Show Artwork")
+      participant = ContentFixtures.participant_fixture(first_name: "Fields", last_name: "Show")
+
+      {:ok, rel} =
+        ContentFixtures.link_artwork_to_participant(artwork, participant,
+          fields: %{"roles" => "Director"}
+        )
+
+      {:ok, _lv, html} = live(conn, ~p"/admin/relationships/#{rel.id}")
+      assert html =~ "roles"
+      assert html =~ "Director"
+    end
   end
 
   describe "Delete" do

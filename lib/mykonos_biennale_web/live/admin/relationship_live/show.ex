@@ -59,8 +59,6 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Show do
   defp format_fields(nil), do: ""
 
   defp format_fields(fields) when is_map(fields) do
-    fields
-    |> Enum.map(fn {k, v} -> "#{k}: #{v}" end)
-    |> Enum.join(", ")
+    Enum.map_join(fields, ", ", fn {k, v} -> "#{k}: #{v}" end)
   end
 end
