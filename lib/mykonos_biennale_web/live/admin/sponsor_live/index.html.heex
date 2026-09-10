@@ -1,0 +1,312 @@
+<Layouts.app flash={@flash}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-lg font-semibold text-gray-100">Sponsors</h1>
+      <.link
+        patch="/admin/sponsors/new"
+        class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors"
+      >
+        + Add Sponsor
+      </.link>
+    </div>
+
+    <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-gray-900/50 border-b border-purple-500/20">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">Sponsor</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">Logo</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">URL</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">Years</th>
+            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-400">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-700/50">
+          <%= for sponsor <- @sponsors do %>
+            <tr class="hover:bg-gray-700/20 transition-colors">
+              <td class="px-6 py-4 text-white font-medium">
+                {sponsor.name}
+              </td>
+              <td class="px-6 py-4">
+                <%= if sponsor.media && sponsor.media.source_path do %>
+                  <img
+                    src={MykonosBiennale.Uploads.media_url(sponsor.media, size: "thumb")}
+                    alt={sponsor.name}
+                    class="h-10 object-contain rounded"
+                  />
+                <% else %>
+                  <.icon name="hero-photo" class="w-8 h-8 text-gray-500" />
+                <% end %>
+              </td>
+              <td class="px-6 py-4">
+                <%= if sponsor.url != "" do %>
+                  <a
+                    href={sponsor.url}
+                    target="_blank"
+                    class="text-blue-400 hover:text-blue-300 text-sm truncate block max-w-[200px]"
+                  >
+                    {sponsor.url}
+                  </a>
+                <% else %>
+                  <span class="text-gray-600 text-sm">—</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex flex-wrap gap-2">
+                  <%= for link <- sponsor.links do %>
+                    <% year = link.entity && link.entity.fields && link.entity.fields["year"] %>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-purple-500/10 border border-purple-500/20">
+                      <span class="text-purple-300 font-medium">{year}</span>
+                      <button
+                        type="button"
+                        phx-click="remove_year"
+                        phx-value-entity-id={link.entity_id}
+                        phx-value-media-id={link.media_id}
+                        data-confirm="Remove sponsorship in #{year}?"
+                        class="text-gray-600 hover:text-red-400"
+                        title="Remove #{year}"
+                      >
+                        <.icon name="hero-x-mark" class="w-3 h-3" />
+                      </button>
+                    </span>
+                  <% end %>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-right whitespace-nowrap">
+                <.link
+                  patch={"/admin/sponsors/#{URI.encode_www_form(sponsor.name)}/edit"}
+                  class="text-purple-400 hover:text-purple-300 transition-colors text-xs mr-3"
+                >
+                  Edit
+                </.link>
+                <button
+                  phx-click="delete"
+                  phx-value-name={sponsor.name}
+                  data-confirm="Delete this sponsor from all biennales?"
+                  class="text-red-400 hover:text-red-300 transition-colors text-xs"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          <% end %>
+          <%= if @sponsors == [] do %>
+            <tr>
+              <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">
+                No sponsors yet.
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <.modal
+    :if={@live_action == :new}
+    id="sponsor-modal"
+    show
+    on_cancel={JS.patch("/admin/sponsors")}
+  >
+    <div data-theme="light" class="bg-white rounded-xl p-6 [&_.label]:text-gray-900">
+      <h2 class="text-sm font-semibold text-gray-900 mb-4">Add Sponsor</h2>
+
+      <form phx-submit="add_sponsor" class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1">Name</label>
+          <input
+            type="text"
+            name="sponsor_name"
+            placeholder="Sponsor name"
+            class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1">Website URL</label>
+          <input
+            type="url"
+            name="sponsor_url"
+            placeholder="https://..."
+            class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1">Logo</label>
+          <div
+            class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors"
+            phx-drop-target={@uploads.sponsor_logo.ref}
+          >
+            <.live_file_input upload={@uploads.sponsor_logo} class="hidden" />
+            <button
+              type="button"
+              phx-click={JS.dispatch("click", to: "##{@uploads.sponsor_logo.ref}")}
+              class="text-blue-600 hover:text-blue-700 font-medium text-sm"
+            >
+              Click to upload or drag and drop
+            </button>
+            <p class="mt-1 text-xs text-gray-500">JPG, PNG, WEBP up to 5MB</p>
+          </div>
+          <%= for entry <- @uploads.sponsor_logo.entries do %>
+            <div class="flex items-center justify-between bg-gray-50 p-2 rounded mt-2">
+              <div class="flex items-center gap-2">
+                <.icon name="hero-document" class="w-4 h-4 text-gray-400" />
+                <span class="text-sm text-gray-900">{entry.client_name}</span>
+              </div>
+              <button
+                type="button"
+                phx-click="cancel-upload"
+                phx-value-ref={entry.ref}
+                class="text-red-600 hover:text-red-700"
+              >
+                <.icon name="hero-x-mark" class="w-4 h-4" />
+              </button>
+            </div>
+          <% end %>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1">Biennales</label>
+          <div class="space-y-1">
+            <%= for b <- @biennales do %>
+              <label class="flex items-center gap-2 text-sm text-gray-900">
+                <input type="checkbox" name={"biennale_#{b.id}"} value="true" class="rounded border-gray-300" />
+                {b.fields["year"]}
+              </label>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <.link patch="/admin/sponsors" class="text-sm font-semibold text-gray-500 hover:text-gray-700">
+            Cancel
+          </.link>
+          <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg">
+            Add Sponsor
+          </button>
+        </div>
+      </form>
+    </div>
+  </.modal>
+
+  <.modal
+    :if={@live_action == :edit && @sponsor}
+    id="sponsor-edit-modal"
+    show
+    on_cancel={JS.patch("/admin/sponsors")}
+  >
+    <div data-theme="light" class="bg-white rounded-xl p-6 [&_.label]:text-gray-900">
+      <h2 class="text-sm font-semibold text-gray-900 mb-4">Edit Sponsor</h2>
+
+      <form phx-submit="update_sponsor" class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1">Name</label>
+          <input
+            type="text"
+            name="sponsor_name"
+            value={@sponsor.name}
+            class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1">Website URL</label>
+          <input
+            type="url"
+            name="sponsor_url"
+            value={@sponsor.url}
+            class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1">Logo</label>
+          <%= if @sponsor.media && @sponsor.media.source_path do %>
+            <div class="relative group inline-block mb-2">
+              <img
+                src={MykonosBiennale.Uploads.media_url(@sponsor.media, size: "card")}
+                alt={@sponsor.name}
+                class="h-16 object-contain rounded border border-gray-300"
+              />
+              <span class="block text-xs text-gray-500 mt-1">Current logo</span>
+            </div>
+          <% end %>
+          <div
+            class="border-2 border-dashed border-gray-300 rounded-lg p-3 text-center hover:border-blue-500 transition-colors"
+            phx-drop-target={@uploads.sponsor_logo.ref}
+          >
+            <.live_file_input upload={@uploads.sponsor_logo} class="hidden" />
+            <button
+              type="button"
+              phx-click={JS.dispatch("click", to: "##{@uploads.sponsor_logo.ref}")}
+              class="text-blue-600 hover:text-blue-700 font-medium text-sm"
+            >
+              <%= if @sponsor.media && @sponsor.media.source_path do %>
+                Upload a new logo to replace
+              <% else %>
+                Click to upload or drag and drop
+              <% end %>
+            </button>
+            <p class="mt-1 text-xs text-gray-500">JPG, PNG, WEBP up to 5MB</p>
+          </div>
+          <%= for entry <- @uploads.sponsor_logo.entries do %>
+            <div class="flex items-center justify-between bg-gray-50 p-2 rounded mt-2">
+              <div class="flex items-center gap-2">
+                <.icon name="hero-document" class="w-4 h-4 text-gray-400" />
+                <span class="text-sm text-gray-900">{entry.client_name}</span>
+              </div>
+              <button
+                type="button"
+                phx-click="cancel-upload"
+                phx-value-ref={entry.ref}
+                class="text-red-600 hover:text-red-700"
+              >
+                <.icon name="hero-x-mark" class="w-4 h-4" />
+              </button>
+            </div>
+          <% end %>
+          <%= for err <- upload_errors(@uploads.sponsor_logo) do %>
+            <p class="text-sm text-red-600 mt-1">{error_to_string(err)}</p>
+          <% end %>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1">Biennales</label>
+          <div class="space-y-1">
+            <%= for b <- @biennales do %>
+              <% sponsored = Enum.any?(@sponsor.links, &(&1.entity_id == b.id)) %>
+              <label class={[
+                "flex items-center gap-2 text-sm",
+                if(sponsored, do: "text-gray-400", else: "text-gray-900")
+              ]}>
+                <input
+                  type="checkbox"
+                  name={"biennale_#{b.id}"}
+                  value="true"
+                  checked={sponsored}
+                  disabled={sponsored}
+                  class="rounded border-gray-300"
+                />
+                {b.fields["year"]}
+                <%= if sponsored do %>
+                  <span class="text-xs text-gray-400">(sponsored — remove from the list)</span>
+                <% end %>
+              </label>
+            <% end %>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">Check additional years to add this sponsor to them.</p>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <.link patch="/admin/sponsors" class="text-sm font-semibold text-gray-500 hover:text-gray-700">
+            Cancel
+          </.link>
+          <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg">
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </.modal>
+</Layouts.app>

@@ -217,12 +217,14 @@
     </div>
   <% end %>
 
+
+
   <%!-- Team Section --%>
   <%= if @team_members != [] do %>
-    <div class="px-6 py-20 md:py-32 bg-neutral-950">
+    <div class="px-6 py-20 md:py-32  bg-neutral-900">
       <div class="max-w-5xl mx-auto">
         <h2 class="text-3xl md:text-4xl font-bold uppercase mb-12 text-center text-gray-300">
-          Team {@biennale.fields["year"]}
+          Team
         </h2>
         <div class="flex flex-wrap justify-center gap-8">
           <%= for member <- @team_members do %>
@@ -257,9 +259,9 @@
 
   <%!-- Sponsors Section --%>
   <%= if @sponsors != [] do %>
-    <div class="px-6 py-16 bg-neutral-950">
+    <div class="px-6 py-16  bg-neutral-900">
       <div class="max-w-5xl mx-auto">
-        <h2 class="text-2xl font-bold uppercase mb-8 text-center text-gray-400">
+        <h2 class="text-3xl md:text-4xl font-bold uppercase mb-12 text-center text-gray-300">
           Sponsors
         </h2>
         <div class="flex flex-wrap justify-center items-center gap-x-8 gap-y-3">
@@ -284,8 +286,8 @@
   <% end %>
 
   <%!-- Archive Teaser Section --%>
-  <div class="px-6 py-20 md:py-32 bg-neutral-900">
-    <div class="max-w-7xl mx-auto">
+  <div class="px-6 py-20 md:py-32 bg-neutral-950">
+    <div class="max-w-5xl mx-auto">
       <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
         Archive
       </h2>
@@ -334,8 +336,10 @@
     </div>
   </div>
 
+
+
   <%!-- Footer --%>
-  <div class="px-6 py-12 border-t border-gray-800">
+  <div class="px-6 py-12 border-t border-gray-800 bg-neutral-950">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
       <div class="text-center md:text-left">
         <p class="text-sm text-gray-400 uppercase tracking-wider">
