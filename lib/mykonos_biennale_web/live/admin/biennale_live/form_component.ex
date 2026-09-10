@@ -502,10 +502,10 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
 
   def handle_event("save", params, socket) do
     biennale_params = extract_biennale_params(params)
-    save_biennale(socket, socket.assigns.action, biennale_params)
+    save_biennale(socket, socket.assigns.action, biennale_params, params)
   end
 
-  defp save_biennale(socket, :edit, biennale_params) do
+  defp save_biennale(socket, :edit, biennale_params, save_params) do
     changeset = BiennaleForm.changeset(socket.assigns.form.source.data, biennale_params)
 
     if changeset.valid? do
@@ -513,7 +513,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
 
       case Content.update_biennale(socket.assigns.biennale, attrs) do
         {:ok, biennale} ->
-          process_uploads(socket, biennale)
+          process_uploads(socket, biennale, save_params)
           notify_parent({:saved, biennale})
 
           {:noreply,
@@ -536,7 +536,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     end
   end
 
-  defp save_biennale(socket, :new, biennale_params) do
+  defp save_biennale(socket, :new, biennale_params, save_params) do
     changeset = BiennaleForm.changeset(socket.assigns.form.source.data, biennale_params)
 
     if changeset.valid? do
@@ -544,7 +544,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
 
       case Content.create_biennale(attrs) do
         {:ok, biennale} ->
-          process_uploads(socket, biennale)
+          process_uploads(socket, biennale, save_params)
           notify_parent({:saved, biennale})
 
           {:noreply,
@@ -567,10 +567,10 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     end
   end
 
-  defp process_uploads(socket, biennale) do
+  defp process_uploads(socket, biennale, save_params) do
     consume_bg_upload(socket, biennale, :statement_bg, "statement_bg")
     consume_bg_upload(socket, biennale, :program_bg, "program_bg")
-    consume_sponsor_uploads(socket, biennale)
+    consume_sponsor_uploads(socket, biennale, save_params)
   end
 
   defp consume_bg_upload(socket, biennale, upload_key, role) do
@@ -598,7 +598,10 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     end
   end
 
-  defp consume_sponsor_uploads(socket, biennale) do
+  defp consume_sponsor_uploads(socket, biennale, save_params) do
+    sponsor_name = String.trim(save_params["sponsor_name"] || "")
+    sponsor_url = String.trim(save_params["sponsor_url"] || "")
+
     uploaded_files =
       consume_uploaded_entries(socket, :sponsor_logo, fn %{path: path}, entry ->
         ext = Path.extname(entry.client_name)
@@ -610,16 +613,25 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
       end)
 
     for %{path: path, mime_type: mime_type, original_name: original_name} <- uploaded_files do
+      caption = Path.basename(original_name, Path.extname(original_name))
+
       {:ok, media} =
         Content.create_media(%{
-          caption: Path.basename(original_name, Path.extname(original_name)),
+          caption: if(sponsor_name != "", do: sponsor_name, else: caption),
           source_type: "upload",
           source_path: path,
           mime_type: mime_type,
           original_name: original_name
         })
 
-      Content.attach_media_to_entity(biennale, media, metadata: %{"role" => "sponsor"})
+      metadata = %{"role" => "sponsor"}
+
+      metadata =
+        metadata
+        |> Map.put("name", if(sponsor_name != "", do: sponsor_name, else: caption))
+        |> then(fn m -> if sponsor_url != "", do: Map.put(m, "url", sponsor_url), else: m end)
+
+      Content.attach_media_to_entity(biennale, media, metadata: metadata)
     end
   end
 

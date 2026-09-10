@@ -264,22 +264,35 @@
         </h2>
         <div class="flex flex-wrap justify-center items-center gap-6">
           <%= for sponsor <- @sponsors do %>
-            <a
-              :if={sponsor[:url] != ""}
-              href={sponsor[:url]}
-              target="_blank"
-              class="block bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors"
-            >
-              <%= if sponsor[:media] do %>
-                <img
-                  src={MykonosBiennale.Uploads.media_url(sponsor[:media], size: "card")}
-                  alt={sponsor[:name]}
-                  class="h-12 object-contain"
-                />
-              <% else %>
-                <span class="text-sm font-bold text-gray-400">{sponsor[:name]}</span>
-              <% end %>
-            </a>
+            <%= if sponsor[:url] != "" do %>
+              <a
+                href={sponsor[:url]}
+                target="_blank"
+                class="block bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors"
+              >
+                <%= if sponsor[:media] do %>
+                  <img
+                    src={MykonosBiennale.Uploads.media_url(sponsor[:media], size: "card")}
+                    alt={sponsor[:name]}
+                    class="h-12 object-contain"
+                  />
+                <% else %>
+                  <span class="text-sm font-bold text-gray-400">{sponsor[:name]}</span>
+                <% end %>
+              </a>
+            <% else %>
+              <div class="bg-white/5 rounded-lg p-4">
+                <%= if sponsor[:media] do %>
+                  <img
+                    src={MykonosBiennale.Uploads.media_url(sponsor[:media], size: "card")}
+                    alt={sponsor[:name]}
+                    class="h-12 object-contain"
+                  />
+                <% else %>
+                  <span class="text-sm font-bold text-gray-400">{sponsor[:name]}</span>
+                <% end %>
+              </div>
+            <% end %>
           <% end %>
         </div>
       </div>
