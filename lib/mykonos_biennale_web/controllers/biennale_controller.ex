@@ -5,7 +5,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
 
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, EntityMedia, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.{Entity, EntityMedia, Media, Relationship, RelationshipType}
   alias MykonosBiennaleWeb.BiennaleHTML
 
   def show(conn, %{"slug" => slug}) do
@@ -41,6 +41,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
           batch_project_directors(Enum.map(raw_projects, & &1.id), rt, biennale_event_ids)
 
         event_participants = batch_event_participants(Enum.map(raw_events, & &1.id), rt)
+        team_members = load_team_members(biennale, rt)
 
         projects =
           Enum.map(
@@ -65,6 +66,11 @@ defmodule MykonosBiennaleWeb.BiennaleController do
           |> Enum.filter(& &1[:project_id])
           |> Enum.into(%{}, fn event -> {event.project_id, event.id} end)
 
+        project_event_titles =
+          events
+          |> Enum.filter(& &1[:project_id])
+          |> Map.new(fn event -> {event.project_id, event.title} end)
+
         biennale_media = Map.get(media_by_entity, biennale.id, [])
         biennale_links = Map.get(media_links_by_entity, biennale.id, [])
 
@@ -73,6 +79,8 @@ defmodule MykonosBiennaleWeb.BiennaleController do
 
         program_bg_media =
           find_media_by_role(biennale_links, "program_bg") || Enum.at(biennale_media, 1)
+
+        sponsors = load_sponsors(biennale_links)
 
         biennale_media_map =
           biennales
@@ -98,12 +106,15 @@ defmodule MykonosBiennaleWeb.BiennaleController do
         |> assign(:projects, projects)
         |> assign(:events, events)
         |> assign(:project_event_map, project_event_map)
+        |> assign(:project_event_titles, project_event_titles)
         |> assign(:biennale_media, biennale_media)
         |> assign(:statement_bg_media, statement_bg_media)
         |> assign(:program_bg_media, program_bg_media)
         |> assign(:biennales, biennales)
         |> assign(:biennale_media_map, biennale_media_map)
         |> assign(:project_media, project_media)
+        |> assign(:team_members, team_members)
+        |> assign(:sponsors, sponsors)
         |> assign(
           :page_title,
           "#{biennale.fields["theme"]} — Mykonos Biennale #{biennale.fields["year"]}"
@@ -134,9 +145,6 @@ defmodule MykonosBiennaleWeb.BiennaleController do
       if media == [],
         do: fallback_project_media(entity.id, project_event_ids, media_by_entity),
         else: media
-
-    participants = Map.get(project_participants, entity.id, [])
-    directors = Map.get(project_directors, entity.id, [])
 
     participants = Map.get(project_participants, entity.id, [])
     directors = Map.get(project_directors, entity.id, [])
@@ -222,7 +230,8 @@ defmodule MykonosBiennaleWeb.BiennaleController do
       "artwork_event",
       "artwork_participant",
       "directed",
-      "screened_at"
+      "screened_at",
+      "biennale_team"
     ]
 
     Repo.all(from rt in RelationshipType, where: rt.slug in ^slugs)
@@ -250,6 +259,90 @@ defmodule MykonosBiennaleWeb.BiennaleController do
   defp find_media_by_role(links, role) do
     Enum.find_value(links, fn link ->
       if link.metadata && link.metadata["role"] == role, do: link.media
+    end)
+  end
+
+  @team_role_labels %{
+    "curator" => "Curator",
+    "producer" => "Producer",
+    "director" => "Director",
+    "coordinator" => "Coordinator",
+    "designer" => "Designer",
+    "technical" => "Technical",
+    "volunteer" => "Volunteer"
+  }
+
+  defp load_team_members(biennale, rt) do
+    bt_rt = Map.get(rt, "biennale_team")
+
+    if bt_rt do
+      rels =
+        Repo.all(
+          from r in Relationship,
+            where: r.subject_id == ^biennale.id and r.relationship_type_id == ^bt_rt.id,
+            preload: [:object]
+        )
+
+      participant_ids = Enum.map(rels, & &1.object_id)
+      headshots = batch_headshots(participant_ids)
+
+      image_ids =
+        rels
+        |> Enum.map(&(&1.fields && &1.fields["image_media_id"]))
+        |> Enum.reject(&is_nil/1)
+
+      images = batch_media_by_ids(image_ids)
+
+      Enum.map(rels, fn rel ->
+        participant = rel.object
+        role = rel.fields && rel.fields["role"]
+        image_id = rel.fields && rel.fields["image_media_id"]
+
+        %{
+          id: participant.id,
+          name: participant.identity,
+          role: role,
+          role_label: Map.get(@team_role_labels, role, role),
+          photo: Map.get(images, image_id) || Map.get(headshots, participant.id)
+        }
+      end)
+    else
+      []
+    end
+  end
+
+  defp batch_media_by_ids([]), do: %{}
+
+  defp batch_media_by_ids(ids) do
+    Repo.all(from m in Media, where: m.id in ^ids)
+    |> Map.new(&{&1.id, &1})
+  end
+
+  defp batch_headshots(participant_ids) when participant_ids == [], do: %{}
+
+  defp batch_headshots(participant_ids) do
+    links =
+      Repo.all(
+        from em in EntityMedia,
+          where:
+            em.entity_id in ^participant_ids and
+              fragment("? ->> 'role'", em.metadata) == "headshot",
+          preload: [:media]
+      )
+
+    Map.new(links, fn link -> {link.entity_id, link.media} end)
+  end
+
+  defp load_sponsors(links) do
+    links
+    |> Enum.filter(fn link -> link.metadata && link.metadata["role"] == "sponsor" end)
+    |> Enum.map(fn link ->
+      %{
+        media_id: link.media_id,
+        media: link.media,
+        name: link.metadata["name"] || link.media.caption || "",
+        url: link.metadata["url"] || ""
+      }
     end)
   end
 

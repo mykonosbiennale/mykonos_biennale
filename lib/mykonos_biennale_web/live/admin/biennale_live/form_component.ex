@@ -2,8 +2,21 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
   alias MykonosBiennale.Content
+  alias MykonosBiennale.Repo
   alias MykonosBiennaleWeb.BiennaleHTML
   alias Ecto.Changeset
+
+  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
+
+  @team_roles [
+    {"Curator", "curator"},
+    {"Producer", "producer"},
+    {"Director", "director"},
+    {"Coordinator", "coordinator"},
+    {"Designer", "designer"},
+    {"Technical", "technical"},
+    {"Volunteer", "volunteer"}
+  ]
 
   defmodule BiennaleForm do
     @moduledoc false
@@ -92,6 +105,149 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
             myself={@myself}
           />
         </div>
+
+        <%= if @biennale.id do %>
+          <hr class="my-6 border-gray-200" />
+
+          <h3 class="text-sm font-semibold text-gray-900 mb-3">Team</h3>
+
+          <%= if @team_members != [] do %>
+            <div class="space-y-2 mb-4">
+              <div
+                :for={member <- @team_members}
+                class="flex items-center justify-between bg-gray-50 rounded-lg p-3"
+              >
+                <div class="flex items-center gap-3">
+                  <img
+                    :if={member.photo}
+                    src={MykonosBiennale.Uploads.media_url(member.photo, size: "thumb")}
+                    alt={member.name}
+                    class="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div
+                    :if={is_nil(member.photo)}
+                    class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-xs"
+                  >
+                    {String.slice(member.name || "", 0, 1)}
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">{member.name}</div>
+                    <div class="text-xs text-gray-500">{member.role_label}</div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  phx-click="remove_team_member"
+                  phx-value-participant-id={member.id}
+                  phx-target={@myself}
+                  class="text-red-600 hover:text-red-700"
+                >
+                  <.icon name="hero-x-mark" class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          <% end %>
+
+          <div class="space-y-2">
+            <input
+              type="text"
+              name="team_search"
+              value={@team_search}
+              placeholder="Search participants to add as team members..."
+              phx-change="search_team"
+              phx-debounce="300"
+              phx-target={@myself}
+              class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
+            />
+            <%= if @team_search_results != [] do %>
+              <div class="border border-gray-200 rounded-lg max-h-48 overflow-y-auto divide-y divide-gray-100">
+                <div
+                  :for={p <- @team_search_results}
+                  class="flex items-center gap-2 px-3 py-2 hover:bg-blue-50"
+                >
+                  <select
+                    name={"role_#{p.id}"}
+                    phx-change="add_team_member"
+                    phx-value-participant-id={p.id}
+                    phx-target={@myself}
+                    class="text-xs rounded border-gray-300 bg-white text-gray-900 px-2 py-1"
+                  >
+                    <option value="">Select role...</option>
+                    <%= for {label, value} <- @team_roles do %>
+                      <option value={value}>{label}</option>
+                    <% end %>
+                  </select>
+                  <span class="text-sm text-gray-900">{p.identity}</span>
+                </div>
+              </div>
+            <% else %>
+              <%= if @team_search != "" do %>
+                <p class="text-xs text-gray-500">No participants found</p>
+              <% end %>
+            <% end %>
+          </div>
+
+          <hr class="my-6 border-gray-200" />
+
+          <h3 class="text-sm font-semibold text-gray-900 mb-3">Sponsors</h3>
+
+          <%= if @sponsors != [] do %>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+              <div
+                :for={sponsor <- @sponsors}
+                class="relative group bg-gray-50 rounded-lg overflow-hidden"
+              >
+                <div class="aspect-video bg-gray-100 flex items-center justify-center">
+                  <%= if sponsor.media do %>
+                    <img
+                      src={MykonosBiennale.Uploads.media_url(sponsor.media, size: "card")}
+                      alt={sponsor.name}
+                      class="w-full h-full object-contain p-2"
+                    />
+                  <% else %>
+                    <.icon name="hero-photo" class="w-8 h-8 text-gray-400" />
+                  <% end %>
+                </div>
+                <div class="p-2">
+                  <div class="text-xs text-gray-700 truncate">{sponsor.name}</div>
+                  <%= if sponsor.url do %>
+                    <div class="text-xs text-gray-400 truncate">{sponsor.url}</div>
+                  <% end %>
+                </div>
+                <button
+                  type="button"
+                  phx-click="remove_sponsor"
+                  phx-value-media-id={sponsor.media_id}
+                  phx-target={@myself}
+                  class="absolute top-2 right-2 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <.icon name="hero-x-mark" class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          <% end %>
+
+          <div class="space-y-2">
+            <.image_upload
+              label="Add Sponsor Logo"
+              image={nil}
+              upload={@uploads.sponsor_logo}
+              myself={@myself}
+            />
+            <input
+              type="text"
+              name="sponsor_name"
+              placeholder="Sponsor name (optional, set after upload)"
+              class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
+            />
+            <input
+              type="url"
+              name="sponsor_url"
+              placeholder="Sponsor website URL (optional)"
+              class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
+            />
+          </div>
+        <% end %>
 
         <div class="mt-6 flex items-center justify-end gap-x-6">
           <.link patch={@patch} class="text-sm font-semibold text-gray-400 hover:text-white">
@@ -184,11 +340,19 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     statement_bg = find_media_by_role(media_links, "statement_bg")
     program_bg = find_media_by_role(media_links, "program_bg")
 
+    team_members = load_team_members(biennale)
+    sponsors = load_sponsors(media_links)
+
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:statement_bg, statement_bg)
      |> assign(:program_bg, program_bg)
+     |> assign(:team_members, team_members)
+     |> assign(:sponsors, sponsors)
+     |> assign(:team_roles, @team_roles)
+     |> assign(:team_search, "")
+     |> assign(:team_search_results, [])
      |> assign_new(:form, fn ->
        changeset = BiennaleForm.changeset(%BiennaleForm{}, biennale_form_attrs(biennale))
        to_form(changeset, as: :biennale)
@@ -202,6 +366,11 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
        accept: ~w(.jpg .jpeg .png .webp),
        max_entries: 1,
        max_file_size: 10_000_000
+     )
+     |> allow_upload(:sponsor_logo,
+       accept: ~w(.jpg .jpeg .png .webp),
+       max_entries: 5,
+       max_file_size: 5_000_000
      )}
   end
 
@@ -248,12 +417,95 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     end
   end
 
-  def handle_event("save", params, socket) do
-    biennale_params = extract_biennale_params(params)
-    save_biennale(socket, socket.assigns.action, biennale_params)
+  def handle_event("search_team", %{"team_search" => search, "_target" => _}, socket) do
+    results =
+      if String.trim(search) != "" do
+        search_team(search, socket.assigns.team_members)
+      else
+        []
+      end
+
+    {:noreply, socket |> assign(:team_search, search) |> assign(:team_search_results, results)}
   end
 
-  defp save_biennale(socket, :edit, biennale_params) do
+  def handle_event("add_team_member", %{"_target" => [target]} = params, socket) do
+    # target is the select name like "role_3399" — extract the participant ID from it
+    "role_" <> pid = target
+    role = params[target]
+    biennale = socket.assigns.biennale
+
+    if role != "" and role != nil do
+      case Content.create_relationship(%{
+             slug: "biennale_team",
+             subject_id: biennale.id,
+             object_id: String.to_integer(pid),
+             fields: %{"role" => role}
+           }) do
+        {:ok, _} ->
+          {:noreply,
+           socket
+           |> assign(:team_members, load_team_members(biennale))
+           |> assign(:team_search, "")
+           |> assign(:team_search_results, [])
+           |> put_flash(:info, "Team member added")}
+
+        {:error, _} ->
+          {:noreply, put_flash(socket, :error, "Could not add team member")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "Select a role")}
+    end
+  end
+
+  def handle_event("remove_team_member", %{"participant-id" => pid}, socket) do
+    import Ecto.Query, warn: false
+    biennale = socket.assigns.biennale
+    bt_rt = Repo.get_by(RelationshipType, slug: "biennale_team")
+
+    if bt_rt do
+      rel =
+        Repo.one(
+          from r in Relationship,
+            where:
+              r.subject_id == ^biennale.id and
+                r.object_id == ^String.to_integer(pid) and
+                r.relationship_type_id == ^bt_rt.id
+        )
+
+      if rel do
+        {:ok, _} = Content.delete_relationship(rel)
+      end
+    end
+
+    {:noreply,
+     socket
+     |> assign(:team_members, load_team_members(biennale))
+     |> put_flash(:info, "Team member removed")}
+  end
+
+  def handle_event("remove_sponsor", %{"media-id" => media_id}, socket) do
+    biennale = socket.assigns.biennale
+    media = Content.get_media!(media_id)
+
+    if biennale.id do
+      Content.detach_media_from_entity(biennale, media)
+    end
+
+    media_links = Content.list_entity_media_links_for_entity(biennale)
+    sponsors = load_sponsors(media_links)
+
+    {:noreply,
+     socket
+     |> assign(:sponsors, sponsors)
+     |> put_flash(:info, "Sponsor removed")}
+  end
+
+  def handle_event("save", params, socket) do
+    biennale_params = extract_biennale_params(params)
+    save_biennale(socket, socket.assigns.action, biennale_params, params)
+  end
+
+  defp save_biennale(socket, :edit, biennale_params, save_params) do
     changeset = BiennaleForm.changeset(socket.assigns.form.source.data, biennale_params)
 
     if changeset.valid? do
@@ -261,7 +513,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
 
       case Content.update_biennale(socket.assigns.biennale, attrs) do
         {:ok, biennale} ->
-          process_uploads(socket, biennale)
+          process_uploads(socket, biennale, save_params)
           notify_parent({:saved, biennale})
 
           {:noreply,
@@ -284,7 +536,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     end
   end
 
-  defp save_biennale(socket, :new, biennale_params) do
+  defp save_biennale(socket, :new, biennale_params, save_params) do
     changeset = BiennaleForm.changeset(socket.assigns.form.source.data, biennale_params)
 
     if changeset.valid? do
@@ -292,7 +544,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
 
       case Content.create_biennale(attrs) do
         {:ok, biennale} ->
-          process_uploads(socket, biennale)
+          process_uploads(socket, biennale, save_params)
           notify_parent({:saved, biennale})
 
           {:noreply,
@@ -315,9 +567,10 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     end
   end
 
-  defp process_uploads(socket, biennale) do
+  defp process_uploads(socket, biennale, save_params) do
     consume_bg_upload(socket, biennale, :statement_bg, "statement_bg")
     consume_bg_upload(socket, biennale, :program_bg, "program_bg")
+    consume_sponsor_uploads(socket, biennale, save_params)
   end
 
   defp consume_bg_upload(socket, biennale, upload_key, role) do
@@ -343,6 +596,113 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
 
       Content.attach_media_to_entity(biennale, media, metadata: %{"role" => role})
     end
+  end
+
+  defp consume_sponsor_uploads(socket, biennale, save_params) do
+    sponsor_name = String.trim(save_params["sponsor_name"] || "")
+    sponsor_url = String.trim(save_params["sponsor_url"] || "")
+
+    uploaded_files =
+      consume_uploaded_entries(socket, :sponsor_logo, fn %{path: path}, entry ->
+        ext = Path.extname(entry.client_name)
+        filename = "#{Ecto.UUID.generate()}#{ext}"
+        dest = MykonosBiennale.Uploads.uploads_path(filename)
+        MykonosBiennale.Uploads.ensure_uploads_dir()
+        File.cp!(path, dest)
+        {:ok, %{path: filename, mime_type: entry.client_type, original_name: entry.client_name}}
+      end)
+
+    for %{path: path, mime_type: mime_type, original_name: original_name} <- uploaded_files do
+      caption = Path.basename(original_name, Path.extname(original_name))
+
+      {:ok, media} =
+        Content.create_media(%{
+          caption: if(sponsor_name != "", do: sponsor_name, else: caption),
+          source_type: "upload",
+          source_path: path,
+          mime_type: mime_type,
+          original_name: original_name
+        })
+
+      metadata = %{"role" => "sponsor"}
+
+      metadata =
+        metadata
+        |> Map.put("name", if(sponsor_name != "", do: sponsor_name, else: caption))
+        |> then(fn m -> if sponsor_url != "", do: Map.put(m, "url", sponsor_url), else: m end)
+
+      Content.attach_media_to_entity(biennale, media, metadata: metadata)
+    end
+  end
+
+  defp load_team_members(biennale) do
+    import Ecto.Query, warn: false
+
+    bt_rt = Repo.get_by(RelationshipType, slug: "biennale_team")
+
+    if biennale.id && bt_rt do
+      Repo.all(
+        from r in Relationship,
+          where: r.subject_id == ^biennale.id and r.relationship_type_id == ^bt_rt.id,
+          preload: [:object]
+      )
+      |> Enum.map(fn rel ->
+        participant = rel.object
+        role = rel.fields && rel.fields["role"]
+
+        role_label =
+          Enum.find_value(@team_roles, fn {label, val} -> if val == role, do: label end) || role
+
+        %{
+          id: participant.id,
+          name: participant.identity,
+          photo: get_headshot(participant),
+          role: role,
+          role_label: role_label
+        }
+      end)
+    else
+      []
+    end
+  end
+
+  defp load_sponsors(media_links) do
+    media_links
+    |> Enum.filter(fn link -> link.metadata && link.metadata["role"] == "sponsor" end)
+    |> Enum.map(fn link ->
+      %{
+        media_id: link.media_id,
+        media: link.media,
+        name: link.metadata["name"] || link.media.caption || "",
+        url: link.metadata["url"] || ""
+      }
+    end)
+  end
+
+  defp search_team(search, current_members) do
+    import Ecto.Query, warn: false
+    alias MykonosBiennale.Content.Entity
+
+    member_ids = Enum.map(current_members, & &1.id)
+    pattern = "%#{String.downcase(search)}%"
+
+    Repo.all(
+      from e in Entity,
+        where:
+          e.type == "participant" and
+            e.id not in ^member_ids and
+            (ilike(fragment("lower(?)", e.identity), ^pattern) or
+               ilike(fragment("lower(?->>'name')", e.fields), ^pattern)),
+        limit: 20
+    )
+  end
+
+  defp get_headshot(participant) do
+    links = Content.list_entity_media_links_for_entity(participant)
+
+    Enum.find_value(links, fn link ->
+      if link.metadata && link.metadata["role"] == "headshot", do: link.media
+    end)
   end
 
   defp find_media_by_role(media_links, role) do

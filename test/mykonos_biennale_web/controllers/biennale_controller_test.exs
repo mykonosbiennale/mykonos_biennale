@@ -74,6 +74,27 @@ defmodule MykonosBiennaleWeb.BiennaleControllerTest do
       assert html =~ "Festival Event"
       assert html =~ "Projects 2026"
     end
+
+    test "renders team section with member names linked to artist pages", %{conn: conn} do
+      biennale =
+        ContentFixtures.biennale_fixture(
+          year: "2026",
+          theme: "Team Theme",
+          template: "festival-2025"
+        )
+
+      participant = ContentFixtures.participant_fixture(first_name: "Team", last_name: "Person")
+
+      ContentFixtures.create_relationship(biennale, participant, "biennale_team", %{
+        "role" => "curator"
+      })
+
+      html = html_response(get(conn, "/biennale/#{biennale.slug}"), 200)
+      assert html =~ "Team 2026"
+      assert html =~ "Team Person"
+      assert html =~ ~s(href="/artist/#{participant.id}")
+      assert html =~ "Curator"
+    end
   end
 
   describe "GET /biennale/:slug — none template" do

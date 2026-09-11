@@ -1,0 +1,237 @@
+<Layouts.app flash={@flash}>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-lg font-semibold text-gray-100">
+        {@participant.identity}
+        <span class="text-sm text-gray-500 font-normal">— team memberships</span>
+      </h1>
+      <div class="flex items-center gap-4">
+        <.link
+          navigate={"/admin/participants/#{@participant.id}/edit"}
+          class="text-sm text-gray-400 hover:text-white"
+        >
+          Edit participant
+        </.link>
+        <.link navigate="/admin/teams" class="text-sm text-gray-400 hover:text-white">
+          ← All team members
+        </.link>
+      </div>
+    </div>
+
+    <div class="bg-gray-800/30 backdrop-blur-sm rounded-lg border border-purple-500/20 overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-gray-900/50 border-b border-purple-500/20">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">Year</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">Role</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400">Image</th>
+            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-400">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-700/50">
+          <%= for m <- @memberships do %>
+            <tr class="hover:bg-gray-700/20 transition-colors">
+              <td class="px-6 py-4">
+                <.link
+                  navigate={"/admin/biennales/#{m.biennale_id}/edit"}
+                  class="text-purple-300 font-medium hover:text-purple-200"
+                >
+                  {m.year}
+                </.link>
+              </td>
+              <td class="px-6 py-4 text-gray-300 text-sm">
+                {m.role_label}
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <%= if m.image do %>
+                    <img
+                      src={MykonosBiennale.Uploads.media_url(m.image, size: "thumb")}
+                      alt={"#{@participant.identity} #{m.year}"}
+                      class="w-12 h-12 rounded-full object-cover"
+                    />
+                    <span class="text-xs text-gray-500">custom</span>
+                  <% else %>
+                    <%= if @headshot do %>
+                      <img
+                        src={MykonosBiennale.Uploads.media_url(@headshot, size: "thumb")}
+                        alt={"#{@participant.identity} headshot"}
+                        class="w-12 h-12 rounded-full object-cover"
+                      />
+                    <% else %>
+                      <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-gray-500 text-lg">
+                        {String.slice(@participant.identity || "", 0, 1)}
+                      </div>
+                    <% end %>
+                    <span class="text-xs text-gray-500">headshot (default)</span>
+                  <% end %>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-right whitespace-nowrap">
+                <button
+                  type="button"
+                  phx-click="edit_membership"
+                  phx-value-rel-id={m.rel_id}
+                  class="text-purple-400 hover:text-purple-300 transition-colors text-xs mr-3"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  phx-click="remove_membership"
+                  phx-value-rel-id={m.rel_id}
+                  data-confirm="Remove #{@participant.identity} from #{m.year}?"
+                  class="text-red-400 hover:text-red-300 transition-colors text-xs"
+                >
+                  Remove
+                </button>
+              </td>
+            </tr>
+          <% end %>
+          <%= if @memberships == [] do %>
+            <tr>
+              <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500">
+                No team memberships. Add them from the team list.
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <.modal :if={@editing} id="membership-edit-modal" show on_cancel={JS.push("close_edit")}>
+    <div data-theme="light" class="bg-white rounded-xl p-6 [&_.label]:text-gray-900">
+      <h2 class="text-sm font-semibold text-gray-900 mb-1">
+        {@participant.identity} — {@editing.year}
+      </h2>
+      <p class="text-xs text-gray-500 mb-4">Team membership</p>
+
+      <form phx-change="validate_membership" phx-submit="save_membership" class="space-y-4">
+        <input type="hidden" name="rel_id" value={@editing.rel_id} />
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1">Year</label>
+          <input
+            type="text"
+            value={@editing.year}
+            disabled
+            class="w-full rounded-lg border-gray-200 bg-gray-100 text-gray-500 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1">Role</label>
+          <select
+            name="role"
+            class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
+          >
+            <%= for {value, label} <- @team_roles do %>
+              <option value={value} selected={@editing.role == value}>{label}</option>
+            <% end %>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1">Image</label>
+          <div class="flex items-center gap-3 mb-2">
+            <%= if @editing.image do %>
+              <img
+                src={MykonosBiennale.Uploads.media_url(@editing.image, size: "thumb")}
+                alt={"#{@participant.identity} #{@editing.year}"}
+                class="w-14 h-14 rounded-full object-cover"
+              />
+              <span class="text-xs text-gray-500">current custom image</span>
+            <% else %>
+              <%= if @headshot do %>
+                <img
+                  src={MykonosBiennale.Uploads.media_url(@headshot, size: "thumb")}
+                  alt={"#{@participant.identity} headshot"}
+                  class="w-14 h-14 rounded-full object-cover"
+                />
+              <% else %>
+                <div class="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl">
+                  {String.slice(@participant.identity || "", 0, 1)}
+                </div>
+              <% end %>
+              <span class="text-xs text-gray-500">headshot (default)</span>
+            <% end %>
+          </div>
+
+          <div
+            class="border-2 border-dashed border-gray-300 rounded-lg p-3 text-center hover:border-blue-500 transition-colors"
+            phx-drop-target={@uploads.image.ref}
+          >
+            <.live_file_input upload={@uploads.image} class="hidden" />
+            <button
+              type="button"
+              phx-click={JS.dispatch("click", to: "##{@uploads.image.ref}")}
+              class="text-blue-600 hover:text-blue-700 font-medium text-sm"
+            >
+              Upload image (jpg, gif, png, webp)
+            </button>
+            <p class="mt-1 text-xs text-gray-500">Replaces the image for #{@editing.year} only</p>
+          </div>
+
+          <%= for entry <- @uploads.image.entries do %>
+            <div class="flex items-center justify-between bg-gray-50 p-2 rounded mt-2">
+              <div class="flex items-center gap-2">
+                <.icon name="hero-document" class="w-4 h-4 text-gray-400" />
+                <span class="text-sm text-gray-900">{entry.client_name}</span>
+              </div>
+              <button
+                type="button"
+                phx-click="cancel-upload"
+                phx-value-ref={entry.ref}
+                class="text-red-600 hover:text-red-700"
+              >
+                <.icon name="hero-x-mark" class="w-4 h-4" />
+              </button>
+            </div>
+          <% end %>
+
+          <%= for err <- upload_errors(@uploads.image) do %>
+            <p class="text-sm text-red-600 mt-1">{error_to_string(err)}</p>
+          <% end %>
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <button
+            type="button"
+            phx-click="remove_membership"
+            phx-value-rel-id={@editing.rel_id}
+            data-confirm="Remove #{@participant.identity} from #{@editing.year}?"
+            class="text-red-600 hover:text-red-700 text-sm font-semibold"
+          >
+            Remove membership
+          </button>
+          <div class="flex items-center gap-3">
+            <%= if @editing.image_is_custom do %>
+              <button
+                type="button"
+                phx-click="clear_image"
+                phx-value-rel-id={@editing.rel_id}
+                class="text-sm font-semibold text-gray-500 hover:text-gray-700"
+              >
+                Use headshot
+              </button>
+            <% end %>
+            <button
+              type="button"
+              phx-click="close_edit"
+              class="text-sm font-semibold text-gray-500 hover:text-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </.modal>
+</Layouts.app>

@@ -179,7 +179,7 @@
             <h3 class="text-xl font-bold uppercase mb-2">
               <%= if event_id = Map.get(@project_event_map, project.id) do %>
                 <a href={"/event/#{event_id}"} class="hover:text-red-500 transition-colors">
-                  {project.title}
+                  {Map.get(@project_event_titles, project.id) || project.title}
                 </a>
               <% else %>
                 {project.title}
@@ -193,19 +193,10 @@
             <%= if project.participants != [] do %>
               <p class="text-xs text-gray-600 mt-2">
                 <%= for {id, name} <- project.participants do %>
-                  <<<<<<<
-                    HEAD
-                    <a
-                    href={"/artist/#{id}"}
-                    class="hover:text-red-500 transition-colors"
-                  >
-                    {name}
-                  </<<<<<<>
-                  {unless id == List.last(Enum.map(project.participants, &elem(&1, 0))), do: " · "} =======
                   <a href={"/artist/#{id}"} class="hover:text-red-500 transition-colors">
                     {name}
                   </a>
-                  {unless id == List.last(Enum.map(project.participants, &elem(&1, 0))), do: " · "} >>>>>>> 8320a23c79d2c93e1c0de1e22a205d851152b9b6
+                  {unless id == List.last(Enum.map(project.participants, &elem(&1, 0))), do: " · "}
                 <% end %>
               </p>
             <% end %>
@@ -226,9 +217,77 @@
     </div>
   <% end %>
 
+
+
+  <%!-- Team Section --%>
+  <%= if @team_members != [] do %>
+    <div class="px-6 py-20 md:py-32 bg-neutral-900">
+      <div class="max-w-5xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold uppercase mb-12 text-center text-gray-300">
+          Team {@biennale.fields["year"]}
+        </h2>
+        <div class="flex flex-wrap justify-center gap-8">
+          <%= for member <- @team_members do %>
+            <div class="text-center">
+              <img
+                :if={member[:photo]}
+                src={MykonosBiennale.Uploads.media_url(member[:photo], size: "card")}
+                alt={member[:name]}
+                class="w-20 h-20 rounded-full object-cover mx-auto mb-3"
+              />
+              <div
+                :if={is_nil(member[:photo])}
+                class="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center text-gray-500 text-2xl mx-auto mb-3"
+              >
+                {String.slice(member[:name] || "", 0, 1)}
+              </div>
+              <a
+                href={"/artist/#{member[:id]}"}
+                class="text-sm font-bold text-white hover:text-red-500 transition-colors block"
+              >
+                {member[:name]}
+              </a>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">
+                {member[:role_label] || member[:role]}
+              </p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Sponsors Section --%>
+  <%= if @sponsors != [] do %>
+    <div class="px-6 py-16  bg-neutral-900">
+      <div class="max-w-5xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold uppercase mb-12 text-center text-gray-300">
+          Sponsors
+        </h2>
+        <div class="flex flex-wrap justify-center items-center gap-x-8 gap-y-3">
+          <%= for sponsor <- @sponsors do %>
+            <%= if sponsor[:url] != "" do %>
+              <a
+                href={sponsor[:url]}
+                target="_blank"
+                class="text-sm font-bold text-gray-400 hover:text-white transition-colors uppercase tracking-wider"
+              >
+                {String.upcase(sponsor[:name] || "")}
+              </a>
+            <% else %>
+              <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                {String.upcase(sponsor[:name] || "")}
+              </span>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
   <%!-- Archive Teaser Section --%>
-  <div class="px-6 py-20 md:py-32 bg-neutral-900">
-    <div class="max-w-7xl mx-auto">
+  <div class="px-6 py-20 md:py-32 bg-neutral-950">
+    <div class="max-w-5xl mx-auto">
       <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
         Archive
       </h2>
@@ -277,8 +336,10 @@
     </div>
   </div>
 
+
+
   <%!-- Footer --%>
-  <div class="px-6 py-12 border-t border-gray-800">
+  <div class="px-6 py-12 border-t border-gray-800 bg-neutral-950">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
       <div class="text-center md:text-left">
         <p class="text-sm text-gray-400 uppercase tracking-wider">
