@@ -72,7 +72,11 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
           name: name,
           media: hd(group_links).media,
           url: hd(group_links).metadata["url"] || "",
-          years: group_links |> Enum.map(&biennale_year.(&1.entity)) |> Enum.reject(&is_nil/1) |> Enum.sort(:desc),
+          years:
+            group_links
+            |> Enum.map(&biennale_year.(&1.entity))
+            |> Enum.reject(&is_nil/1)
+            |> Enum.sort(:desc),
           links: group_links
         }
       end)
@@ -177,7 +181,10 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
         {:noreply,
          socket
          |> load_sponsors()
-         |> put_flash(:info, "Sponsor updated#{if added > 0, do: " — added to #{added} more biennale(s)"}")
+         |> put_flash(
+           :info,
+           "Sponsor updated#{if added > 0, do: " — added to #{added} more biennale(s)"}"
+         )
          |> push_patch(to: "/admin/sponsors")}
       else
         {:noreply, put_flash(socket, :error, "Sponsor not found")}

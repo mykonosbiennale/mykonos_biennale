@@ -88,7 +88,8 @@ defmodule MykonosBiennaleWeb.PageController do
         people.film_directors
       )
 
-    event_participants = derive_event_people(raw_events, structure.event_artwork_map, people.artwork_participants)
+    event_participants =
+      derive_event_people(raw_events, structure.event_artwork_map, people.artwork_participants)
 
     projects =
       Enum.map(
@@ -156,7 +157,13 @@ defmodule MykonosBiennaleWeb.PageController do
 
   # -- Presentation --
 
-  defp present_project(entity, media_by_entity, structure, project_participants, project_directors) do
+  defp present_project(
+         entity,
+         media_by_entity,
+         structure,
+         project_participants,
+         project_directors
+       ) do
     media = Map.get(media_by_entity, entity.id, [])
 
     media =
@@ -252,7 +259,9 @@ defmodule MykonosBiennaleWeb.PageController do
         from e in Entity,
           join: r in Relationship,
           on: r.subject_id == e.id,
-          where: e.type == "event" and r.object_id == ^biennale.id and r.relationship_type_id == ^be_rt.id,
+          where:
+            e.type == "event" and r.object_id == ^biennale.id and
+              r.relationship_type_id == ^be_rt.id,
           order_by: [desc: e.inserted_at]
       )
     else
@@ -287,13 +296,15 @@ defmodule MykonosBiennaleWeb.PageController do
         Map.get(rt, "screened_at"),
         Map.get(rt, "biennale_team")
       ]
-      |> Enum.map(& &1 && &1.id)
+      |> Enum.map(&(&1 && &1.id))
       |> Enum.reject(&is_nil/1)
 
     rels =
       Repo.all(
         from r in Relationship,
-          where: r.relationship_type_id in ^rt_ids and (r.subject_id in ^base_ids or r.object_id in ^base_ids),
+          where:
+            r.relationship_type_id in ^rt_ids and
+              (r.subject_id in ^base_ids or r.object_id in ^base_ids),
           preload: [:subject, :object]
       )
 
