@@ -34,8 +34,13 @@ defmodule MykonosBiennaleWeb.Admin.TeamLiveTest do
   describe "Member page /admin/teams/:id" do
     test "shows readonly memberships table with year, role, image, and actions", %{conn: conn} do
       biennale = ContentFixtures.biennale_fixture(year: 2025)
-      participant = ContentFixtures.participant_fixture(first_name: "Kimona", last_name: "Venieri")
-      ContentFixtures.create_relationship(biennale, participant, "biennale_team", %{"role" => "curator"})
+
+      participant =
+        ContentFixtures.participant_fixture(first_name: "Kimona", last_name: "Venieri")
+
+      ContentFixtures.create_relationship(biennale, participant, "biennale_team", %{
+        "role" => "curator"
+      })
 
       {:ok, _lv, html} = live(conn, ~p"/admin/teams/#{participant.id}")
       assert html =~ "Kimona Venieri"
@@ -50,8 +55,11 @@ defmodule MykonosBiennaleWeb.Admin.TeamLiveTest do
     test "edit modal shows year, role select, and image upload", %{conn: conn} do
       biennale = ContentFixtures.biennale_fixture(year: 2025)
       participant = ContentFixtures.participant_fixture(first_name: "Modal", last_name: "Editor")
+
       {:ok, _rel} =
-        ContentFixtures.create_relationship(biennale, participant, "biennale_team", %{"role" => "curator"})
+        ContentFixtures.create_relationship(biennale, participant, "biennale_team", %{
+          "role" => "curator"
+        })
 
       {:ok, lv, _html} = live(conn, ~p"/admin/teams/#{participant.id}")
 

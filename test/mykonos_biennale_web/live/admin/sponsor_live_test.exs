@@ -9,7 +9,11 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLiveTest do
       media = ContentFixtures.media_fixture(caption: "Test Sponsor Logo")
 
       Content.attach_media_to_entity(biennale, media,
-        metadata: %{"role" => "sponsor", "name" => "VisitGreece", "url" => "https://visitgreece.gr"}
+        metadata: %{
+          "role" => "sponsor",
+          "name" => "VisitGreece",
+          "url" => "https://visitgreece.gr"
+        }
       )
 
       {:ok, _lv, html} = live(conn, ~p"/admin/sponsors")

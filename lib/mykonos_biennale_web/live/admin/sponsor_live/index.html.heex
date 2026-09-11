@@ -171,7 +171,12 @@
           <div class="space-y-1">
             <%= for b <- @biennales do %>
               <label class="flex items-center gap-2 text-sm text-gray-900">
-                <input type="checkbox" name={"biennale_#{b.id}"} value="true" class="rounded border-gray-300" />
+                <input
+                  type="checkbox"
+                  name={"biennale_#{b.id}"}
+                  value="true"
+                  class="rounded border-gray-300"
+                />
                 {b.fields["year"]}
               </label>
             <% end %>
@@ -179,10 +184,16 @@
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-2">
-          <.link patch="/admin/sponsors" class="text-sm font-semibold text-gray-500 hover:text-gray-700">
+          <.link
+            patch="/admin/sponsors"
+            class="text-sm font-semibold text-gray-500 hover:text-gray-700"
+          >
             Cancel
           </.link>
-          <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg">
+          <button
+            type="submit"
+            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg"
+          >
             Add Sponsor
           </button>
         </div>
@@ -295,14 +306,22 @@
               </label>
             <% end %>
           </div>
-          <p class="text-xs text-gray-500 mt-1">Check additional years to add this sponsor to them.</p>
+          <p class="text-xs text-gray-500 mt-1">
+            Check additional years to add this sponsor to them.
+          </p>
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-2">
-          <.link patch="/admin/sponsors" class="text-sm font-semibold text-gray-500 hover:text-gray-700">
+          <.link
+            patch="/admin/sponsors"
+            class="text-sm font-semibold text-gray-500 hover:text-gray-700"
+          >
             Cancel
           </.link>
-          <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg">
+          <button
+            type="submit"
+            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg"
+          >
             Save
           </button>
         </div>
