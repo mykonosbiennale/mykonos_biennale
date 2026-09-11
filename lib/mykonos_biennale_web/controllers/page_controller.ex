@@ -4,7 +4,7 @@ defmodule MykonosBiennaleWeb.PageController do
   alias MykonosBiennaleWeb.BiennaleController
 
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, EntityMedia, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.{Entity, EntityMedia, Media, Relationship, RelationshipType}
 
   import Ecto.Query, warn: false
 
@@ -104,6 +104,11 @@ defmodule MykonosBiennaleWeb.PageController do
       |> Enum.filter(& &1[:project_id])
       |> Enum.into(%{}, fn event -> {event.project_id, event.id} end)
 
+    project_event_titles =
+      events
+      |> Enum.filter(& &1[:project_id])
+      |> Map.new(fn event -> {event.project_id, event.title} end)
+
     biennale_media =
       if current_biennale, do: Map.get(media_by_entity, current_biennale.id, []), else: []
 
@@ -118,7 +123,14 @@ defmodule MykonosBiennaleWeb.PageController do
 
     sponsors = load_sponsors(biennale_links)
 
-    team_members = attach_team_photos(structure.team_members, media_links_by_entity)
+    team_image_ids =
+      structure.team_members
+      |> Enum.map(& &1[:image_media_id])
+      |> Enum.reject(&is_nil/1)
+
+    team_images = batch_media_by_ids(team_image_ids)
+
+    team_members = attach_team_photos(structure.team_members, media_links_by_entity, team_images)
 
     biennale_media_map =
       Map.new(biennales, fn b -> {b.id, Map.get(media_by_entity, b.id, [])} end)
@@ -135,6 +147,7 @@ defmodule MykonosBiennaleWeb.PageController do
     |> assign(:biennale_media_map, biennale_media_map)
     |> assign(:project_media, project_media)
     |> assign(:project_event_map, project_event_map)
+    |> assign(:project_event_titles, project_event_titles)
     |> assign(:team_members, team_members)
     |> assign(:sponsors, sponsors)
     |> put_view(MykonosBiennaleWeb.BiennaleHTML)
@@ -422,21 +435,31 @@ defmodule MykonosBiennaleWeb.PageController do
       name: participant.identity,
       role: role,
       role_label: Map.get(@team_role_labels, role, role),
+      image_media_id: rel.fields && rel.fields["image_media_id"],
       photo: nil
     }
   end
 
-  defp attach_team_photos(team_members, media_links_by_entity) do
+  defp attach_team_photos(team_members, media_links_by_entity, team_images) do
     Enum.map(team_members, fn member ->
-      photo =
+      headshot =
         media_links_by_entity
         |> Map.get(member.id, [])
         |> Enum.find_value(fn link ->
           if link.metadata && link.metadata["role"] == "headshot", do: link.media
         end)
 
+      photo = Map.get(team_images, member[:image_media_id]) || headshot
+
       %{member | photo: photo}
     end)
+  end
+
+  defp batch_media_by_ids([]), do: %{}
+
+  defp batch_media_by_ids(ids) do
+    Repo.all(from m in Media, where: m.id in ^ids)
+    |> Map.new(&{&1.id, &1})
   end
 
   defp fallback_project_media(project_id, project_event_ids, media_by_entity) do

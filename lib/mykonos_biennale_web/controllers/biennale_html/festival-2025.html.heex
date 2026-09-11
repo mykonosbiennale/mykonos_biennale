@@ -179,7 +179,7 @@
             <h3 class="text-xl font-bold uppercase mb-2">
               <%= if event_id = Map.get(@project_event_map, project.id) do %>
                 <a href={"/event/#{event_id}"} class="hover:text-red-500 transition-colors">
-                  {project.title}
+                  {Map.get(@project_event_titles, project.id) || project.title}
                 </a>
               <% else %>
                 {project.title}
@@ -221,10 +221,10 @@
 
   <%!-- Team Section --%>
   <%= if @team_members != [] do %>
-    <div class="px-6 py-20 md:py-32  bg-neutral-900">
+    <div class="px-6 py-20 md:py-32 bg-neutral-900">
       <div class="max-w-5xl mx-auto">
         <h2 class="text-3xl md:text-4xl font-bold uppercase mb-12 text-center text-gray-300">
-          Team
+          Team {@biennale.fields["year"]}
         </h2>
         <div class="flex flex-wrap justify-center gap-8">
           <%= for member <- @team_members do %>

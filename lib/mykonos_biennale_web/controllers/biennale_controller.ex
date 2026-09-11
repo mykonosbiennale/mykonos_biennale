@@ -5,7 +5,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
 
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, EntityMedia, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.{Entity, EntityMedia, Media, Relationship, RelationshipType}
   alias MykonosBiennaleWeb.BiennaleHTML
 
   def show(conn, %{"slug" => slug}) do
@@ -66,6 +66,11 @@ defmodule MykonosBiennaleWeb.BiennaleController do
           |> Enum.filter(& &1[:project_id])
           |> Enum.into(%{}, fn event -> {event.project_id, event.id} end)
 
+        project_event_titles =
+          events
+          |> Enum.filter(& &1[:project_id])
+          |> Map.new(fn event -> {event.project_id, event.title} end)
+
         biennale_media = Map.get(media_by_entity, biennale.id, [])
         biennale_links = Map.get(media_links_by_entity, biennale.id, [])
 
@@ -101,6 +106,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
         |> assign(:projects, projects)
         |> assign(:events, events)
         |> assign(:project_event_map, project_event_map)
+        |> assign(:project_event_titles, project_event_titles)
         |> assign(:biennale_media, biennale_media)
         |> assign(:statement_bg_media, statement_bg_media)
         |> assign(:program_bg_media, program_bg_media)
@@ -278,24 +284,38 @@ defmodule MykonosBiennaleWeb.BiennaleController do
         )
 
       participant_ids = Enum.map(rels, & &1.object_id)
-
       headshots = batch_headshots(participant_ids)
+
+      image_ids =
+        rels
+        |> Enum.map(&(&1.fields && &1.fields["image_media_id"]))
+        |> Enum.reject(&is_nil/1)
+
+      images = batch_media_by_ids(image_ids)
 
       Enum.map(rels, fn rel ->
         participant = rel.object
         role = rel.fields && rel.fields["role"]
+        image_id = rel.fields && rel.fields["image_media_id"]
 
         %{
           id: participant.id,
           name: participant.identity,
           role: role,
           role_label: Map.get(@team_role_labels, role, role),
-          photo: Map.get(headshots, participant.id)
+          photo: Map.get(images, image_id) || Map.get(headshots, participant.id)
         }
       end)
     else
       []
     end
+  end
+
+  defp batch_media_by_ids([]), do: %{}
+
+  defp batch_media_by_ids(ids) do
+    Repo.all(from m in Media, where: m.id in ^ids)
+    |> Map.new(&{&1.id, &1})
   end
 
   defp batch_headshots(participant_ids) when participant_ids == [], do: %{}
