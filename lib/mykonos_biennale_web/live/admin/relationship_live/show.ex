@@ -56,8 +56,6 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Show do
     if e.type in film_types, do: "/admin/films/#{e.id}", else: "#"
   end
 
-  defp format_fields(nil), do: ""
-
   defp format_fields(fields) when is_map(fields) do
     Enum.map_join(fields, ", ", fn {k, v} -> "#{k}: #{v}" end)
   end

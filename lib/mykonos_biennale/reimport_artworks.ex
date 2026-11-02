@@ -400,8 +400,6 @@ defmodule MykonosBiennale.ReimportArtworks do
     Map.get(@slug_normalizations, slug, slug)
   end
 
-  defp slugify(nil), do: ""
-
   defp slugify(title) when is_binary(title) do
     title
     |> String.downcase()

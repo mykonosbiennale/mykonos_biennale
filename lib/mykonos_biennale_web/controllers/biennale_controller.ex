@@ -388,7 +388,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     ae_rt = Map.get(rt, "artwork_event")
     ep_rt = Map.get(rt, "event_project")
 
-    if ap_rt && ae_rt && ep_rt && project_ids != [] do
+    if ap_rt && ae_rt && ep_rt && Enum.any?(project_ids) do
       # project → events (event_project: object_id = project, subject_id = event)
       project_event_ids =
         Repo.all(
@@ -464,7 +464,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     sa_rt = Map.get(rt, "screened_at")
     ep_rt = Map.get(rt, "event_project")
 
-    if directed_rt && sa_rt && ep_rt && project_ids != [] do
+    if directed_rt && sa_rt && ep_rt && Enum.any?(project_ids) do
       project_event_ids =
         Repo.all(
           from r in Relationship,
@@ -532,7 +532,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     ae_rt = Map.get(rt, "artwork_event")
     ap_rt = Map.get(rt, "artwork_participant")
 
-    if ae_rt && ap_rt && event_ids != [] do
+    if ae_rt && ap_rt && Enum.any?(event_ids) do
       # Batch: all event→artwork rels at once
       event_artwork_map =
         Repo.all(

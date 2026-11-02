@@ -152,4 +152,13 @@ defmodule MykonosBiennale.Accounts.User do
     |> unsafe_validate_unique(:email, MykonosBiennale.Repo)
     |> unique_constraint(:email)
   end
+
+  @doc """
+  Changeset for setting a temporary password (admin only).
+  """
+  def temporary_password_changeset(user, password) when is_binary(password) do
+    user
+    |> change()
+    |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
+  end
 end
