@@ -52,7 +52,9 @@ defmodule MykonosBiennaleWeb.Admin.UserLive.FormComponent do
             <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
               <p class="text-sm text-gray-700 mb-2">Temporary password generated:</p>
               <div class="flex items-center justify-between bg-white p-2 rounded border border-gray-300 mb-3">
-                <code id="temp-password" class="text-sm font-mono font-bold text-gray-900">{@temporary_password}</code>
+                <code id="temp-password" class="text-sm font-mono font-bold text-gray-900">
+                  {@temporary_password}
+                </code>
                 <button
                   type="button"
                   id="copy-password-btn"
@@ -137,9 +139,11 @@ defmodule MykonosBiennaleWeb.Admin.UserLive.FormComponent do
   @impl true
   def handle_event("generate_password", _params, socket) do
     user = socket.assigns.user
+
     case Accounts.set_temporary_password(user) do
       {:ok, _updated_user, password} ->
         {:noreply, assign(socket, :temporary_password, password)}
+
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, "Failed to generate temporary password")}
     end
@@ -164,7 +168,11 @@ defmodule MykonosBiennaleWeb.Admin.UserLive.FormComponent do
 
       {:error, _reason} ->
         {:noreply,
-         put_flash(socket, :error, "Failed to send email. You can copy the password above and send it manually.")}
+         put_flash(
+           socket,
+           :error,
+           "Failed to send email. You can copy the password above and send it manually."
+         )}
     end
   end
 

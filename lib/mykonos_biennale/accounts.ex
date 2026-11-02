@@ -124,6 +124,7 @@ defmodule MykonosBiennale.Accounts do
     # Generate a 16-character temporary password with mixed case and numbers
     chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%'
     length = 16
+
     Enum.map_join(1..length, fn _ ->
       Enum.random(chars)
     end)
