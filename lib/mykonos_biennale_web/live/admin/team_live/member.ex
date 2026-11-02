@@ -14,6 +14,8 @@ defmodule MykonosBiennaleWeb.Admin.TeamLive.Member do
     coordinator: "Coordinator",
     designer: "Designer",
     technical: "Technical",
+    photographer: "Photographer",
+    documentor: "Documentor",
     volunteer: "Volunteer"
   ]
 
