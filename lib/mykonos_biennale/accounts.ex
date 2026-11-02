@@ -97,6 +97,38 @@ defmodule MykonosBiennale.Accounts do
     end)
   end
 
+  @doc """
+  Sets a temporary password for a user (admin only).
+  Returns {:ok, user, password} on success or {:error, changeset} on failure.
+  """
+  def set_temporary_password(%User{} = user) do
+    password = generate_temporary_password()
+
+    user
+    |> User.temporary_password_changeset(password)
+    |> Repo.update()
+    |> case do
+      {:ok, updated_user} -> {:ok, updated_user, password}
+      {:error, changeset} -> {:error, changeset}
+    end
+  end
+
+  @doc """
+  Sends the temporary password to the user via email.
+  """
+  def send_temporary_password_email(%User{} = user, password) when is_binary(password) do
+    UserNotifier.deliver_temporary_password(user, password)
+  end
+
+  defp generate_temporary_password do
+    # Generate a 16-character temporary password with mixed case and numbers
+    chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%'
+    length = 16
+    Enum.map_join(1..length, fn _ ->
+      Enum.random(chars)
+    end)
+  end
+
   ## Settings
 
   @doc """

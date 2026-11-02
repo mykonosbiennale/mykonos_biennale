@@ -81,4 +81,24 @@ defmodule MykonosBiennale.Accounts.UserNotifier do
     ==============================
     """)
   end
+
+  @doc """
+  Deliver temporary password to user.
+  """
+  def deliver_temporary_password(user, password) do
+    deliver(user.email, "Your temporary password", """
+
+    ==============================
+
+    Hi #{user.email},
+
+    A temporary password has been set for your account.
+
+    Your temporary password is: #{password}
+
+    Please log in with this password and change it immediately to a secure password of your choice.
+
+    ==============================
+    """)
+  end
 end
