@@ -68,12 +68,36 @@ defmodule MykonosBiennaleWeb.UserLive.Login do
             autocomplete="username"
             required
           />
-          <.input
-            field={@form[:password]}
-            type="password"
-            label="Password"
-            autocomplete="current-password"
-          />
+          <div class="relative">
+            <.input
+              id="password_input"
+              field={@form[:password]}
+              type="password"
+              label="Password"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              id="toggle_password_btn"
+              class="absolute right-3 top-10 text-gray-500 hover:text-gray-700"
+              onclick="togglePasswordVisibility()"
+            >
+              <.icon name="hero-eye" class="size-5" />
+            </button>
+          </div>
+          <script>
+            function togglePasswordVisibility() {
+              const input = document.getElementById('password_input');
+              const btn = document.getElementById('toggle_password_btn');
+              if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5"><path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5Z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>';
+              } else {
+                input.type = 'password';
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5"><path fill-rule="evenodd" d="M3.28 2.22a.75.75 0 00-1.06 1.06l14.5 14.5a.75.75 0 101.06-1.06L3.28 2.22zM6.462 6.462a3 3 0 104.243 4.243.75.75 0 00-1.06-1.061 1.5 1.5 0 01-2.122-2.122.75.75 0 00-1.06-1.06zM16.75 9a.75.75 0 01.75.75v.068c0 .715.11 1.404.32 2.07a1.75 1.75 0 01-.96 2.293.75.75 0 00.424 1.44c1.059-.3 1.99-1.086 2.423-2.127.21-.518.327-1.073.327-1.676V9.75a.75.75 0 01-.75-.75z" clip-rule="evenodd" /></svg>';
+              }
+            }
+          </script>
           <.button class="btn btn-primary w-full" name={@form[:remember_me].name} value="true">
             Log in and stay logged in <span aria-hidden="true">→</span>
           </.button>
