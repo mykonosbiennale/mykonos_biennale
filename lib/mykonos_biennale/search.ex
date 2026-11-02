@@ -320,8 +320,6 @@ defmodule MykonosBiennale.Search do
     if name == "", do: nil, else: name
   end
 
-  defp compose_name(_), do: nil
-
   defp entity_subtitle(%Entity{type: "biennale", fields: %{"theme" => theme}})
        when is_binary(theme),
        do: theme

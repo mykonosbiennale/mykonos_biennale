@@ -652,8 +652,6 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
     end
   end
 
-  defp split_name(_), do: {"", ""}
-
   defp resolve_slug(field) do
     Map.get(@principal_field_to_slug, field, "participated_in")
   end

@@ -354,8 +354,6 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
   defp media_thumb_url(%{source_type: "url", source_url: url}) when is_binary(url), do: url
   defp media_thumb_url(_), do: nil
 
-  defp slugify(nil), do: ""
-
   defp slugify(title) when is_binary(title) do
     title
     |> String.downcase()

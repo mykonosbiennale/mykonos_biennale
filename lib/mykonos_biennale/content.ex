@@ -331,9 +331,14 @@ defmodule MykonosBiennale.Content do
   Pass `slug` and `label` (or just `slug` if the type already exists).
   """
   def create_relationship(attrs \\ %{}) do
-    {slug, rest} = Map.pop(attrs, :slug) || Map.pop(attrs, "slug")
-    {label, rest} = Map.pop(rest, :label) || Map.pop(rest, "label")
-    {name, rest} = Map.pop(rest, :name) || Map.pop(rest, "name")
+    slug = attrs[:slug] || attrs["slug"]
+    rest = Map.drop(attrs, [:slug, "slug"])
+
+    label = rest[:label] || rest["label"]
+    rest = Map.drop(rest, [:label, "label"])
+
+    name = rest[:name] || rest["name"]
+    rest = Map.drop(rest, [:name, "name"])
 
     label = label || name || slug
 

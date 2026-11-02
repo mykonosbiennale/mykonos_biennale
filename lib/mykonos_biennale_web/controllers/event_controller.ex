@@ -295,8 +295,6 @@ defmodule MykonosBiennaleWeb.EventController do
     end)
   end
 
-  defp batch_media(entity_ids) when entity_ids == [], do: %{}
-
   defp batch_media(entity_ids) do
     records =
       Repo.all(
