@@ -15,6 +15,8 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     {"Coordinator", "coordinator"},
     {"Designer", "designer"},
     {"Technical", "technical"},
+    {"Photographer", "photographer"},
+    {"Documentor", "documentor"},
     {"Volunteer", "volunteer"}
   ]
 
