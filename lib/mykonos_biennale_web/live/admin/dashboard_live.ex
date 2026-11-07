@@ -91,6 +91,7 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
       |> assign(:type_icons, @type_icons)
       |> assign(:cache_files, cache_stats.files)
       |> assign(:cache_size, format_bytes(cache_stats.bytes))
+      |> assign_default_year()
 
     {:ok, load_recent(socket)}
   end
@@ -103,6 +104,17 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
   @impl true
   def handle_event("filter_biennale", %{"biennale" => value}, socket) do
     {:noreply, socket |> assign(:biennale_filter, value) |> load_recent()}
+  end
+
+  @impl true
+  def handle_event("set_default_year", %{"year" => year}, socket) do
+    year = String.to_integer(year)
+    :ok = MykonosBiennale.Settings.put_current_biennale_year(year)
+
+    {:noreply,
+     socket
+     |> assign(:current_biennale_year, year)
+     |> put_flash(:info, "Default biennale set to #{year}")}
   end
 
   @impl true
@@ -119,6 +131,22 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
        :info,
        "Cleared #{count + legacy_count} cached thumbnail(s). They will regenerate on next access."
      )}
+  end
+
+  defp assign_default_year(socket) do
+    years =
+      socket.assigns.biennales
+      |> Enum.map(fn b ->
+        case b.fields["year"] do
+          year when is_integer(year) -> year
+          year -> String.to_integer(to_string(year))
+        end
+      end)
+      |> Enum.sort(:desc)
+
+    socket
+    |> assign(:current_biennale_year, MykonosBiennale.Settings.current_biennale_year())
+    |> assign(:year_options, years)
   end
 
   defp load_recent(socket) do
@@ -336,6 +364,27 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
           >
             <.icon name="hero-photo" class="size-5 text-amber-400" />
           </.link>
+        </div>
+
+        <div class="mb-8 bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="text-sm font-bold uppercase text-gray-300">Default Biennale</h2>
+              <p class="text-2xl font-bold text-red-500 mt-1">{@current_biennale_year}</p>
+              <p class="text-xs text-gray-500 mt-1">Shown on the home page</p>
+            </div>
+            <form phx-submit="set_default_year" class="flex items-center gap-2">
+              <select
+                name="year"
+                class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white"
+              >
+                <option :for={year <- @year_options} value={year} selected={year == @current_biennale_year}>
+                  {year}
+                </option>
+              </select>
+              <button type="submit" class="btn btn-primary">Set default</button>
+            </form>
+          </div>
         </div>
 
         <div class="mb-8">
