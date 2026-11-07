@@ -46,6 +46,9 @@ if config_env() == :prod do
   File.mkdir_p("/data/uploads")
   File.mkdir_p("/data/media")
   File.mkdir_p("/data/thumbnails")
+  File.mkdir_p("/data/prerendered")
+
+  config :phoenix_prerender, output_path: "/data/prerendered"
 
   config :mykonos_biennale, MykonosBiennale.Mailer,
     api_key:

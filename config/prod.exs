@@ -23,3 +23,9 @@ config :logger, level: :info
 
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
+
+config :phoenix_prerender,
+  enabled: true,
+  isr: true,
+  revalidate: 300,
+  strict_paths: false
