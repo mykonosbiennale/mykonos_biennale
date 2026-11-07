@@ -1,0 +1,165 @@
+<div class="min-h-screen bg-neutral-900 text-white">
+  <%!-- Hero / Statement Section with Background --%>
+  <div
+    class="relative flex items-center justify-center bg-cover bg-center bg-no-repeat px-6 py-20 md:py-32"
+    style={
+      if @statement_bg_media && media_url(@statement_bg_media, size: "hero"),
+        do: "background-image: url('#{media_url(@statement_bg_media, size: "hero")}');",
+        else: ""
+    }
+  >
+    <div class="absolute inset-0 bg-black/40"></div>
+    <div class="relative z-10 max-w-4xl mx-auto text-center">
+      <h1 class="text-5xl md:text-6xl font-bold uppercase mb-2 text-white">
+        MYKONOS BIENNALE
+      </h1>
+      <p class="text-3xl md:text-4xl font-light text-red-400 mb-6">
+        {@biennale.fields["year"]}
+      </p>
+      <p class="text-2xl md:text-3xl font-light text-gray-200 mb-8">
+        {@biennale.fields["theme"]}
+      </p>
+
+      <%= if @biennale.fields["statement"] do %>
+        <div
+          class="text-center leading-relaxed text-base md:text-lg text-white max-w-3xl mx-auto"
+          style="text-shadow: 2px 2px 8px rgba(0,0,0,0.95); line-height: 1.8;"
+        >
+          {Phoenix.HTML.raw(@biennale.fields["statement"])}
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%!-- Participants Section --%>
+  <div class="px-6 py-20 md:py-28 bg-neutral-900">
+    <div class="max-w-5xl mx-auto">
+      <div class="space-y-12">
+        <.summary_section
+          title="Participating Artists"
+          names={@summary.artists}
+          border="border-red-600"
+          text="text-red-400"
+        />
+        <.summary_section
+          title="Dramatic Nights Directors"
+          names={@summary.dramatic_nights_directors}
+          border="border-cyan-400"
+          text="text-cyan-400"
+        />
+        <.summary_section
+          title="Video Graffiti Directors & Artists"
+          names={@summary.video_graffiti}
+          border="border-green-400"
+          text="text-green-400"
+        />
+        <.summary_section
+          title="Participating Performers"
+          names={@summary.performers}
+          border="border-purple-400"
+          text="text-purple-400"
+        />
+        <.summary_section
+          title="Other Participants"
+          names={@summary.other}
+          border="border-yellow-600"
+          text="text-yellow-400"
+        />
+        <.summary_section
+          title="Curators"
+          names={@summary.curators}
+          border="border-orange-600"
+          text="text-orange-400"
+        />
+
+        <div :if={@summary.team != []} class="border-l-4 border-blue-600 pl-6">
+          <h2 class="text-xl md:text-2xl font-bold uppercase tracking-wider text-blue-400 mb-4">
+            Team
+          </h2>
+          <div class="space-y-2">
+            <%= for member <- @summary.team do %>
+              <p class="text-sm md:text-base text-gray-300">
+                <span class="font-semibold">{member.name}</span>
+                <span class="text-gray-500">· {member.role_label}</span>
+              </p>
+            <% end %>
+          </div>
+        </div>
+
+        <div :if={@sponsors != []} class="border-l-4 border-yellow-600 pl-6">
+          <h2 class="text-xl md:text-2xl font-bold uppercase tracking-wider text-yellow-400 mb-4">
+            Sponsors
+          </h2>
+          <p class="text-sm md:text-base text-gray-300">
+            <%= for {sponsor, index} <- Enum.with_index(@sponsors) do %>
+              <%= if sponsor[:url] != "" do %>
+                <a
+                  href={sponsor[:url]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="hover:text-red-400 transition-colors"
+                >
+                  {String.upcase(sponsor[:name] || "")}
+                </a>
+              <% else %>
+                <span>{String.upcase(sponsor[:name] || "")}</span>
+              <% end %>
+              <%= if index < length(@sponsors) - 1 do %>
+                <span class="mx-3">·</span>
+              <% end %>
+            <% end %>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <.archive_teaser biennales={@biennales} media_map={@biennale_media_map} />
+
+  <%!-- Footer --%>
+  <div class="px-6 py-12 border-t border-gray-800 bg-neutral-950">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="text-center md:text-left">
+        <p class="text-sm text-gray-400 uppercase tracking-wider">
+          Mykonos Biennale &copy; {@biennale.fields["year"]} · {MykonosBiennale.Application.project_version()}
+        </p>
+      </div>
+
+      <div class="flex gap-6">
+        <a
+          href={~p"/about"}
+          class="text-sm text-gray-400 hover:text-white uppercase tracking-wider"
+        >
+          About
+        </a>
+        <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
+          Contact
+        </a>
+        <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
+          Press
+        </a>
+        <%= if @current_scope do %>
+          <a
+            href={~p"/admin"}
+            class="text-sm text-gray-400 hover:text-white uppercase tracking-wider"
+          >
+            Admin
+          </a>
+          <.link
+            href={~p"/users/log-out"}
+            method="delete"
+            class="text-sm text-gray-400 hover:text-white uppercase tracking-wider"
+          >
+            Log out
+          </.link>
+        <% else %>
+          <.link
+            href={~p"/users/log-in"}
+            class="text-sm text-gray-400 hover:text-white uppercase tracking-wider"
+          >
+            Log in
+          </.link>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

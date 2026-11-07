@@ -144,7 +144,7 @@
   <% end %>
 
   <%!-- Project Preview Section --%>
-  <%= if @biennale.fields["show_program"] != false do %>
+  <%= if @biennale.fields["show_program"] != false and @projects != [] do %>
     <div class="px-6 py-20 md:py-32 max-w-7xl mx-auto">
       <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
         Projects {@biennale.fields["year"]}
@@ -283,56 +283,7 @@
     </div>
   <% end %>
 
-  <%!-- Archive Teaser Section --%>
-  <div class="px-6 py-20 md:py-32 bg-neutral-950">
-    <div class="max-w-5xl mx-auto">
-      <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
-        Archive
-      </h2>
-
-      <div class="flex flex-wrap justify-center gap-4">
-        <%= for biennale <- @biennales do %>
-          <% media_list = Map.get(@biennale_media_map, biennale.id, [])
-          first_media = List.first(media_list)
-
-          bg_style =
-            if first_media do
-              "background-image: url('" <>
-                media_url(first_media, size: :thumb) <>
-                "'); background-size: cover; background-position: center;"
-            else
-              ""
-            end %>
-          <a
-            href={~p"/biennale/#{biennale.slug}"}
-            class="aspect-square bg-black border border-gray-800 flex items-center justify-center hover:bg-gray-900 transition-colors relative overflow-hidden w-[calc(50%-0.5rem)] md:w-[calc(25%-0.75rem)]"
-            style={bg_style}
-          >
-            <div class="absolute inset-0 bg-black/30"></div>
-            <div class="relative text-center">
-              <span class="text-3xl font-bold text-red-700 hover:text-red-500 transition-colors">
-                {biennale.fields["year"]}
-              </span>
-              <span class="block text-sm font-bold text-red-700 mt-1">
-                {biennale.fields["theme"]}
-              </span>
-            </div>
-          </a>
-        <% end %>
-      </div>
-
-      <%= if length(@biennales) > 8 do %>
-        <div class="text-center mt-12">
-          <a
-            href={~p"/archive"}
-            class="px-8 py-4 border-2 border-white text-white font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-colors inline-block"
-          >
-            View All Editions
-          </a>
-        </div>
-      <% end %>
-    </div>
-  </div>
+  <.archive_teaser biennales={@biennales} media_map={@biennale_media_map} />
 
   <%!-- Footer --%>
   <div class="px-6 py-12 border-t border-gray-800 bg-neutral-950">

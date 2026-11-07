@@ -114,6 +114,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
         |> assign(:biennale_media_map, biennale_media_map)
         |> assign(:project_media, project_media)
         |> assign(:team_members, team_members)
+        |> assign(:summary, summary_sections(projects, events, team_members))
         |> assign(:sponsors, sponsors)
         |> assign(
           :page_title,
@@ -179,6 +180,45 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     }
   end
 
+  defp summary_sections(projects, events, team_members) do
+    by_last_name = fn name ->
+      {String.downcase(List.last(String.split(name)) || ""), String.downcase(name)}
+    end
+
+    names = fn people ->
+      people |> Enum.map(&elem(&1, 1)) |> Enum.uniq() |> Enum.sort_by(by_last_name)
+    end
+
+    titled = fn title ->
+      Enum.filter(projects, &String.contains?(String.downcase(&1.title || ""), title))
+    end
+
+    dramatic = titled.("dramatic nights")
+    video_graffiti = titled.("video graffiti")
+    {performances, other_events} = Enum.split_with(events, &(&1.type == "performance"))
+
+    artists = names.(Enum.flat_map(projects, & &1.participants))
+    performers = names.(Enum.flat_map(performances, & &1.participants))
+
+    other =
+      other_events
+      |> Enum.flat_map(& &1.participants)
+      |> names.()
+      |> Enum.reject(&(&1 in artists))
+
+    {curators, team} = Enum.split_with(team_members, &(&1.role == "curator"))
+
+    %{
+      artists: artists,
+      dramatic_nights_directors: names.(Enum.flat_map(dramatic, & &1.directors)),
+      video_graffiti: names.(Enum.flat_map(video_graffiti, &(&1.directors ++ &1.participants))),
+      performers: performers,
+      other: other,
+      curators: curators |> Enum.map(& &1.name) |> Enum.sort_by(by_last_name),
+      team: Enum.sort_by(team, &by_last_name.(&1.name))
+    }
+  end
+
   defp extract_background(media) do
     case List.last(media) do
       %{source_type: "upload"} = m ->
@@ -201,7 +241,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     |> render(:none)
   end
 
-  @biennale_templates ~w(biennale festival festival-2023 festival-2025 list none)a
+  @biennale_templates ~w(biennale festival festival-2023 festival-2025 list none summary)a
 
   def render_template(conn, %{template: "default"}) do
     render(conn, :biennale)
