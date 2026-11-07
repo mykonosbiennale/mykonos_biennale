@@ -19,7 +19,8 @@ defmodule MykonosBiennaleWeb.PageController do
   }
 
   def home(conn, _params) do
-    current_biennale = Content.get_biennale_by_year(MykonosBiennale.Settings.current_biennale_year())
+    current_biennale =
+      Content.get_biennale_by_year(MykonosBiennale.Settings.current_biennale_year())
 
     rt = preload_relationship_types()
 

@@ -181,9 +181,17 @@ defmodule MykonosBiennaleWeb.BiennaleController do
   end
 
   defp summary_sections(projects, events, team_members) do
-    by_last_name = fn name -> {String.downcase(List.last(String.split(name)) || ""), String.downcase(name)} end
-    names = fn people -> people |> Enum.map(&elem(&1, 1)) |> Enum.uniq() |> Enum.sort_by(by_last_name) end
-    titled = fn title -> Enum.filter(projects, &String.contains?(String.downcase(&1.title || ""), title)) end
+    by_last_name = fn name ->
+      {String.downcase(List.last(String.split(name)) || ""), String.downcase(name)}
+    end
+
+    names = fn people ->
+      people |> Enum.map(&elem(&1, 1)) |> Enum.uniq() |> Enum.sort_by(by_last_name)
+    end
+
+    titled = fn title ->
+      Enum.filter(projects, &String.contains?(String.downcase(&1.title || ""), title))
+    end
 
     dramatic = titled.("dramatic nights")
     video_graffiti = titled.("video graffiti")

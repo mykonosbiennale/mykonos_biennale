@@ -378,7 +378,11 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
                 name="year"
                 class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white"
               >
-                <option :for={year <- @year_options} value={year} selected={year == @current_biennale_year}>
+                <option
+                  :for={year <- @year_options}
+                  value={year}
+                  selected={year == @current_biennale_year}
+                >
                   {year}
                 </option>
               </select>
