@@ -18,7 +18,9 @@ defmodule MykonosBiennale.Application do
       # Start a worker by calling: MykonosBiennale.Worker.start_link(arg)
       # {MykonosBiennale.Worker, arg},
       # Start to serve requests, typically the last entry
-      MykonosBiennaleWeb.Endpoint
+      MykonosBiennaleWeb.Endpoint,
+      {PhoenixPrerender.Regenerator, endpoint: MykonosBiennaleWeb.Endpoint},
+      MykonosBiennale.Prerender
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

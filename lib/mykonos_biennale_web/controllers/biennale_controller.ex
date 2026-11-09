@@ -42,6 +42,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
 
         event_participants = batch_event_participants(Enum.map(raw_events, & &1.id), rt)
         team_members = load_team_members(biennale, rt)
+        biennale_people = load_biennale_people(biennale, rt)
 
         projects =
           Enum.map(
@@ -114,7 +115,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
         |> assign(:biennale_media_map, biennale_media_map)
         |> assign(:project_media, project_media)
         |> assign(:team_members, team_members)
-        |> assign(:summary, summary_sections(projects, events, team_members))
+        |> assign(:summary, summary_sections(projects, events, team_members, biennale_people))
         |> assign(:sponsors, sponsors)
         |> assign(
           :page_title,
@@ -180,7 +181,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     }
   end
 
-  defp summary_sections(projects, events, team_members) do
+  defp summary_sections(projects, events, team_members, biennale_people) do
     by_last_name = fn name ->
       {String.downcase(List.last(String.split(name)) || ""), String.downcase(name)}
     end
@@ -197,8 +198,12 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     video_graffiti = titled.("video graffiti")
     {performances, other_events} = Enum.split_with(events, &(&1.type == "performance"))
 
-    artists = names.(Enum.flat_map(projects, & &1.participants))
-    performers = names.(Enum.flat_map(performances, & &1.participants))
+    people_for = fn role -> for {r, id, name} <- biennale_people, r == role, do: {id, name} end
+
+    artists = names.(Enum.flat_map(projects, & &1.participants) ++ people_for.("artist"))
+
+    performers =
+      names.(Enum.flat_map(performances, & &1.participants) ++ people_for.("performer"))
 
     other =
       other_events
@@ -210,8 +215,13 @@ defmodule MykonosBiennaleWeb.BiennaleController do
 
     %{
       artists: artists,
-      dramatic_nights_directors: names.(Enum.flat_map(dramatic, & &1.directors)),
-      video_graffiti: names.(Enum.flat_map(video_graffiti, &(&1.directors ++ &1.participants))),
+      dramatic_nights_directors:
+        names.(Enum.flat_map(dramatic, & &1.directors) ++ people_for.("dn_director")),
+      video_graffiti:
+        names.(
+          Enum.flat_map(video_graffiti, &(&1.directors ++ &1.participants)) ++
+            people_for.("vg_director")
+        ),
       performers: performers,
       other: other,
       curators: curators |> Enum.map(& &1.name) |> Enum.sort_by(by_last_name),
@@ -265,6 +275,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
 
   defp preload_relationship_types do
     slugs = [
+      "biennale_participant",
       "biennale_event",
       "event_project",
       "artwork_event",
@@ -311,7 +322,8 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     "technical" => "Technical",
     "photographer" => "Photographer",
     "documentor" => "Documentor",
-    "volunteer" => "Volunteer"
+    "volunteer" => "Volunteer",
+    "team" => "Team"
   }
 
   defp load_team_members(biennale, rt) do
@@ -350,6 +362,21 @@ defmodule MykonosBiennaleWeb.BiennaleController do
       end)
     else
       []
+    end
+  end
+
+  defp load_biennale_people(biennale, rt) do
+    case Map.get(rt, "biennale_participant") do
+      nil ->
+        []
+
+      bp_rt ->
+        Repo.all(
+          from r in Relationship,
+            where: r.subject_id == ^biennale.id and r.relationship_type_id == ^bp_rt.id,
+            preload: [:object]
+        )
+        |> Enum.map(&{&1.fields["role"], &1.object.id, &1.object.identity})
     end
   end
 

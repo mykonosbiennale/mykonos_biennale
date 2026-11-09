@@ -76,14 +76,9 @@
           <h2 class="text-xl md:text-2xl font-bold uppercase tracking-wider text-blue-400 mb-4">
             Team
           </h2>
-          <div class="space-y-2">
-            <%= for member <- @summary.team do %>
-              <p class="text-sm md:text-base text-gray-300">
-                <span class="font-semibold">{member.name}</span>
-                <span class="text-gray-500">· {member.role_label}</span>
-              </p>
-            <% end %>
-          </div>
+          <p class="text-sm md:text-base text-gray-300 leading-relaxed">
+            {Enum.map_join(@summary.team, " · ", & &1.name)}
+          </p>
         </div>
 
         <div :if={@sponsors != []} class="border-l-4 border-yellow-600 pl-6">
