@@ -25,7 +25,7 @@ config :logger, level: :info
 # of environment variables, is done on config/runtime.exs.
 
 config :phoenix_prerender,
-  enabled: false,
+  enabled: true,
   isr: true,
   revalidate: 300,
   strict_paths: false

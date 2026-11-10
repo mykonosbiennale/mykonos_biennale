@@ -103,15 +103,21 @@
                     <% end %>
                   </div>
                   <h3 class="text-sm text-neutral-300 group-hover:text-white transition-colors">
-                    {field(item.artwork, "title")}
+                    {if item.creators != [],
+                      do: Enum.map_join(item.creators, " · ", &participant_name/1),
+                      else: field(item.artwork, "title")}
                   </h3>
                 </a>
-                <p :if={item.creators != []} class="text-xs text-neutral-500 mt-1">
-                  <%= for c <- item.creators do %>
-                    <a href={"/artist/#{c.id}"} class="hover:text-neutral-300 transition-colors">
-                      {participant_name(c)}
-                    </a>
-                  <% end %>
+                <p
+                  :if={item.creators != [] and field(item.artwork, "title")}
+                  class="text-xs text-neutral-500 mt-1"
+                >
+                  <a
+                    href={"/artist/#{hd(item.creators).id}"}
+                    class="hover:text-neutral-300 transition-colors"
+                  >
+                    {field(item.artwork, "title")}
+                  </a>
                 </p>
               </div>
             <% end %>
