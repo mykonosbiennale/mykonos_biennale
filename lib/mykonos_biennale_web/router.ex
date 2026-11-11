@@ -117,6 +117,7 @@ defmodule MykonosBiennaleWeb.Router do
       live "/admin/biennales/new", Admin.BiennaleLive.Index, :new
       live "/admin/biennales/:id/edit", Admin.BiennaleLive.Index, :edit
       live "/admin/biennales/:id", Admin.BiennaleLive.Show, :show
+      live "/admin/antidote", Admin.AntidoteLive, :index
       live "/admin/events", Admin.EventLive.Index, :index
       live "/admin/events/new", Admin.EventLive.Index, :new
       live "/admin/events/:id", Admin.EventLive.Show, :show

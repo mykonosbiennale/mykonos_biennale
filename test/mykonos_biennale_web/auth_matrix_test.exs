@@ -13,6 +13,7 @@ defmodule MykonosBiennaleWeb.AuthMatrixTest do
     "/admin/biennales/new",
     "/admin/biennales/1/edit",
     "/admin/biennales/1",
+    "/admin/antidote",
     "/admin/events",
     "/admin/events/new",
     "/admin/events/1",
