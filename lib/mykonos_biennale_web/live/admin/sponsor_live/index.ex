@@ -15,6 +15,7 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
      socket
      |> assign(:page_title, "Sponsors")
      |> assign(:biennales, biennales)
+     |> assign(:sponsor_form, %{})
      |> allow_upload(:sponsor_logo,
        accept: ~w(.jpg .jpeg .png .webp),
        max_entries: 1,
@@ -40,6 +41,7 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "Add Sponsor")
+    |> assign(:sponsor_form, %{})
   end
 
   defp apply_action(socket, :index, _params) do
@@ -88,6 +90,10 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
   # -- Events --
 
   @impl true
+  def handle_event("validate", params, socket) do
+    {:noreply, assign(socket, :sponsor_form, params)}
+  end
+
   def handle_event("cancel-upload", %{"ref" => ref}, socket) do
     {:noreply, cancel_upload(socket, :sponsor_logo, ref)}
   end
@@ -124,6 +130,7 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
           {:noreply,
            socket
            |> load_sponsors()
+           |> assign(:sponsor_form, %{})
            |> put_flash(:info, "Sponsor added to #{length(biennale_ids)} biennale(s)")
            |> push_patch(to: "/admin/sponsors")}
         else

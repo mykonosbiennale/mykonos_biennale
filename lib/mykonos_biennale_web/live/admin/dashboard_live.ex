@@ -118,6 +118,12 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
   end
 
   @impl true
+  def handle_event("rebuild_pages", _params, socket) do
+    MykonosBiennale.Prerender.flush_all()
+    {:noreply, put_flash(socket, :info, "Rebuilding all public pages in the background.")}
+  end
+
+  @impl true
   def handle_event("clear_thumbnail_cache", _params, socket) do
     count = Thumbnail.clear_all_cache()
     legacy_count = Thumbnail.clear_legacy_cache()
@@ -450,6 +456,19 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
           </div>
         </div>
 
+        <div class="mb-8">
+          <h2 class="text-sm font-bold uppercase mb-4 text-gray-300">Quick Forms</h2>
+          <div class="flex flex-wrap gap-2">
+            <.link
+              navigate={~p"/admin/antidote"}
+              class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900/50 border border-gray-800 rounded-full hover:border-purple-700/50 transition-colors"
+            >
+              <span class="text-xs text-gray-400">Add Antidote</span>
+              <.icon name="hero-plus" class="size-3.5 text-purple-400" />
+            </.link>
+          </div>
+        </div>
+
         <div>
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-sm font-bold uppercase text-gray-300">Recent Changes</h2>
@@ -527,6 +546,13 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
                     {@cache_files} files · {@cache_size}
                   </p>
                 </div>
+                <button
+                  phx-click="rebuild_pages"
+                  data-confirm="Delete and rebuild every public page?"
+                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Rebuild Pages
+                </button>
                 <button
                   phx-click="clear_thumbnail_cache"
                   data-confirm="Clear all cached thumbnails?"

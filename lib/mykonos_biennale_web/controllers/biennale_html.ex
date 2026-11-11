@@ -25,6 +25,16 @@ defmodule MykonosBiennaleWeb.BiennaleHTML do
 
   def template_options, do: @system_templates ++ @discovered_templates
 
+  @build_env (case Mix.env() do
+                :prod -> "P"
+                :test -> "T"
+                _ -> "D"
+              end)
+
+  def build_label(render_mode) do
+    "#{MykonosBiennale.Application.project_version()} · #{@build_env} · #{render_mode}"
+  end
+
   attr :title, :string, required: true
   attr :names, :list, required: true
   attr :border, :string, required: true

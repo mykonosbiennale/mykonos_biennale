@@ -111,12 +111,13 @@
     <div data-theme="light" class="bg-white rounded-xl p-6 [&_.label]:text-gray-900">
       <h2 class="text-sm font-semibold text-gray-900 mb-4">Add Sponsor</h2>
 
-      <form phx-submit="add_sponsor" class="space-y-4">
+      <form phx-change="validate" phx-submit="add_sponsor" class="space-y-4">
         <div>
           <label class="block text-sm font-semibold text-gray-900 mb-1">Name</label>
           <input
             type="text"
             name="sponsor_name"
+            value={@sponsor_form["sponsor_name"] || ""}
             placeholder="Sponsor name"
             class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
           />
@@ -127,6 +128,7 @@
           <input
             type="url"
             name="sponsor_url"
+            value={@sponsor_form["sponsor_url"] || ""}
             placeholder="https://..."
             class="w-full rounded-lg border-gray-300 bg-white text-gray-900 px-3 py-2"
           />
@@ -175,6 +177,7 @@
                   type="checkbox"
                   name={"biennale_#{b.id}"}
                   value="true"
+                  checked={@sponsor_form["biennale_#{b.id}"] == "true"}
                   class="rounded border-gray-300"
                 />
                 {b.fields["year"]}
@@ -210,7 +213,7 @@
     <div data-theme="light" class="bg-white rounded-xl p-6 [&_.label]:text-gray-900">
       <h2 class="text-sm font-semibold text-gray-900 mb-4">Edit Sponsor</h2>
 
-      <form phx-submit="update_sponsor" class="space-y-4">
+      <form phx-change="validate" phx-submit="update_sponsor" class="space-y-4">
         <div>
           <label class="block text-sm font-semibold text-gray-900 mb-1">Name</label>
           <input
