@@ -20,6 +20,8 @@ defmodule MykonosBiennale.Prerender do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
+  def flush_all, do: GenServer.cast(__MODULE__, :flush)
+
   @impl true
   def init(_opts) do
     if PhoenixPrerender.enabled?() do
@@ -55,13 +57,46 @@ defmodule MykonosBiennale.Prerender do
   def handle_cast(:changed, state), do: {:noreply, state}
 
   @impl true
+  def handle_cast(:flush, state) do
+    clear_page_cache()
+    regenerate(public_paths(), evict: true)
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_info(:regenerate, state) do
-    paths = public_paths()
-
-    Enum.each(paths, &PhoenixPrerender.Regenerator.maybe_regenerate(&1, @endpoint))
-    prune_removed_biennales(paths)
-
+    regenerate(public_paths(), evict: true)
     {:noreply, %{state | timer: nil}}
+  end
+
+  defp regenerate(paths, evict: true) do
+    Enum.each(paths, fn path ->
+      evict(path)
+      PhoenixPrerender.Regenerator.maybe_regenerate(path, @endpoint)
+    end)
+
+    prune_removed_biennales(paths)
+  end
+
+  # The prerender plug serves any file that exists, so the old copy must go
+  # before a rebuild, or the rebuild just writes the old HTML back.
+  defp evict(path) do
+    file =
+      PhoenixPrerender.Path.full_output_path(
+        path,
+        PhoenixPrerender.output_path(),
+        PhoenixPrerender.url_style()
+      )
+
+    File.rm(file)
+  end
+
+  defp clear_page_cache do
+    PhoenixPrerender.PageCache.clear()
+  rescue
+    _ -> :ok
+  catch
+    :exit, _ -> :ok
   end
 
   defp public_paths do
