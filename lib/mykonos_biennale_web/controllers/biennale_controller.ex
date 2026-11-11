@@ -251,7 +251,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     |> render(:none)
   end
 
-  @biennale_templates ~w(biennale festival festival-2023 festival-2025 list none summary)a
+  @biennale_templates ~w(biennale festival festival-2023 festival-2025 festival-2027 list none summary)a
 
   def render_template(conn, %{template: "default"}) do
     render(conn, :biennale)
