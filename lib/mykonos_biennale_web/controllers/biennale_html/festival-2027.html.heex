@@ -1,0 +1,332 @@
+<div class="min-h-screen bg-neutral-900 text-white">
+  <%!-- Hero / Statement Section --%>
+  <div
+    :if={@statement_bg_media}
+    class="relative flex items-center justify-center bg-cover bg-center bg-no-repeat px-6 py-20 md:py-32"
+    style={
+      if media_url(@statement_bg_media, size: "hero"),
+        do: "background-image: url('#{media_url(@statement_bg_media, size: "hero")}');",
+        else: ""
+    }
+  >
+    <div class="absolute inset-0 bg-black/20"></div>
+    <div class="relative z-10 max-w-4xl mx-auto text-center">
+      <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4 text-red-600">
+        MYKONOS BIENNALE
+      </h1>
+      <p class="text-2xl md:text-3xl text-red-600">
+        {@biennale.fields["year"]}
+      </p>
+      <h1
+        class="text-5xl md:text-7xl font-bold uppercase mb-4 text-white"
+        style="text-shadow: 2px 2px 6px rgba(0,0,0,0.9);"
+      >
+        <br />{@biennale.fields["theme"]}
+      </h1>
+
+      <%= if @biennale.fields["start_date"] && @biennale.fields["end_date"] do %>
+        <p
+          class="text-lg text-white mt-4"
+          style="text-shadow: 2px 2px 6px rgba(0,0,0,0.9);"
+        >
+          {format_date(@biennale.fields["start_date"])} – {format_date(
+            @biennale.fields["end_date"]
+          )}
+        </p>
+      <% end %>
+      <%= if @biennale.fields["statement"] do %>
+        <div class="text-left whitespace-pre-line leading-relaxed text-amber-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.9)] text-lg  mt-8">
+          {Phoenix.HTML.raw(@biennale.fields["statement"])}
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%!-- Fallback hero when no media --%>
+  <div :if={@statement_bg_media == nil} class="px-6 py-20 md:py-32">
+    <div class="text-center max-w-4xl mx-auto">
+      <h1 class="text-5xl md:text-7xl font-bold uppercase mb-4">{@biennale.fields["theme"]}</h1>
+      <p class="text-2xl md:text-3xl text-gray-300 font-light">{@biennale.fields["year"]}</p>
+      <%= if @biennale.fields["start_date"] && @biennale.fields["end_date"] do %>
+        <p class="text-lg text-gray-400 mt-4">
+          {format_date(@biennale.fields["start_date"])} – {format_date(
+            @biennale.fields["end_date"]
+          )}
+        </p>
+      <% end %>
+      <%= if @biennale.fields["statement"] do %>
+        <div class="leading-relaxed text-amber-400  drop-shadow-[0_4px_4px_rgba(0,0,0,0.9)] text-lg  mt-8">
+          {Phoenix.HTML.raw(@biennale.fields["statement"])}
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%!-- Program Section --%>
+  <%= if @biennale.fields["show_program"] != false and @events != [] do %>
+    <% events_by_date = Enum.group_by(@events, & &1.date, & &1)
+
+    sorted_dates =
+      Enum.sort(Enum.uniq(Enum.map(@events, & &1.date)), fn a, b ->
+        case {Date.from_iso8601(a), Date.from_iso8601(b)} do
+          {{:ok, da}, {:ok, db}} -> Date.compare(da, db) != :gt
+          _ -> a <= b
+        end
+      end) %>
+    <% program_bg =
+      if @program_bg_media do
+        "background-image: url('#{media_url(@program_bg_media, size: "hero")}'); background-size: cover; background-position: center;"
+      else
+        ""
+      end %>
+    <div
+      id="program"
+      class="relative my-8 px-6 py-20 md:py-32 bg-cover bg-center bg-no-repeat"
+      style={program_bg}
+    >
+      <%= if program_bg != "" do %>
+        <div class="absolute inset-0 bg-black/40"></div>
+      <% end %>
+      <div class="relative z-10 max-w-4xl mx-auto">
+        <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
+          Program {@biennale.fields["year"]}
+        </h2>
+
+        <%= for date <- sorted_dates do %>
+          <% day_events = Map.get(events_by_date, date, [])
+          events_by_time = Enum.group_by(day_events, &(&1.time || ""))
+          sorted_times = Enum.sort(Enum.uniq(Enum.map(day_events, &(&1.time || "")))) %>
+          <% location = Enum.find_value(day_events, & &1.location) %>
+          <div class="mb-12">
+            <h3 class="text-2xl font-bold uppercase mb-1 text-red-600">
+              {format_day(date)}
+            </h3>
+            <%= if location do %>
+              <p class="text-sm text-gray-500 uppercase tracking-wider mb-6">
+                Location: {location}
+              </p>
+            <% end %>
+
+            <dl class="space-y-4">
+              <%= for time <- sorted_times do %>
+                <% time_events = Map.get(events_by_time, time, []) %>
+                <div class="flex gap-4 items-start">
+                  <dt class="text-cyan-400 font-bold text-sm shrink-0 w-24">
+                    {format_time(time) || "TBA"}
+                  </dt>
+                  <dd class="flex-1 space-y-3">
+                    <%= for event <- time_events do %>
+                      <div>
+                        <h4 class="text-lg font-bold text-green-400">
+                          <a
+                            href={"/event/#{event.id}"}
+                            class="hover:text-green-300 transition-colors"
+                          >
+                            {event.title}
+                          </a>
+                        </h4>
+                        <%= if event.description do %>
+                          <p class="text-sm text-gray-400 mt-1">{event.description}</p>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </dd>
+                </div>
+              <% end %>
+            </dl>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Project Preview Section --%>
+  <%= if @biennale.fields["show_program"] != false and @projects != [] do %>
+    <div class="px-6 py-20 md:py-32 max-w-7xl mx-auto">
+      <h2 class="text-4xl md:text-6xl font-bold uppercase mb-16 text-center">
+        Projects {@biennale.fields["year"]}
+      </h2>
+
+      <div class="flex flex-wrap justify-center gap-8">
+        <%= for project <- @projects do %>
+          <% media_list = Map.get(@project_media, project.id, [])
+          first_media = List.first(media_list)
+
+          bg_style =
+            if first_media do
+              "background-image: url('" <>
+                media_url(first_media, size: :card) <>
+                "'); background-size: cover; background-position: center;"
+            else
+              ""
+            end %>
+          <div class="group cursor-pointer w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.375rem)]">
+            <div class="aspect-square bg-gray-900 mb-4 relative overflow-hidden">
+              <%= if first_media do %>
+                <div
+                  class="absolute inset-0 group-hover:scale-105 transition-transform duration-500"
+                  style={bg_style}
+                >
+                </div>
+              <% else %>
+                <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-black group-hover:scale-105 transition-transform duration-500">
+                </div>
+              <% end %>
+            </div>
+            <h3 class="text-xl font-bold uppercase mb-2">
+              <%= if event_id = Map.get(@project_event_map, project.id) do %>
+                <a href={"/event/#{event_id}"} class="hover:text-red-500 transition-colors">
+                  {Map.get(@project_event_titles, project.id) || project.title}
+                </a>
+              <% else %>
+                {project.title}
+              <% end %>
+            </h3>
+            <%= if project.description do %>
+              <p class="text-gray-400 text-sm line-clamp-2">
+                {project.description}
+              </p>
+            <% end %>
+            <%= if project.participants != [] do %>
+              <p class="text-xs text-gray-600 mt-2">
+                <%= for {id, name} <- project.participants do %>
+                  <a href={"/artist/#{id}"} class="hover:text-red-500 transition-colors">
+                    {name}
+                  </a>
+                  {unless id == List.last(Enum.map(project.participants, &elem(&1, 0))), do: " · "}
+                <% end %>
+              </p>
+            <% end %>
+            <%= if project.directors != [] do %>
+              <p class="text-xs text-gray-600 mt-1">
+                Dir.
+                <%= for {id, name} <- project.directors do %>
+                  <a href={"/artist/#{id}"} class="hover:text-red-500 transition-colors">
+                    {name}
+                  </a>
+                  {unless id == List.last(Enum.map(project.directors, &elem(&1, 0))), do: " · "}
+                <% end %>
+              </p>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Team Section --%>
+  <%= if @team_members != [] do %>
+    <div class="px-6 py-20 md:py-32 bg-neutral-900">
+      <div class="max-w-5xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold uppercase mb-12 text-center text-gray-300">
+          Team {@biennale.fields["year"]}
+        </h2>
+        <div class="flex flex-wrap justify-center gap-8">
+          <%= for member <- @team_members do %>
+            <div class="text-center">
+              <img
+                :if={member[:photo]}
+                src={MykonosBiennale.Uploads.media_url(member[:photo], size: "card")}
+                alt={member[:name]}
+                class="w-20 h-20 rounded-full object-cover mx-auto mb-3"
+              />
+              <div
+                :if={is_nil(member[:photo])}
+                class="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center text-gray-500 text-2xl mx-auto mb-3"
+              >
+                {String.slice(member[:name] || "", 0, 1)}
+              </div>
+              <a
+                href={"/artist/#{member[:id]}"}
+                class="text-sm font-bold text-white hover:text-red-500 transition-colors block"
+              >
+                {member[:name]}
+              </a>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">
+                {member[:role_label] || member[:role]}
+              </p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Sponsors Section --%>
+  <%= if @sponsors != [] do %>
+    <div class="px-6 py-16  bg-neutral-900">
+      <div class="max-w-5xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold uppercase mb-12 text-center text-gray-300">
+          Sponsors
+        </h2>
+        <div class="flex flex-wrap justify-center items-center gap-x-8 gap-y-3">
+          <%= for sponsor <- @sponsors do %>
+            <%= if sponsor[:url] != "" do %>
+              <a
+                href={sponsor[:url]}
+                target="_blank"
+                class="text-sm font-bold text-gray-400 hover:text-white transition-colors uppercase tracking-wider"
+              >
+                {String.upcase(sponsor[:name] || "")}
+              </a>
+            <% else %>
+              <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                {String.upcase(sponsor[:name] || "")}
+              </span>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <.archive_teaser biennales={@biennales} media_map={@biennale_media_map} />
+
+  <%!-- Footer --%>
+  <div class="px-6 py-12 border-t border-gray-800 bg-neutral-950">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="text-center md:text-left">
+        <p class="text-sm text-gray-400 uppercase tracking-wider">
+          Mykonos Biennale &copy; {@biennale.fields["year"]} · {build_label("D")}
+        </p>
+      </div>
+
+      <div class="flex gap-6">
+        <a
+          href={~p"/about"}
+          class="text-sm text-gray-400 hover:text-white uppercase tracking-wider"
+        >
+          About
+        </a>
+        <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
+          Contact
+        </a>
+        <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
+          Press
+        </a>
+        <%= if @current_scope do %>
+          <a
+            href={~p"/admin"}
+            class="text-sm text-gray-400 hover:text-white uppercase tracking-wider"
+          >
+            Admin
+          </a>
+          <.link
+            href={~p"/users/log-out"}
+            method="delete"
+            class="text-sm text-gray-400 hover:text-white uppercase tracking-wider"
+          >
+            Log out
+          </.link>
+        <% else %>
+          <.link
+            href={~p"/users/log-in"}
+            class="text-sm text-gray-400 hover:text-white uppercase tracking-wider"
+          >
+            Log in
+          </.link>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
