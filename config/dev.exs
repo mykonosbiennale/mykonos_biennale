@@ -62,7 +62,7 @@ config :mykonos_biennale, MykonosBiennaleWeb.Endpoint,
   live_reload: [
     web_console_logger: true,
     patterns: [
-      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/(?!uploads/|media/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"lib/mykonos_biennale_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
     ]
   ]

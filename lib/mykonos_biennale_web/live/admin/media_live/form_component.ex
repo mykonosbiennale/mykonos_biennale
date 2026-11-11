@@ -1,7 +1,7 @@
 defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
-  alias MykonosBiennale.Content
+  alias MykonosBiennale.{Content, MediaCredit}
 
   @impl true
   def render(assigns) do
@@ -11,6 +11,51 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
         {@title}
         <:subtitle>Upload an image/video, link to a URL, or embed HTML code</:subtitle>
       </.header>
+
+      <div class="mb-6 space-y-2">
+        <p class="text-sm font-semibold text-gray-700">Photographer</p>
+        <%= if @photographer_id do %>
+          <div class="flex items-center gap-3 text-sm">
+            <span>{@photographer_name}</span>
+            <button
+              type="button"
+              phx-click="clear_photographer"
+              phx-target={@myself}
+              class="text-red-600"
+            >
+              remove
+            </button>
+          </div>
+        <% else %>
+          <p class="text-sm text-gray-500">Not set</p>
+        <% end %>
+        <form phx-change="search_photographer" phx-target={@myself}>
+          <input
+            type="text"
+            name="q"
+            value={@photographer_query}
+            placeholder="Search participants…"
+            phx-debounce="300"
+            class="w-full border rounded px-3 py-2 text-sm"
+          />
+        </form>
+        <ul :if={@photographer_results != []} class="border rounded divide-y">
+          <li :for={{id, name} <- @photographer_results}>
+            <button
+              type="button"
+              phx-click="pick_photographer"
+              phx-value-id={id}
+              phx-target={@myself}
+              class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+            >
+              {name}
+            </button>
+          </li>
+        </ul>
+        <p :if={@exif_artist && @exif_artist != ""} class="text-xs text-gray-500">
+          Embedded artist in file: {@exif_artist}
+        </p>
+      </div>
 
       <.form
         for={@form}
@@ -134,6 +179,13 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
      |> assign_new(:form, fn ->
        to_form(Content.change_media(media))
      end)
+     |> assign_new(:photographer_id, fn -> MediaCredit.photographer_id(media) end)
+     |> assign_new(:photographer_name, fn ->
+       MediaCredit.participant_name(MediaCredit.photographer_id(media))
+     end)
+     |> assign_new(:photographer_query, fn -> "" end)
+     |> assign_new(:photographer_results, fn -> [] end)
+     |> assign_new(:exif_artist, fn -> get_in(media.metadata || %{}, ["exif_artist"]) end)
      |> allow_upload(:media_file,
        accept: ~w(.jpg .jpeg .png .gif .mp4 .webm .webp),
        max_entries: 1,
@@ -151,13 +203,65 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
     {:noreply, cancel_upload(socket, :media_file, ref)}
   end
 
+  def handle_event("search_photographer", %{"q" => q}, socket) do
+    q = String.trim(q)
+    results = if String.length(q) >= 2, do: MediaCredit.search_participants(q), else: []
+    {:noreply, assign(socket, photographer_query: q, photographer_results: results)}
+  end
+
+  def handle_event("pick_photographer", %{"id" => id}, socket) do
+    id = String.to_integer(id)
+
+    {:noreply,
+     assign(socket,
+       photographer_id: id,
+       photographer_name: MediaCredit.participant_name(id),
+       photographer_query: "",
+       photographer_results: []
+     )}
+  end
+
+  def handle_event("clear_photographer", _params, socket) do
+    {:noreply, assign(socket, photographer_id: nil, photographer_name: nil)}
+  end
+
   def handle_event("save", %{"media" => media_params}, socket) do
+    {media_params, exif_artist} = maybe_add_uploaded_file(socket, media_params)
+
+    socket =
+      if exif_artist && socket.assigns.photographer_id == nil do
+        case MediaCredit.find_participant_by_name(exif_artist) do
+          nil ->
+            socket
+
+          id ->
+            assign(socket,
+              photographer_id: id,
+              photographer_name: MediaCredit.participant_name(id)
+            )
+        end
+      else
+        socket
+      end
+
+    media_params = put_credit(media_params, socket, exif_artist)
     save_media(socket, socket.assigns.action, media_params)
   end
 
-  defp save_media(socket, :edit, media_params) do
-    media_params = maybe_add_uploaded_file(socket, media_params)
+  defp put_credit(media_params, socket, exif_artist) do
+    metadata = socket.assigns.media.metadata || %{}
 
+    metadata =
+      if exif_artist, do: Map.put(metadata, "exif_artist", exif_artist), else: metadata
+
+    Map.put(
+      media_params,
+      "metadata",
+      MediaCredit.put_photographer(metadata, socket.assigns.photographer_id)
+    )
+  end
+
+  defp save_media(socket, :edit, media_params) do
     case Content.update_media(socket.assigns.media, media_params) do
       {:ok, media} ->
         notify_parent({:saved, media})
@@ -173,8 +277,6 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
   end
 
   defp save_media(socket, :new, media_params) do
-    media_params = maybe_add_uploaded_file(socket, media_params)
-
     case Content.create_media(media_params) do
       {:ok, media} ->
         notify_parent({:saved, media})
@@ -201,21 +303,30 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
 
           File.cp!(path, dest)
 
-          {:ok, %{path: filename, mime_type: entry.client_type, original_name: entry.client_name}}
+          {:ok,
+           %{
+             path: filename,
+             mime_type: entry.client_type,
+             original_name: entry.client_name,
+             exif_artist: MediaCredit.exif_artist(dest)
+           }}
         end)
 
       case uploaded_files do
-        [%{path: path, mime_type: mime_type, original_name: original_name}] ->
-          media_params
-          |> Map.put("source_path", path)
-          |> Map.put("mime_type", mime_type)
-          |> Map.put("original_name", original_name)
+        [%{path: path, mime_type: mime_type, original_name: original_name, exif_artist: exif}] ->
+          params =
+            media_params
+            |> Map.put("source_path", path)
+            |> Map.put("mime_type", mime_type)
+            |> Map.put("original_name", original_name)
+
+          {params, exif}
 
         [] ->
-          media_params
+          {media_params, nil}
       end
     else
-      media_params
+      {media_params, nil}
     end
   end
 

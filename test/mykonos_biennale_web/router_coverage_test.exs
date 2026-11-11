@@ -42,6 +42,7 @@ defmodule MykonosBiennaleWeb.RouterCoverageTest do
     {:get, "/admin/biennales/new"},
     {:get, "/admin/biennales/:id/edit"},
     {:get, "/admin/biennales/:id"},
+    {:get, "/admin/antidote"},
     {:get, "/admin/events"},
     {:get, "/admin/events/new"},
     {:get, "/admin/events/:id"},
