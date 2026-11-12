@@ -4,9 +4,11 @@ defmodule MykonosBiennale.Content.Artwork do
   """
 
   import Ecto.Query, warn: false
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
 
   @type_to_rel_name %{
     "film" => "screened",

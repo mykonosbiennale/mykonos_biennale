@@ -6,16 +6,31 @@ defmodule MykonosBiennale.ReimportArtworks do
   """
 
   import Ecto.Query, warn: false
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Media, EntityMedia, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
 
   @records_path "exports/festival/records.json"
 
+  # Overridable in tests via config :mykonos_biennale, :reimport_records_path.
+  def records_path do
+    Application.get_env(:mykonos_biennale, :reimport_records_path) ||
+      Path.join(File.cwd!(), @records_path)
+  end
+
+  # A missing export is treated as "no records" so the admin preview renders
+  # an empty state instead of crashing.
   def load_export do
-    path = Path.join(File.cwd!(), @records_path)
-    {:ok, raw} = File.read(path)
-    Jason.decode!(raw)
+    path = records_path()
+
+    case File.read(path) do
+      {:ok, raw} -> Jason.decode!(raw)
+      {:error, _} -> []
+    end
   end
 
   def build_groups do

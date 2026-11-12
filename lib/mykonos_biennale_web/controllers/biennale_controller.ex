@@ -3,9 +3,13 @@ defmodule MykonosBiennaleWeb.BiennaleController do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, EntityMedia, Media, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
   alias MykonosBiennaleWeb.BiennaleHTML
 
   def show(conn, %{"slug" => slug}) do

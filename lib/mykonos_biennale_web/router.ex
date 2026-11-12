@@ -54,7 +54,7 @@ defmodule MykonosBiennaleWeb.Router do
 
   scope "/", MykonosBiennaleWeb do
     pipe_through :browser
-    live "/archive", ArchiveLive
+    get "/archive", ArchiveController, :index
     live "/archive/:year", ArchiveDetailLive
     live "/program", ProgramLive
     live "/about", AboutLive

@@ -76,6 +76,13 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Index do
     socket |> assign(:page_title, "Manage Participants") |> assign(:participant, nil)
   end
 
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
+  end
+
   @impl true
   def handle_info(
         {MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent, {:saved, _participant}},

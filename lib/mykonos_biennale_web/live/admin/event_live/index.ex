@@ -73,6 +73,13 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
     socket |> assign(:page_title, "Manage Events") |> assign(:event, nil)
   end
 
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.EventLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
+  end
+
   @impl true
   def handle_info({MykonosBiennaleWeb.Admin.EventLive.FormComponent, {:saved, _event}}, socket) do
     page = socket.assigns.current_page

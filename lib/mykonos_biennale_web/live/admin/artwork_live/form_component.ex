@@ -1,8 +1,8 @@
 defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
-  alias MykonosBiennale.Content
   alias Ecto.Changeset
+  alias MykonosBiennale.Content
 
   @artwork_types [
     {"Video", "video"},
@@ -447,7 +447,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
      socket
      |> assign(:current_media_links, current_media_links)
      |> assign(:available_media, available_media)
-     |> put_flash(:info, "Media detached successfully")}
+     |> notify_flash(:info, "Media detached successfully")}
   end
 
   def handle_event("reorder_media_links", %{"media_ids" => media_ids}, socket) do
@@ -480,13 +480,13 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
            socket
            |> assign(:linked_events, linked_events)
            |> assign(:available_events, available_events)
-           |> put_flash(:info, "Event linked successfully")}
+           |> notify_flash(:info, "Event linked successfully")}
 
         {:error, reason} ->
-          {:noreply, put_flash(socket, :error, "Could not link event: #{inspect(reason)}")}
+          {:noreply, notify_flash(socket, :error, "Could not link event: #{inspect(reason)}")}
       end
     else
-      {:noreply, put_flash(socket, :error, "Save the artwork first before linking events")}
+      {:noreply, notify_flash(socket, :error, "Save the artwork first before linking events")}
     end
   end
 
@@ -505,7 +505,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
      socket
      |> assign(:linked_events, linked_events)
      |> assign(:available_events, available_events)
-     |> put_flash(:info, "Event unlinked successfully")}
+     |> notify_flash(:info, "Event unlinked successfully")}
   end
 
   def handle_event("attach_participant", %{"participant_id" => "", "role" => _}, socket) do
@@ -538,13 +538,15 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
            |> assign(:participant_search, "")
            |> assign(:participant_results, [])
            |> assign(:participant_role, "")
-           |> put_flash(:info, "Participant linked successfully")}
+           |> notify_flash(:info, "Participant linked successfully")}
 
         {:error, reason} ->
-          {:noreply, put_flash(socket, :error, "Could not link participant: #{inspect(reason)}")}
+          {:noreply,
+           notify_flash(socket, :error, "Could not link participant: #{inspect(reason)}")}
       end
     else
-      {:noreply, put_flash(socket, :error, "Save the artwork first before linking participants")}
+      {:noreply,
+       notify_flash(socket, :error, "Save the artwork first before linking participants")}
     end
   end
 
@@ -607,13 +609,15 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
            |> assign(:participant_search, "")
            |> assign(:participant_results, [])
            |> assign(:participant_role, "")
-           |> put_flash(:info, "Participant linked successfully")}
+           |> notify_flash(:info, "Participant linked successfully")}
 
         {:error, reason} ->
-          {:noreply, put_flash(socket, :error, "Could not link participant: #{inspect(reason)}")}
+          {:noreply,
+           notify_flash(socket, :error, "Could not link participant: #{inspect(reason)}")}
       end
     else
-      {:noreply, put_flash(socket, :error, "Save the artwork first before linking participants")}
+      {:noreply,
+       notify_flash(socket, :error, "Save the artwork first before linking participants")}
     end
   end
 
@@ -634,7 +638,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
      socket
      |> assign(:linked_participants, linked_participants)
      |> assign(:available_participants, available_participants)
-     |> put_flash(:info, "Participant unlinked successfully")}
+     |> notify_flash(:info, "Participant unlinked successfully")}
   end
 
   def handle_event("save", params, socket) do
@@ -655,13 +659,13 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
 
           {:noreply,
            socket
-           |> put_flash(:info, "Artwork updated successfully")
+           |> notify_flash(:info, "Artwork updated successfully")
            |> push_patch(to: socket.assigns.patch)}
 
         {:error, %Ecto.Changeset{}} ->
           {:noreply,
            socket
-           |> put_flash(:error, "Could not update artwork")
+           |> notify_flash(:error, "Could not update artwork")
            |> assign(
              :form,
              to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :artwork)
@@ -685,13 +689,13 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
 
           {:noreply,
            socket
-           |> put_flash(:info, "Artwork created successfully")
+           |> notify_flash(:info, "Artwork created successfully")
            |> push_patch(to: socket.assigns.patch)}
 
         {:error, %Ecto.Changeset{}} ->
           {:noreply,
            socket
-           |> put_flash(:error, "Could not create artwork")
+           |> notify_flash(:error, "Could not create artwork")
            |> assign(
              :form,
              to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :artwork)
@@ -778,5 +782,10 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
     }
     |> Enum.reject(fn {_k, v} -> is_nil(v) end)
     |> Enum.into(%{})
+  end
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
   end
 end

@@ -73,6 +73,13 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
     socket |> assign(:page_title, "Relationships") |> assign(:relationship, nil)
   end
 
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
+  end
+
   @impl true
   def handle_info(
         {MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent, {:saved, _rel}},

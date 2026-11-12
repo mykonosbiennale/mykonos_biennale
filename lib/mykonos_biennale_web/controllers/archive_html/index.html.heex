@@ -1,0 +1,67 @@
+<Layouts.app flash={@flash}>
+  <div class="min-h-screen bg-black text-white">
+    <%!-- Header --%>
+    <div class="px-6 py-20 md:py-32">
+      <div class="max-w-7xl mx-auto">
+        <a
+          href={~p"/"}
+          class="text-sm text-gray-400 hover:text-white uppercase tracking-wider mb-8 inline-block"
+        >
+          ← Back to Home
+        </a>
+
+        <h1 class="text-4xl md:text-6xl font-bold uppercase mb-8">
+          Archive
+        </h1>
+
+        <p class="text-lg text-gray-400 max-w-2xl">
+          Explore past editions of the Mykonos Biennale, documenting over a decade of
+          international contemporary art, performance, and experimental cinema.
+        </p>
+      </div>
+    </div>
+
+    <%!-- Biennale Grid --%>
+    <div class="px-6 pb-20 md:pb-32">
+      <div class="max-w-7xl mx-auto">
+        <%= if @biennales == [] do %>
+          <div class="text-center py-20">
+            <p class="text-2xl text-gray-500">No biennales in the archive yet.</p>
+          </div>
+        <% else %>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <%= for biennale <- @biennales do %>
+              <.biennale_card biennale={biennale} />
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%!-- Footer --%>
+    <div class="px-6 py-12 border-t border-gray-800">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="text-center md:text-left">
+          <p class="text-sm text-gray-400 uppercase tracking-wider">
+            Mykonos Biennale © 2025
+          </p>
+        </div>
+
+        <div class="flex gap-6">
+          <a
+            href={~p"/about"}
+            class="text-sm text-gray-400 hover:text-white uppercase tracking-wider"
+          >
+            About
+          </a>
+          <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
+            Contact
+          </a>
+          <a href="#" class="text-sm text-gray-400 hover:text-white uppercase tracking-wider">
+            Press
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layouts.app>

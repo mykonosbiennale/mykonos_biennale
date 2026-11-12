@@ -3,9 +3,11 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, EntityMedia, Media}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Repo
 
   @impl true
   def mount(_params, _session, socket) do

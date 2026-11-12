@@ -6,7 +6,9 @@ defmodule MykonosBiennale.Accounts do
   import Ecto.Query, warn: false
   alias MykonosBiennale.Repo
 
-  alias MykonosBiennale.Accounts.{User, UserToken, UserNotifier}
+  alias MykonosBiennale.Accounts.User
+  alias MykonosBiennale.Accounts.UserNotifier
+  alias MykonosBiennale.Accounts.UserToken
 
   ## Database getters
 

@@ -52,4 +52,47 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipTypeLiveTest do
       refute has_element?(lv, "tr#relationship_types-1")
     end
   end
+
+  describe "Edit handlers" do
+    setup do
+      ContentFixtures.ensure_relationship_types()
+
+      rt =
+        MykonosBiennale.Repo.get_by!(MykonosBiennale.Content.RelationshipType, slug: "directed")
+
+      {:ok, rt: rt}
+    end
+
+    test "validate with a blank label keeps the form open", %{conn: conn, rt: rt} do
+      {:ok, lv, _} = live(conn, ~p"/admin/relationship_types/#{rt.id}/edit")
+      lv |> form("#relationship-type-form", relationship_type: %{label: ""}) |> render_change()
+      assert has_element?(lv, "#relationship-type-form")
+    end
+
+    test "saving an edited label patches back and stores it", %{conn: conn, rt: rt} do
+      {:ok, lv, _} = live(conn, ~p"/admin/relationship_types/#{rt.id}/edit")
+
+      lv
+      |> form("#relationship-type-form", relationship_type: %{label: "Renamed label"})
+      |> render_submit()
+
+      assert_patch(lv, ~p"/admin/relationship_types")
+
+      assert MykonosBiennale.Repo.get!(MykonosBiennale.Content.RelationshipType, rt.id).label ==
+               "Renamed label"
+    end
+
+    test "a blank label on save keeps the form open and changes nothing", %{conn: conn, rt: rt} do
+      {:ok, lv, _} = live(conn, ~p"/admin/relationship_types/#{rt.id}/edit")
+
+      lv
+      |> form("#relationship-type-form", relationship_type: %{label: ""})
+      |> render_submit()
+
+      assert has_element?(lv, "#relationship-type-form")
+
+      assert MykonosBiennale.Repo.get!(MykonosBiennale.Content.RelationshipType, rt.id).label ==
+               rt.label
+    end
+  end
 end

@@ -30,6 +30,18 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Index do
 
     total_pages = max(1, ceil(total_count / @per_page))
 
+    if page > total_pages do
+      # Past the last page: send the user to the last real page.
+      {:noreply,
+       push_patch(socket,
+         to: patch_path("/admin/media", total_pages, sort_by, sort_dir)
+       )}
+    else
+      show_media_page(socket, params, items, total_count, total_pages, page, sort_by, sort_dir)
+    end
+  end
+
+  defp show_media_page(socket, params, items, total_count, total_pages, page, sort_by, sort_dir) do
     socket =
       socket
       |> assign(:current_page, page)
@@ -53,6 +65,13 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Index do
   end
 
   defp apply_action(socket, :index, _params), do: socket
+
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.MediaLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
+  end
 
   @impl true
   def handle_info({MykonosBiennaleWeb.Admin.MediaLive.FormComponent, {:saved, media}}, socket) do

@@ -3,8 +3,10 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
   alias MykonosBiennale.Content
   alias MykonosBiennale.Thumbnail
 
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
 
   @film_types ["Short Film", "Video", "Dance", "Animation", "Documentary"]
 

@@ -3,8 +3,12 @@ defmodule MykonosBiennaleWeb.PageController do
   alias MykonosBiennale.Content
   alias MykonosBiennaleWeb.BiennaleController
 
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, EntityMedia, Media, Relationship, RelationshipType}
 
   import Ecto.Query, warn: false
 

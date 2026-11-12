@@ -11,8 +11,10 @@ defmodule MykonosBiennale.Workers.ImportCorrections do
   import Ecto.Query, warn: false
 
   alias MykonosBiennale.Content
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
 
   @corrections_path "correction.md"
 

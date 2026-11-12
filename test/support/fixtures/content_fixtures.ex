@@ -4,8 +4,9 @@ defmodule MykonosBiennale.ContentFixtures do
   Creates Entity, Media, Relationship, and RelationshipType records for testing.
   """
 
-  alias MykonosBiennale.{Repo, Content}
+  alias MykonosBiennale.Content
   alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
 
   @doc "Ensures all standard relationship types exist. Call in setup."
   def ensure_relationship_types do

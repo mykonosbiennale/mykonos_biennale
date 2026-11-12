@@ -3,9 +3,12 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Relationship, RelationshipType, Media, EntityMedia}
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
 
   @per_page 24
 
@@ -162,6 +165,13 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
 
   defp apply_action(socket, :index, _params) do
     socket |> assign(:page_title, "Manage Artworks") |> assign(:artwork, nil)
+  end
+
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
   end
 
   @impl true

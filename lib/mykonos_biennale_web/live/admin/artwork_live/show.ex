@@ -3,9 +3,11 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Show do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Media, RelationshipType}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
   alias MykonosBiennale.Workers.MediaProcess
 
   @impl true

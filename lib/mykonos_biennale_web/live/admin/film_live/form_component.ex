@@ -1,10 +1,11 @@
 defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
-  alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, RelationshipType}
   alias Ecto.Changeset
+  alias MykonosBiennale.Content
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
 
   import Ecto.Query, warn: false
 
@@ -642,7 +643,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
       {:ok, :detached} = Content.detach_media_from_entity(film, media)
     end
 
-    {:noreply, assign(socket, :poster_link, nil) |> put_flash(:info, "Poster detached")}
+    {:noreply, assign(socket, :poster_link, nil) |> notify_flash(:info, "Poster detached")}
   end
 
   def handle_event("detach_trailer", _params, socket) do
@@ -654,7 +655,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
       {:ok, :detached} = Content.detach_media_from_entity(film, media)
     end
 
-    {:noreply, assign(socket, :trailer_link, nil) |> put_flash(:info, "Trailer detached")}
+    {:noreply, assign(socket, :trailer_link, nil) |> notify_flash(:info, "Trailer detached")}
   end
 
   def handle_event("detach_screening_copy", _params, socket) do
@@ -667,7 +668,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
     end
 
     {:noreply,
-     assign(socket, :screening_copy_link, nil) |> put_flash(:info, "Screening copy detached")}
+     assign(socket, :screening_copy_link, nil) |> notify_flash(:info, "Screening copy detached")}
   end
 
   def handle_event("detach_media", %{"media-id" => media_id}, socket) do
@@ -676,7 +677,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
     {:ok, :detached} = Content.detach_media_from_entity(film, media)
     still_links = Enum.reject(socket.assigns.still_links, fn l -> l.media_id == media.id end)
 
-    {:noreply, assign(socket, :still_links, still_links) |> put_flash(:info, "Still detached")}
+    {:noreply, assign(socket, :still_links, still_links) |> notify_flash(:info, "Still detached")}
   end
 
   def handle_event(
@@ -725,13 +726,14 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
            socket
            |> assign(:linked_relationships, linked_relationships)
            |> assign(:available_participants, available_participants)
-           |> put_flash(:info, "Relationship added")}
+           |> notify_flash(:info, "Relationship added")}
 
         {:error, reason} ->
-          {:noreply, put_flash(socket, :error, "Could not add relationship: #{inspect(reason)}")}
+          {:noreply,
+           notify_flash(socket, :error, "Could not add relationship: #{inspect(reason)}")}
       end
     else
-      {:noreply, put_flash(socket, :error, "Save the film first")}
+      {:noreply, notify_flash(socket, :error, "Save the film first")}
     end
   end
 
@@ -749,7 +751,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
      socket
      |> assign(:linked_relationships, linked_relationships)
      |> assign(:available_participants, available_participants)
-     |> put_flash(:info, "Relationship removed")}
+     |> notify_flash(:info, "Relationship removed")}
   end
 
   def handle_event("save", params, socket) do
@@ -778,15 +780,15 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
         if save_and_more do
           {:noreply,
            socket
-           |> put_flash(:info, "Film created — add another")
+           |> notify_flash(:info, "Film created — add another")
            |> push_patch(to: "/admin/films/new?event_id=#{event_id || ""}")}
         else
           {:noreply,
-           socket |> put_flash(:info, "Film created") |> push_patch(to: socket.assigns.patch)}
+           socket |> notify_flash(:info, "Film created") |> push_patch(to: socket.assigns.patch)}
         end
 
       {:error, %Ecto.Changeset{}} ->
-        {:noreply, put_flash(socket, :error, "Could not create film")}
+        {:noreply, notify_flash(socket, :error, "Could not create film")}
     end
   end
 
@@ -801,15 +803,15 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
         if save_and_more do
           {:noreply,
            socket
-           |> put_flash(:info, "Film updated — add another")
+           |> notify_flash(:info, "Film updated — add another")
            |> push_patch(to: "/admin/films/new?event_id=#{event_id || ""}")}
         else
           {:noreply,
-           socket |> put_flash(:info, "Film updated") |> push_patch(to: socket.assigns.patch)}
+           socket |> notify_flash(:info, "Film updated") |> push_patch(to: socket.assigns.patch)}
         end
 
       {:error, %Ecto.Changeset{}} ->
-        {:noreply, put_flash(socket, :error, "Could not update film")}
+        {:noreply, notify_flash(socket, :error, "Could not update film")}
     end
   end
 
@@ -981,4 +983,9 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
   end
 
   defp field(_, _), do: nil
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
+  end
 end

@@ -1,9 +1,9 @@
 defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
+  alias Ecto.Changeset
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Media
-  alias Ecto.Changeset
 
   defmodule ProjectForm do
     @moduledoc false
@@ -282,13 +282,13 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
            socket
            |> assign(:current_media_links, current_media_links)
            |> assign(:available_media, available_media)
-           |> put_flash(:info, "Media attached successfully")}
+           |> notify_flash(:info, "Media attached successfully")}
 
         {:error, reason} ->
-          {:noreply, put_flash(socket, :error, reason)}
+          {:noreply, notify_flash(socket, :error, reason)}
       end
     else
-      {:noreply, put_flash(socket, :error, "Save the project first before attaching media")}
+      {:noreply, notify_flash(socket, :error, "Save the project first before attaching media")}
     end
   end
 
@@ -307,7 +307,7 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
      socket
      |> assign(:current_media_links, current_media_links)
      |> assign(:available_media, available_media)
-     |> put_flash(:info, "Media detached successfully")}
+     |> notify_flash(:info, "Media detached successfully")}
   end
 
   def handle_event("reorder_media_links", %{"media_ids" => media_ids}, socket) do
@@ -392,7 +392,7 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
      socket
      |> assign(:current_media_links, current_media_links)
      |> assign(:available_media, available_media)
-     |> put_flash(flash_type, flash)}
+     |> notify_flash(flash_type, flash)}
   end
 
   defp handle_progress(:images, _entry, socket) do
@@ -411,13 +411,13 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
 
           {:noreply,
            socket
-           |> put_flash(:info, "Project updated successfully")
+           |> notify_flash(:info, "Project updated successfully")
            |> push_patch(to: socket.assigns.patch)}
 
         {:error, %Ecto.Changeset{}} ->
           {:noreply,
            socket
-           |> put_flash(:error, "Could not update project")
+           |> notify_flash(:error, "Could not update project")
            |> assign(
              :form,
              to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :project)
@@ -440,13 +440,13 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
 
           {:noreply,
            socket
-           |> put_flash(:info, "Project created successfully")
+           |> notify_flash(:info, "Project created successfully")
            |> push_patch(to: socket.assigns.patch)}
 
         {:error, %Ecto.Changeset{}} ->
           {:noreply,
            socket
-           |> put_flash(:error, "Could not create project")
+           |> notify_flash(:error, "Could not create project")
            |> assign(
              :form,
              to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :project)
@@ -483,5 +483,10 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
     }
     |> Enum.reject(fn {_k, v} -> is_nil(v) end)
     |> Enum.into(%{})
+  end
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
   end
 end

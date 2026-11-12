@@ -16,11 +16,12 @@ defmodule Mix.Tasks.Mb.Media.GenerateAll do
       mix mb.media.generate_all --force      # Regenerate even if files exist
   """
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content.Media
-  alias MykonosBiennale.Thumbnail
   alias MykonosBiennale.MediaDir
+  alias MykonosBiennale.Repo
+  alias MykonosBiennale.Thumbnail
   import Ecto.Query
+  alias MykonosBiennale.Workers.MediaProcess
 
   @sizes ~w(hero card thumb admin)
 
@@ -123,14 +124,14 @@ defmodule Mix.Tasks.Mb.Media.GenerateAll do
   defp enqueue_avif(media_id) do
     Enum.each(@sizes, fn size ->
       %{kind: "avif", media_id: media_id, size: size}
-      |> MykonosBiennale.Workers.MediaProcess.new()
+      |> MediaProcess.new()
       |> Oban.insert()
     end)
   end
 
   defp enqueue_press(media_id) do
     %{kind: "press", media_id: media_id}
-    |> MykonosBiennale.Workers.MediaProcess.new()
+    |> MediaProcess.new()
     |> Oban.insert()
   end
 

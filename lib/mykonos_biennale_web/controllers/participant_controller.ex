@@ -3,9 +3,9 @@ defmodule MykonosBiennaleWeb.ParticipantController do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Repo
 
   def show(conn, %{"id" => id}) do
     case Repo.get(Entity, id) do

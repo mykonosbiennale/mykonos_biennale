@@ -15,8 +15,12 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
   import Ecto.Query, warn: false
 
   alias MykonosBiennale.Content
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
 
   @records_path "exports/filmfestival/records.json"
 

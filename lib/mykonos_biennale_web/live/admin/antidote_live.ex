@@ -3,8 +3,12 @@ defmodule MykonosBiennaleWeb.Admin.AntidoteLive do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.{Antidote, Content, Repo, Settings, Uploads}
+  alias MykonosBiennale.Antidote
+  alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Repo
+  alias MykonosBiennale.Settings
+  alias MykonosBiennale.Uploads
 
   @max_upload_bytes 25_000_000
 

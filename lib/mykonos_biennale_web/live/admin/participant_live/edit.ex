@@ -1,18 +1,20 @@
 defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
   use MykonosBiennaleWeb, :live_view
 
+  alias Ecto.Changeset
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Entity
   alias MykonosBiennale.Repo
-  alias Ecto.Changeset
 
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennaleWeb.Admin.ParticipantLive.EditHTML
   alias MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent
   alias MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent.ParticipantForm
 
   @social_platforms FormComponent.social_platforms()
 
   @impl true
-  def render(assigns), do: MykonosBiennaleWeb.Admin.ParticipantLive.EditHTML.render(assigns)
+  def render(assigns), do: EditHTML.render(assigns)
 
   @impl true
   def mount(_params, _session, socket) do
@@ -151,7 +153,9 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
 
   # ── Linked artworks ──
 
-  def handle_event("search_artwork_to_link", %{"search" => search}, socket) do
+  def handle_event("search_artwork_to_link", params, socket) do
+    search = params["search"] || params["value"] || ""
+
     participant = socket.assigns.participant
 
     results =
@@ -214,7 +218,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
     # target_name is like "rel_type_2279"
     "rel_type_" <> rel_id = target_name
     type_id_str = params[target_name]
-    rel = Repo.get(MykonosBiennale.Content.Relationship, rel_id)
+    rel = Repo.get(Relationship, rel_id)
 
     if rel do
       type_id = String.to_integer(type_id_str)
@@ -233,7 +237,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
   end
 
   def handle_event("update_rel_role", %{"rel-id" => rel_id, "value" => role}, socket) do
-    rel = Repo.get(MykonosBiennale.Content.Relationship, rel_id)
+    rel = Repo.get(Relationship, rel_id)
 
     if rel do
       fields = if String.trim(role) == "", do: %{}, else: %{"roles" => String.trim(role)}
@@ -252,7 +256,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
   end
 
   def handle_event("delete_relationship", %{"rel-id" => rel_id}, socket) do
-    rel = Repo.get(MykonosBiennale.Content.Relationship, rel_id)
+    rel = Repo.get(Relationship, rel_id)
 
     if rel do
       {:ok, _} = Content.delete_relationship(rel)
@@ -344,8 +348,8 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
           fields: fields
         }
 
-        case MykonosBiennale.Content.Relationship.changeset(
-               %MykonosBiennale.Content.Relationship{},
+        case Relationship.changeset(
+               %Relationship{},
                rel_attrs
              )
              |> Repo.insert() do
@@ -486,7 +490,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
     import Ecto.Query
 
     Repo.all(
-      from r in MykonosBiennale.Content.Relationship,
+      from r in Relationship,
         where: r.subject_id == ^participant.id or r.object_id == ^participant.id,
         preload: [:subject, :object, :relationship_type]
     )

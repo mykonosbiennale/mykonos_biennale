@@ -1,8 +1,8 @@
 defmodule MykonosBiennaleWeb.Admin.RelationshipTypeLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
-  alias MykonosBiennale.Content
   alias Ecto.Changeset
+  alias MykonosBiennale.Content
 
   @impl true
   def render(assigns) do
@@ -70,7 +70,7 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipTypeLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Relationship type updated successfully")
+         |> notify_flash(:info, "Relationship type updated successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Changeset{} = changeset} ->
@@ -86,7 +86,7 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipTypeLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Relationship type created successfully")
+         |> notify_flash(:info, "Relationship type created successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Changeset{} = changeset} ->
@@ -96,4 +96,9 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipTypeLive.FormComponent do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
+  end
 end

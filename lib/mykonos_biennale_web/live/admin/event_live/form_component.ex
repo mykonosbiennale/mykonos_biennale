@@ -3,9 +3,11 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Relationship, Media, Entity}
   alias Ecto.Changeset
+  alias MykonosBiennale.Content
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
 
   defmodule EventForm do
     @moduledoc false
@@ -726,13 +728,13 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
           {:noreply,
            socket
            |> reload_artboard()
-           |> put_flash(:info, "Media attached successfully")}
+           |> notify_flash(:info, "Media attached successfully")}
 
         {:error, reason} ->
-          {:noreply, put_flash(socket, :error, reason)}
+          {:noreply, notify_flash(socket, :error, reason)}
       end
     else
-      {:noreply, put_flash(socket, :error, "Save the event first before attaching media")}
+      {:noreply, notify_flash(socket, :error, "Save the event first before attaching media")}
     end
   end
 
@@ -745,7 +747,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     {:noreply,
      socket
      |> reload_artboard()
-     |> put_flash(:info, "Media detached successfully")}
+     |> notify_flash(:info, "Media detached successfully")}
   end
 
   def handle_event("reorder_media_links", %{"media_ids" => media_ids}, socket) do
@@ -833,7 +835,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
     flash_type = if error_count > 0 and success_count == 0, do: :error, else: :info
 
-    {:noreply, put_flash(socket, flash_type, flash)}
+    {:noreply, notify_flash(socket, flash_type, flash)}
   end
 
   def handle_event("cancel-poster-upload", %{"ref" => ref}, socket) do
@@ -874,10 +876,10 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
         [{:ok, _} | _] ->
           socket
           |> reload_artboard()
-          |> put_flash(:info, "Poster saved")
+          |> notify_flash(:info, "Poster saved")
 
         _ ->
-          put_flash(socket, :error, "Could not save poster")
+          notify_flash(socket, :error, "Could not save poster")
       end
 
     {:noreply, socket}
@@ -896,10 +898,10 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
         {:noreply,
          socket
          |> reload_artboard()
-         |> put_flash(:info, "Poster set")}
+         |> notify_flash(:info, "Poster set")}
 
       {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Could not set poster: #{inspect(reason)}")}
+        {:noreply, notify_flash(socket, :error, "Could not set poster: #{inspect(reason)}")}
     end
   end
 
@@ -915,7 +917,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     {:noreply,
      socket
      |> reload_artboard()
-     |> put_flash(:info, "Poster removed")}
+     |> notify_flash(:info, "Poster removed")}
   end
 
   def handle_event("add_to_artboard", %{"media-id" => media_id}, socket) do
@@ -932,10 +934,10 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
           |> assign(:event, updated_event)
           |> reload_artboard()
 
-        {:noreply, put_flash(socket, :info, "Added to art board")}
+        {:noreply, notify_flash(socket, :info, "Added to art board")}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Could not update art board")}
+        {:noreply, notify_flash(socket, :error, "Could not update art board")}
     end
   end
 
@@ -952,10 +954,10 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
           |> assign(:event, updated_event)
           |> reload_artboard()
 
-        {:noreply, put_flash(socket, :info, "Removed from art board")}
+        {:noreply, notify_flash(socket, :info, "Removed from art board")}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Could not update art board")}
+        {:noreply, notify_flash(socket, :error, "Could not update art board")}
     end
   end
 
@@ -973,7 +975,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
         {:noreply, socket}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Could not reorder art board")}
+        {:noreply, notify_flash(socket, :error, "Could not reorder art board")}
     end
   end
 
@@ -1025,13 +1027,13 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
           {:noreply,
            socket
-           |> put_flash(:info, "Event updated successfully")
+           |> notify_flash(:info, "Event updated successfully")
            |> push_patch(to: socket.assigns.patch)}
 
         {:error, %Ecto.Changeset{} = entity_changeset} ->
           {:noreply,
            socket
-           |> put_flash(:error, "Could not update event")
+           |> notify_flash(:error, "Could not update event")
            |> assign(
              :form,
              to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :event)
@@ -1055,13 +1057,13 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
           {:noreply,
            socket
-           |> put_flash(:info, "Event created successfully")
+           |> notify_flash(:info, "Event created successfully")
            |> push_patch(to: socket.assigns.patch)}
 
         {:error, %Ecto.Changeset{} = entity_changeset} ->
           {:noreply,
            socket
-           |> put_flash(:error, "Could not create event")
+           |> notify_flash(:error, "Could not create event")
            |> assign(
              :form,
              to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :event)
@@ -1178,4 +1180,9 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
   defp error_to_string(:not_accepted), do: "File type not accepted"
   defp error_to_string(:too_many_files), do: "Too many files selected"
   defp error_to_string(err), do: "Upload error: #{inspect(err)}"
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
+  end
 end

@@ -4,9 +4,11 @@ defmodule MykonosBiennale.Content.Event do
   """
 
   import Ecto.Query, warn: false
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
 
   def list_for_biennale(biennale_year) do
     biennale_entity = Content.Biennale.get_by_year(biennale_year)

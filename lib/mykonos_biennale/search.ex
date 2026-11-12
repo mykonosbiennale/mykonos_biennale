@@ -9,8 +9,8 @@ defmodule MykonosBiennale.Search do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Repo
   alias MykonosBiennale.Search.Transliterate
 
   @type hit :: %{

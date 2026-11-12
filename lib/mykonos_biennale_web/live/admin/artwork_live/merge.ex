@@ -3,8 +3,13 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
 
   import Ecto.Query, warn: false
 
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, Media, Relationship, RelationshipType, EntityMedia}
+  alias MykonosBiennale.Workers.SearchReindex
 
   @impl true
   def mount(_params, _session, socket) do
@@ -143,7 +148,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
   defp enqueue_reindex(survivor_ids) do
     survivor_ids
     |> Enum.uniq()
-    |> Enum.each(&MykonosBiennale.Workers.SearchReindex.enqueue_entity/1)
+    |> Enum.each(&SearchReindex.enqueue_entity/1)
   end
 
   defp load_duplicate_groups(mode) do

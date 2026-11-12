@@ -59,7 +59,6 @@ defmodule MykonosBiennaleWeb.BiennaleHTML do
   def archive_teaser(assigns) do
     tiles =
       assigns.biennales
-      |> Enum.reject(&(&1.fields["template"] == "summary"))
       |> Enum.map(fn biennale ->
         bg =
           case Map.get(assigns.media_map, biennale.id, []) do

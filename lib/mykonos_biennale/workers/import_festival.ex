@@ -16,8 +16,8 @@ defmodule MykonosBiennale.Workers.ImportFestival do
   import Ecto.Query, warn: false
 
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Repo
 
   @records_path "exports/festival/records.json"
 

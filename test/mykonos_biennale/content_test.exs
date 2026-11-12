@@ -2,8 +2,10 @@ defmodule MykonosBiennale.ContentTest do
   use MykonosBiennale.DataCase, async: true
 
   alias MykonosBiennale.Content
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
   alias MykonosBiennale.ContentFixtures
-  alias MykonosBiennale.Content.{Entity, Media, Relationship}
 
   describe "entity CRUD" do
     test "create_entity/1 creates an entity with valid attrs" do

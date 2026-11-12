@@ -1,7 +1,8 @@
 defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
-  alias MykonosBiennale.{Content, MediaCredit}
+  alias MykonosBiennale.Content
+  alias MykonosBiennale.MediaCredit
 
   @impl true
   def render(assigns) do
@@ -268,7 +269,7 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Media updated successfully")
+         |> notify_flash(:info, "Media updated successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -283,7 +284,7 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Media created successfully")
+         |> notify_flash(:info, "Media created successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -344,4 +345,9 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
   defp error_to_string(:not_accepted), do: "File type not accepted"
   defp error_to_string(:too_many_files), do: "Too many files selected"
   defp error_to_string(err), do: "Upload error: #{inspect(err)}"
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
+  end
 end

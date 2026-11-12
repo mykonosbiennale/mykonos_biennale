@@ -1,4 +1,8 @@
 defmodule MykonosBiennaleWeb.UserAuth do
+  @moduledoc """
+  Authentication plugs and helpers for the browser session: fetching the current user, requiring login, and redirecting.
+  """
+
   use MykonosBiennaleWeb, :verified_routes
 
   import Plug.Conn

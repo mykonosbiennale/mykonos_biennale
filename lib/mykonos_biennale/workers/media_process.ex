@@ -19,10 +19,10 @@ defmodule MykonosBiennale.Workers.MediaProcess do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content.Media
-  alias MykonosBiennale.Thumbnail
   alias MykonosBiennale.MediaDir
+  alias MykonosBiennale.Repo
+  alias MykonosBiennale.Thumbnail
 
   @sizes ~w(hero card thumb admin)
 
