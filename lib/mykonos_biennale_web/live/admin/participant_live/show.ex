@@ -108,17 +108,16 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Show do
 
       artwork_event_rels
       |> Enum.group_by(fn rel -> rel.object end)
-      |> Enum.map(fn {event, rels} ->
-        artwork_entries =
-          rels
-          |> Enum.map(fn rel -> Map.get(artworks, rel.subject_id) end)
-          |> Enum.reject(&is_nil/1)
-          |> Enum.sort_by(fn {a, _} -> a.fields["date"] || "" end, :desc)
-
-        {event, artwork_entries}
-      end)
+      |> Enum.map(fn {event, rels} -> {event, group_artwork_entries(rels, artworks)} end)
       |> Enum.sort_by(fn {event, _} -> event.fields["title"] || "" end)
     end
+  end
+
+  defp group_artwork_entries(rels, artworks) do
+    rels
+    |> Enum.map(fn rel -> Map.get(artworks, rel.subject_id) end)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.sort_by(fn {a, _} -> a.fields["date"] || "" end, :desc)
   end
 
   defp get_participant_events(participant) do

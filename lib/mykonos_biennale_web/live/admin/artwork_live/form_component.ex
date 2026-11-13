@@ -416,6 +416,25 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
      )}
   end
 
+  defp event_link_lists(artwork) do
+    linked_events = Content.list_artwork_linked_events(artwork)
+    all_events = Content.list_events()
+    linked_event_ids = Enum.map(linked_events, & &1.object_id)
+    available_events = Enum.reject(all_events, fn e -> e.id in linked_event_ids end)
+    {linked_events, available_events}
+  end
+
+  defp participant_link_lists(artwork) do
+    linked_participants = Content.list_artwork_linked_participants(artwork)
+    all_participants = Content.list_participants()
+    linked_participant_ids = Enum.map(linked_participants, & &1.object_id)
+
+    available_participants =
+      Enum.reject(all_participants, fn p -> p.id in linked_participant_ids end)
+
+    {linked_participants, available_participants}
+  end
+
   @impl true
   def handle_event("validate", params, socket) do
     artwork_params = extract_artwork_params(params)
@@ -471,10 +490,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
 
       case Content.attach_event_to_artwork(artwork, event) do
         {:ok, _} ->
-          linked_events = Content.list_artwork_linked_events(artwork)
-          all_events = Content.list_events()
-          linked_event_ids = Enum.map(linked_events, & &1.object_id)
-          available_events = Enum.reject(all_events, fn e -> e.id in linked_event_ids end)
+          {linked_events, available_events} = event_link_lists(artwork)
 
           {:noreply,
            socket
@@ -524,12 +540,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
 
       case Content.attach_participant_to_artwork(artwork, participant, role) do
         {:ok, _} ->
-          linked_participants = Content.list_artwork_linked_participants(artwork)
-          all_participants = Content.list_participants()
-          linked_participant_ids = Enum.map(linked_participants, & &1.object_id)
-
-          available_participants =
-            Enum.reject(all_participants, fn p -> p.id in linked_participant_ids end)
+          {linked_participants, available_participants} = participant_link_lists(artwork)
 
           {:noreply,
            socket
@@ -595,12 +606,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
 
       case Content.attach_participant_to_artwork(artwork, participant, role) do
         {:ok, _} ->
-          linked_participants = Content.list_artwork_linked_participants(artwork)
-          all_participants = Content.list_participants()
-          linked_participant_ids = Enum.map(linked_participants, & &1.object_id)
-
-          available_participants =
-            Enum.reject(all_participants, fn p -> p.id in linked_participant_ids end)
+          {linked_participants, available_participants} = participant_link_lists(artwork)
 
           {:noreply,
            socket

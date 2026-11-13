@@ -249,6 +249,48 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
      end)}
   end
 
+  defp media_link_lists(project) do
+    current_media_links = Content.list_entity_media_links_for_entity(project)
+    all_media = Content.list_media()
+    attached_ids = Enum.map(current_media_links, & &1.media_id)
+    available_media = Enum.reject(all_media, fn m -> m.id in attached_ids end)
+    {current_media_links, available_media}
+  end
+
+  defp store_upload(path, entry, caption) do
+    ext = Path.extname(entry.client_name)
+    filename = "#{Ecto.UUID.generate()}#{ext}"
+    dest = MykonosBiennale.Uploads.uploads_path(filename)
+
+    MykonosBiennale.Uploads.ensure_uploads_dir()
+    File.cp!(path, dest)
+
+    Content.create_media(%{
+      source_type: "upload",
+      source_path: filename,
+      mime_type: entry.client_type,
+      original_name: entry.client_name,
+      caption: caption
+    })
+  end
+
+  defp upload_result_flash(success_count, error_count) do
+    flash =
+      cond do
+        error_count > 0 and success_count > 0 ->
+          "Uploaded #{success_count} image(s), #{error_count} failed"
+
+        error_count > 0 ->
+          "Upload failed for #{error_count} image(s)"
+
+        true ->
+          "Uploaded #{success_count} image(s) successfully"
+      end
+
+    flash_type = if error_count > 0 and success_count == 0, do: :error, else: :info
+    {flash_type, flash}
+  end
+
   @impl true
   def handle_event("validate", params, socket) do
     project_params = extract_project_params(params)
@@ -273,10 +315,7 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
 
       case Content.attach_media_to_entity(project, media) do
         {:ok, :attached} ->
-          current_media_links = Content.list_entity_media_links_for_entity(project)
-          all_media = Content.list_media()
-          attached_ids = Enum.map(current_media_links, & &1.media_id)
-          available_media = Enum.reject(all_media, fn m -> m.id in attached_ids end)
+          {current_media_links, available_media} = media_link_lists(project)
 
           {:noreply,
            socket
@@ -298,10 +337,7 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
 
     {:ok, :detached} = Content.detach_media_from_entity(project, media)
 
-    current_media_links = Content.list_entity_media_links_for_entity(project)
-    all_media = Content.list_media()
-    attached_ids = Enum.map(current_media_links, & &1.media_id)
-    available_media = Enum.reject(all_media, fn m -> m.id in attached_ids end)
+    {current_media_links, available_media} = media_link_lists(project)
 
     {:noreply,
      socket
@@ -343,50 +379,17 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
 
     results =
       consume_uploaded_entries(socket, :images, fn %{path: path}, entry ->
-        ext = Path.extname(entry.client_name)
-        filename = "#{Ecto.UUID.generate()}#{ext}"
-        dest = MykonosBiennale.Uploads.uploads_path(filename)
-
-        MykonosBiennale.Uploads.ensure_uploads_dir()
-        File.cp!(path, dest)
-
-        case Content.create_media(%{
-               source_type: "upload",
-               source_path: filename,
-               mime_type: entry.client_type,
-               original_name: entry.client_name,
-               caption: title
-             }) do
-          {:ok, media} ->
-            Content.attach_media_to_entity(project, media)
-            {:ok, media}
-
-          {:error, _} = err ->
-            err
+        with {:ok, media} <- store_upload(path, entry, title) do
+          Content.attach_media_to_entity(project, media)
+          {:ok, media}
         end
       end)
 
     success_count = Enum.count(results, fn {status, _} -> status == :ok end)
     error_count = Enum.count(results, fn {status, _} -> status == :error end)
 
-    current_media_links = Content.list_entity_media_links_for_entity(project)
-    all_media = Content.list_media()
-    attached_ids = Enum.map(current_media_links, & &1.media_id)
-    available_media = Enum.reject(all_media, fn m -> m.id in attached_ids end)
-
-    flash =
-      cond do
-        error_count > 0 and success_count > 0 ->
-          "Uploaded #{success_count} image(s), #{error_count} failed"
-
-        error_count > 0 ->
-          "Upload failed for #{error_count} image(s)"
-
-        true ->
-          "Uploaded #{success_count} image(s) successfully"
-      end
-
-    flash_type = if error_count > 0 and success_count == 0, do: :error, else: :info
+    {current_media_links, available_media} = media_link_lists(project)
+    {flash_type, flash} = upload_result_flash(success_count, error_count)
 
     {:noreply,
      socket

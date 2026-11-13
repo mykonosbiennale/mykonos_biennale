@@ -26,6 +26,10 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.ReimportPreview do
     {:ok, socket}
   end
 
+  defp count_matched_files(group, media_index) do
+    Enum.count(group.file_names, &Map.has_key?(media_index, &1))
+  end
+
   @impl true
   def handle_params(params, _uri, socket) do
     if socket.assigns.groups == [] do
@@ -34,8 +38,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.ReimportPreview do
 
       {matched, unmatched} =
         Enum.reduce(groups, {0, 0}, fn group, {m, u} ->
-          cnt =
-            Enum.count(group.file_names, fn f -> Map.has_key?(media_index, f) end)
+          cnt = count_matched_files(group, media_index)
 
           {m + cnt, u + (length(group.file_names) - cnt)}
         end)

@@ -92,19 +92,8 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
     selected = socket.assigns.selected_ids
 
     {merged, survivor_ids} =
-      Enum.reduce(groups, {0, []}, fn group, {count, survivors} ->
-        group_ids = Enum.map(group.entries, & &1.artwork.id)
-        selected_in_group = group_ids |> Enum.filter(&MapSet.member?(selected, &1))
-
-        if length(group.entries) >= 2 and selected_in_group != [] do
-          survivor_id = hd(selected_in_group)
-          to_merge = Enum.reject(group.entries, fn e -> e.artwork.id == survivor_id end)
-          survivor_entry = Enum.find(group.entries, &(&1.artwork.id == survivor_id))
-          merge_artworks!(survivor_entry, to_merge)
-          {count + 1, [survivor_id | survivors]}
-        else
-          {count, survivors}
-        end
+      Enum.reduce(groups, {0, []}, fn group, acc ->
+        merge_selected_group(group, selected, acc)
       end)
 
     enqueue_reindex(survivor_ids)
@@ -143,6 +132,21 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
      |> push_patch(to: "/admin/artworks/merge?page=1")}
   end
 
+  defp merge_selected_group(group, selected, {count, survivors} = acc) do
+    group_ids = Enum.map(group.entries, & &1.artwork.id)
+    selected_in_group = group_ids |> Enum.filter(&MapSet.member?(selected, &1))
+
+    if length(group.entries) >= 2 and selected_in_group != [] do
+      survivor_id = hd(selected_in_group)
+      to_merge = Enum.reject(group.entries, fn e -> e.artwork.id == survivor_id end)
+      survivor_entry = Enum.find(group.entries, &(&1.artwork.id == survivor_id))
+      merge_artworks!(survivor_entry, to_merge)
+      {count + 1, [survivor_id | survivors]}
+    else
+      acc
+    end
+  end
+
   defp enqueue_reindex([]), do: :ok
 
   defp enqueue_reindex(survivor_ids) do
@@ -164,103 +168,105 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Merge do
     if ae_rt_id == nil or ap_rt_id == nil do
       []
     else
-      rels =
-        Repo.all(
-          from r in Relationship,
-            where: r.relationship_type_id in ^[ae_rt_id, ap_rt_id],
-            select: {r.relationship_type_id, r.subject_id, r.object_id}
-        )
-
-      artwork_ids =
-        rels |> Enum.map(&elem(&1, 1)) |> Enum.uniq()
-
-      artworks = Repo.all(from e in Entity, where: e.id in ^artwork_ids and e.type == "artwork")
-      artwork_map = Enum.into(artworks, %{}, &{&1.id, &1})
-
-      media_rows =
-        Repo.all(
-          from m in Media,
-            join: em in EntityMedia,
-            on: em.media_id == m.id,
-            where: em.entity_id in ^artwork_ids,
-            order_by: [em.entity_id, em.position],
-            select: {em.entity_id, m.id, m.source_type, m.source_path, m.source_url}
-        )
-
-      media_by_artwork =
-        Enum.reduce(media_rows, %{}, fn {eid, mid, st, sp, su}, acc ->
-          Map.update(acc, eid, [{mid, st, sp, su}], &(&1 ++ [{mid, st, sp, su}]))
-        end)
-
-      linked_ids =
-        rels
-        |> Enum.flat_map(fn
-          {rt_id, _, obj_id} when rt_id == ae_rt_id -> [obj_id]
-          {rt_id, _, obj_id} when rt_id == ap_rt_id -> [obj_id]
-          _ -> []
-        end)
-        |> Enum.uniq()
-
-      linked = Repo.all(from e in Entity, where: e.id in ^linked_ids)
-      linked_map = Enum.into(linked, %{}, &{&1.id, &1})
-
-      ae_rels = Enum.filter(rels, fn {rt, _, _} -> rt == ae_rt_id end)
-      ap_rels = Enum.filter(rels, fn {rt, _, _} -> rt == ap_rt_id end)
-
-      ap_map = Enum.group_by(ap_rels, &elem(&1, 1), &elem(&1, 2))
-
-      ae_rels
-      |> Enum.flat_map(fn {_, aid, eid} ->
-        pids = Map.get(ap_map, aid, [])
-
-        for pid <- pids do
-          artwork = Map.get(artwork_map, aid)
-
-          if artwork do
-            title_slug = slugify(artwork.fields["title"] || "")
-            {eid, pid, title_slug, artwork}
-          else
-            nil
-          end
-        end
-        |> Enum.reject(&is_nil/1)
-      end)
-      |> Enum.group_by(fn {eid, pid, title_slug, _} ->
-        case mode do
-          "broad" -> {eid, pid}
-          "narrow" -> {eid, pid, title_slug}
-        end
-      end)
-      |> Enum.filter(fn {_key, items} -> length(items) > 1 end)
-      |> Enum.map(fn {key, items} ->
-        artwork_entities = items |> Enum.map(&elem(&1, 3)) |> Enum.uniq_by(& &1.id)
-
-        {eid, pid} =
-          case key do
-            {e, p} -> {e, p}
-            {e, p, _} -> {e, p}
-          end
-
-        event = Map.get(linked_map, eid)
-        participant = Map.get(linked_map, pid)
-
-        artwork_entries =
-          Enum.map(artwork_entities, fn a ->
-            %{artwork: a, media: Map.get(media_by_artwork, a.id, [])}
-          end)
-
-        %{
-          event: event,
-          participant: participant,
-          entries: artwork_entries
-        }
-      end)
-      |> Enum.sort_by(fn g ->
-        {g.participant.fields["last_name"] || "", g.participant.fields["first_name"] || "",
-         g.event.fields["title"] || ""}
-      end)
+      build_duplicate_groups(mode, ae_rt_id, ap_rt_id)
     end
   end
+
+  defp build_duplicate_groups(mode, ae_rt_id, ap_rt_id) do
+    rels =
+      Repo.all(
+        from r in Relationship,
+          where: r.relationship_type_id in ^[ae_rt_id, ap_rt_id],
+          select: {r.relationship_type_id, r.subject_id, r.object_id}
+      )
+
+    artwork_ids =
+      rels |> Enum.map(&elem(&1, 1)) |> Enum.uniq()
+
+    artworks = Repo.all(from e in Entity, where: e.id in ^artwork_ids and e.type == "artwork")
+    artwork_map = Enum.into(artworks, %{}, &{&1.id, &1})
+
+    media_rows =
+      Repo.all(
+        from m in Media,
+          join: em in EntityMedia,
+          on: em.media_id == m.id,
+          where: em.entity_id in ^artwork_ids,
+          order_by: [em.entity_id, em.position],
+          select: {em.entity_id, m.id, m.source_type, m.source_path, m.source_url}
+      )
+
+    media_by_artwork =
+      Enum.reduce(media_rows, %{}, fn {eid, mid, st, sp, su}, acc ->
+        Map.update(acc, eid, [{mid, st, sp, su}], &(&1 ++ [{mid, st, sp, su}]))
+      end)
+
+    linked_ids =
+      rels
+      |> Enum.flat_map(fn
+        {rt_id, _, obj_id} when rt_id == ae_rt_id -> [obj_id]
+        {rt_id, _, obj_id} when rt_id == ap_rt_id -> [obj_id]
+        _ -> []
+      end)
+      |> Enum.uniq()
+
+    linked = Repo.all(from e in Entity, where: e.id in ^linked_ids)
+    linked_map = Enum.into(linked, %{}, &{&1.id, &1})
+
+    ae_rels = Enum.filter(rels, fn {rt, _, _} -> rt == ae_rt_id end)
+    ap_rels = Enum.filter(rels, fn {rt, _, _} -> rt == ap_rt_id end)
+
+    ap_map = Enum.group_by(ap_rels, &elem(&1, 1), &elem(&1, 2))
+
+    ae_rels
+    |> artwork_rows(ap_map, artwork_map)
+    |> Enum.group_by(fn {eid, pid, title_slug, _} ->
+      case mode do
+        "broad" -> {eid, pid}
+        "narrow" -> {eid, pid, title_slug}
+      end
+    end)
+    |> Enum.filter(fn {_key, items} -> length(items) > 1 end)
+    |> Enum.map(&build_duplicate_group(&1, linked_map, media_by_artwork))
+    |> Enum.sort_by(fn g ->
+      {g.participant.fields["last_name"] || "", g.participant.fields["first_name"] || "",
+       g.event.fields["title"] || ""}
+    end)
+  end
+
+  # One {event, participant, artwork} row per (event, participant, artwork) link.
+  defp artwork_rows(ae_rels, ap_map, artwork_map) do
+    Enum.flat_map(ae_rels, fn {_, aid, eid} ->
+      artwork_row(Map.get(artwork_map, aid), eid, Map.get(ap_map, aid, []))
+    end)
+  end
+
+  defp artwork_row(nil, _eid, _pids), do: []
+
+  defp artwork_row(artwork, eid, pids) do
+    title_slug = slugify(artwork.fields["title"] || "")
+    for pid <- pids, do: {eid, pid, title_slug, artwork}
+  end
+
+  defp build_duplicate_group({key, items}, linked_map, media_by_artwork) do
+    artwork_entities = items |> Enum.map(&elem(&1, 3)) |> Enum.uniq_by(& &1.id)
+
+    {eid, pid} = group_event_and_participant(key)
+
+    artwork_entries =
+      Enum.map(artwork_entities, fn a ->
+        %{artwork: a, media: Map.get(media_by_artwork, a.id, [])}
+      end)
+
+    %{
+      event: Map.get(linked_map, eid),
+      participant: Map.get(linked_map, pid),
+      entries: artwork_entries
+    }
+  end
+
+  defp group_event_and_participant({e, p}), do: {e, p}
+  defp group_event_and_participant({e, p, _title_slug}), do: {e, p}
 
   defp merge_artworks!(survivor_entry, to_merge) do
     survivor = survivor_entry.artwork

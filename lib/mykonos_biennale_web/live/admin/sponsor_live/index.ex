@@ -1,13 +1,8 @@
 defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
   use MykonosBiennaleWeb, :live_view
 
-  import Ecto.Query, warn: false
-
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.Entity
-  alias MykonosBiennale.Content.EntityMedia
-  alias MykonosBiennale.Content.Media
-  alias MykonosBiennale.Repo
+  alias MykonosBiennale.Sponsors
 
   @impl true
   def mount(_params, _session, socket) do
@@ -32,12 +27,19 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
   end
 
   defp apply_action(socket, :edit, %{"name" => name}) do
-    sponsor =
-      Enum.find(socket.assigns.sponsors, &(URI.decode_www_form(name) == &1.name))
+    sponsor = Enum.find(socket.assigns.sponsors, &(URI.decode_www_form(name) == &1.name))
+
+    # Biennales the sponsor already supports are pre-ticked and disabled: they
+    # are removed from the list, not from this form. Saving only adds.
+    ticked =
+      if sponsor,
+        do: Map.new(sponsor.biennales, &{"biennale_#{&1.id}", "true"}),
+        else: %{}
 
     socket
     |> assign(:page_title, "Edit Sponsor")
     |> assign(:sponsor, sponsor)
+    |> assign(:sponsor_form, ticked)
   end
 
   defp apply_action(socket, :new, _params) do
@@ -52,41 +54,8 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
     |> assign(:sponsor, nil)
   end
 
-  # -- Loading --
-
   defp load_sponsors(socket) do
-    links =
-      Repo.all(
-        from em in EntityMedia,
-          where: fragment("? ->> 'role'", em.metadata) == "sponsor",
-          preload: [:media, :entity]
-      )
-
-    biennale_year = fn entity ->
-      entity && entity.fields && entity.fields["year"]
-    end
-
-    sponsors =
-      links
-      |> Enum.group_by(fn link ->
-        link.metadata["name"] || link.media.caption || ""
-      end)
-      |> Enum.map(fn {name, group_links} ->
-        %{
-          name: name,
-          media: hd(group_links).media,
-          url: hd(group_links).metadata["url"] || "",
-          years:
-            group_links
-            |> Enum.map(&biennale_year.(&1.entity))
-            |> Enum.reject(&is_nil/1)
-            |> Enum.sort(:desc),
-          links: group_links
-        }
-      end)
-      |> Enum.sort_by(& &1.name)
-
-    assign(socket, :sponsors, sponsors)
+    assign(socket, :sponsors, Sponsors.list_sponsors())
   end
 
   # -- Events --
@@ -104,39 +73,29 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
     name = String.trim(params["sponsor_name"] || "")
     url = String.trim(params["sponsor_url"] || "")
     biennale_ids = biennale_ids_from_params(params)
-    uploaded_files = consume_sponsor_uploads(socket)
+    logo = consume_sponsor_logo(socket)
 
     cond do
       name == "" ->
         {:noreply, put_flash(socket, :error, "Enter a sponsor name")}
 
-      uploaded_files == [] ->
-        {:noreply, put_flash(socket, :error, "Upload a sponsor logo")}
-
       biennale_ids == [] ->
         {:noreply, put_flash(socket, :error, "Select at least one biennale")}
 
       true ->
-        [%{media: media}] = uploaded_files
+        case Sponsors.save(name, url, logo: logo) do
+          {:ok, sponsor} ->
+            Enum.each(biennale_ids, &Sponsors.link(sponsor.id, &1))
 
-        metadata =
-          %{"role" => "sponsor", "name" => name}
-          |> then(fn m -> if url != "", do: Map.put(m, "url", url), else: m end)
+            {:noreply,
+             socket
+             |> load_sponsors()
+             |> assign(:sponsor_form, %{})
+             |> put_flash(:info, "Sponsor added to #{length(biennale_ids)} biennale(s)")
+             |> push_patch(to: "/admin/sponsors")}
 
-        results =
-          for biennale <- socket.assigns.biennales, biennale.id in biennale_ids do
-            attach(biennale, media, metadata)
-          end
-
-        if Enum.all?(results, &(&1 == :ok)) do
-          {:noreply,
-           socket
-           |> load_sponsors()
-           |> assign(:sponsor_form, %{})
-           |> put_flash(:info, "Sponsor added to #{length(biennale_ids)} biennale(s)")
-           |> push_patch(to: "/admin/sponsors")}
-        else
-          {:noreply, put_flash(socket, :error, "Could not add sponsor")}
+          {:error, reason} ->
+            {:noreply, put_flash(socket, :error, error_message(reason))}
         end
     end
   end
@@ -145,69 +104,43 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
     name = String.trim(params["sponsor_name"] || "")
     url = String.trim(params["sponsor_url"] || "")
 
-    if name == "" do
-      {:noreply, put_flash(socket, :error, "Enter a sponsor name")}
-    else
-      sponsor = socket.assigns.sponsor
-      uploaded_files = consume_sponsor_uploads(socket)
+    cond do
+      name == "" ->
+        {:noreply, put_flash(socket, :error, "Enter a sponsor name")}
 
-      new_media =
-        case uploaded_files do
-          [%{media: m} | _] -> m
-          [] -> nil
-        end
-
-      if sponsor do
-        metadata =
-          %{"role" => "sponsor", "name" => name}
-          |> then(fn m -> if url != "", do: Map.put(m, "url", url), else: m end)
-
-        # Update (or re-attach with new logo) the existing memberships
-        Enum.each(sponsor.links, fn link ->
-          if new_media do
-            Content.detach_media_from_entity(link.entity, link.media)
-            Content.attach_media_to_entity(link.entity, new_media, metadata: metadata)
-          else
-            Content.update_entity_media_link(link.entity, link.media, metadata)
-          end
-        end)
-
-        # Attach any newly selected biennales
-        existing_entity_ids = MapSet.new(sponsor.links, & &1.entity_id)
-        attach_media = new_media || sponsor.media
-
-        added =
-          socket.assigns.biennales
-          |> Enum.filter(fn b ->
-            b.id in biennale_ids_from_params(params) and
-              not MapSet.member?(existing_entity_ids, b.id)
-          end)
-          |> Enum.map(fn biennale ->
-            Content.attach_media_to_entity(biennale, attach_media, metadata: metadata)
-          end)
-          |> Enum.count(&match?({:ok, _}, &1))
-
-        {:noreply,
-         socket
-         |> load_sponsors()
-         |> put_flash(
-           :info,
-           "Sponsor updated#{if added > 0, do: " — added to #{added} more biennale(s)"}"
-         )
-         |> push_patch(to: "/admin/sponsors")}
-      else
+      socket.assigns[:sponsor] == nil ->
         {:noreply, put_flash(socket, :error, "Sponsor not found")}
-      end
+
+      true ->
+        sponsor = socket.assigns.sponsor
+        biennale_ids = biennale_ids_from_params(params)
+        previous_ids = Enum.map(sponsor.biennales, & &1.id)
+        logo = consume_sponsor_logo(socket)
+
+        case Sponsors.save(name, url, sponsor: sponsor.entity, logo: logo) do
+          {:ok, entity} ->
+            Enum.each(biennale_ids, &Sponsors.link(entity.id, &1))
+
+            added = Enum.count(biennale_ids, &(&1 not in previous_ids))
+
+            {:noreply,
+             socket
+             |> load_sponsors()
+             |> put_flash(:info, updated_message(added))
+             |> push_patch(to: "/admin/sponsors")}
+
+          {:error, reason} ->
+            {:noreply, put_flash(socket, :error, error_message(reason))}
+        end
     end
   end
 
-  def handle_event("remove_year", %{"entity-id" => entity_id, "media-id" => media_id}, socket) do
-    entity = Repo.get(Entity, String.to_integer(entity_id))
-    media = Repo.get(Media, String.to_integer(media_id))
-
-    if entity && media do
-      Content.detach_media_from_entity(entity, media)
-    end
+  def handle_event(
+        "remove_year",
+        %{"entity-id" => sponsor_id, "biennale-id" => biennale_id},
+        socket
+      ) do
+    Sponsors.unlink(String.to_integer(sponsor_id), String.to_integer(biennale_id))
 
     {:noreply,
      socket
@@ -216,63 +149,64 @@ defmodule MykonosBiennaleWeb.Admin.SponsorLive.Index do
   end
 
   def handle_event("delete", %{"name" => name}, socket) do
-    sponsor = Enum.find(socket.assigns.sponsors, &(&1.name == name))
+    case Enum.find(socket.assigns.sponsors, &(&1.name == name)) do
+      nil ->
+        {:noreply, load_sponsors(socket)}
 
-    if sponsor do
-      Enum.each(sponsor.links, fn link ->
-        Content.detach_media_from_entity(link.entity, link.media)
-      end)
+      sponsor ->
+        Sponsors.delete(sponsor.entity)
+
+        {:noreply,
+         socket
+         |> load_sponsors()
+         |> put_flash(:info, "Sponsor deleted")}
     end
-
-    {:noreply,
-     socket
-     |> load_sponsors()
-     |> put_flash(:info, "Sponsor deleted")}
   end
 
   # -- Helpers --
 
-  defp attach(biennale, media, metadata) do
-    case Content.attach_media_to_entity(biennale, media, metadata: metadata) do
-      {:ok, :attached} -> :ok
-      {:error, _} -> :error
+  defp consume_sponsor_logo(socket) do
+    consume_uploaded_entries(socket, :sponsor_logo, fn %{path: path}, entry ->
+      ext = Path.extname(entry.client_name)
+      filename = "#{Ecto.UUID.generate()}#{ext}"
+      dest = MykonosBiennale.Uploads.uploads_path(filename)
+      MykonosBiennale.Uploads.ensure_uploads_dir()
+      File.cp!(path, dest)
+      {:ok, %{path: filename, mime_type: entry.client_type, original_name: entry.client_name}}
+    end)
+    |> case do
+      [] ->
+        nil
+
+      [%{path: path, mime_type: mime_type, original_name: original_name} | _] ->
+        {:ok, media} =
+          Content.create_media(%{
+            caption: Path.basename(original_name, Path.extname(original_name)),
+            source_type: "upload",
+            source_path: path,
+            mime_type: mime_type,
+            original_name: original_name
+          })
+
+        media
     end
   end
 
-  defp consume_sponsor_uploads(socket) do
-    uploaded_files =
-      consume_uploaded_entries(socket, :sponsor_logo, fn %{path: path}, entry ->
-        ext = Path.extname(entry.client_name)
-        filename = "#{Ecto.UUID.generate()}#{ext}"
-        dest = MykonosBiennale.Uploads.uploads_path(filename)
-        MykonosBiennale.Uploads.ensure_uploads_dir()
-        File.cp!(path, dest)
-        {:ok, %{path: filename, mime_type: entry.client_type, original_name: entry.client_name}}
-      end)
-
-    for %{path: path, mime_type: mime_type, original_name: original_name} <- uploaded_files do
-      caption = Path.basename(original_name, Path.extname(original_name))
-
-      {:ok, media} =
-        Content.create_media(%{
-          caption: caption,
-          source_type: "upload",
-          source_path: path,
-          mime_type: mime_type,
-          original_name: original_name
-        })
-
-      %{media: media}
-    end
-  end
-
-  defp biennale_ids_from_params(params) do
-    params
-    |> Enum.filter(fn {k, v} -> String.starts_with?(k, "biennale_") and v == "true" end)
-    |> Enum.map(fn {k, _} -> String.replace_prefix(k, "biennale_", "") |> String.to_integer() end)
-  end
+  defp updated_message(0), do: "Sponsor updated"
+  defp updated_message(added), do: "Sponsor updated — added to #{added} more biennale(s)"
 
   defp error_to_string(:too_large), do: "File is too large (max 5MB)"
   defp error_to_string(:not_accepted), do: "File type not accepted"
   defp error_to_string(err), do: "Upload error: #{inspect(err)}"
+
+  defp error_message(:name_taken), do: "Another sponsor already has that name"
+  defp error_message(_), do: "Could not save the sponsor"
+
+  defp biennale_ids_from_params(params) do
+    params
+    |> Enum.filter(fn {k, v} -> String.starts_with?(k, "biennale_") and v == "true" end)
+    |> Enum.map(fn {k, _} ->
+      k |> String.replace_prefix("biennale_", "") |> String.to_integer()
+    end)
+  end
 end

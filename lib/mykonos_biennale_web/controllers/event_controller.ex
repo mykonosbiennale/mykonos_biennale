@@ -48,50 +48,14 @@ defmodule MykonosBiennaleWeb.EventController do
     {biennale_id, project_id} = get_event_parents(event, rt)
 
     # Single query each for biennale and project entities
-    {biennale, project} =
-      case [biennale_id, project_id] |> Enum.reject(&is_nil/1) do
-        [] ->
-          {nil, nil}
-
-        ids ->
-          entities = Repo.all(from e in Entity, where: e.id in ^ids)
-
-          {Enum.find(entities, &(&1.id == biennale_id)),
-           Enum.find(entities, &(&1.id == project_id))}
-      end
+    {biennale, project} = get_parent_entities(biennale_id, project_id)
 
     poster = get_poster(event)
 
-    {artworks, films} =
-      if show_project && project do
-        sibling_ids = get_sibling_event_ids(event, project, biennale_id, rt)
-        {get_artworks_for_events(sibling_ids, rt), get_films_for_events(sibling_ids, rt)}
-      else
-        {get_artworks_for_events([event.id], rt), get_films_for_events([event.id], rt)}
-      end
-
-    artworks =
-      if event_type == "exhibition" and artboard_media_ids != [] do
-        filter_artworks_by_artboard(artworks, artboard_media_ids)
-      else
-        artworks
-      end
-
-    media =
-      if event_type != "exhibition" and event_type != "screening" and artboard_media_ids != [] do
-        load_artboard_media(artboard_media_ids)
-      else
-        Content.list_media_for_entity(event)
-      end
-
+    {artworks, films} = get_event_collections(event, project, biennale_id, show_project, rt)
+    artworks = filter_exhibition_artworks(artworks, event_type, artboard_media_ids)
+    media = get_event_media(event, event_type, artboard_media_ids)
     participants = get_event_participants(event, rt)
-
-    template =
-      case event_type do
-        "exhibition" -> :exhibition
-        "screening" -> :screening
-        _ -> :default
-      end
 
     conn
     |> assign(:event, event)
@@ -104,8 +68,47 @@ defmodule MykonosBiennaleWeb.EventController do
     |> assign(:participants, participants)
     |> assign(:page_title, "#{event.fields["title"] || "Event"} — Mykonos Biennale")
     |> put_view(EventHTML)
-    |> render(template)
+    |> render(template_for(event_type))
   end
+
+  defp get_parent_entities(biennale_id, project_id) do
+    case [biennale_id, project_id] |> Enum.reject(&is_nil/1) do
+      [] ->
+        {nil, nil}
+
+      ids ->
+        entities = Repo.all(from e in Entity, where: e.id in ^ids)
+
+        {Enum.find(entities, &(&1.id == biennale_id)),
+         Enum.find(entities, &(&1.id == project_id))}
+    end
+  end
+
+  defp get_event_collections(event, project, biennale_id, show_project, rt) do
+    if show_project && project do
+      sibling_ids = get_sibling_event_ids(event, project, biennale_id, rt)
+      {get_artworks_for_events(sibling_ids, rt), get_films_for_events(sibling_ids, rt)}
+    else
+      {get_artworks_for_events([event.id], rt), get_films_for_events([event.id], rt)}
+    end
+  end
+
+  defp filter_exhibition_artworks(artworks, "exhibition", [_ | _] = artboard_media_ids),
+    do: filter_artworks_by_artboard(artworks, artboard_media_ids)
+
+  defp filter_exhibition_artworks(artworks, _event_type, _artboard_media_ids), do: artworks
+
+  defp get_event_media(event, event_type, artboard_media_ids) do
+    if event_type != "exhibition" and event_type != "screening" and artboard_media_ids != [] do
+      load_artboard_media(artboard_media_ids)
+    else
+      Content.list_media_for_entity(event)
+    end
+  end
+
+  defp template_for("exhibition"), do: :exhibition
+  defp template_for("screening"), do: :screening
+  defp template_for(_event_type), do: :default
 
   defp preload_relationship_types do
     slugs = [
@@ -135,14 +138,14 @@ defmodule MykonosBiennaleWeb.EventController do
             select: {r.relationship_type_id, r.object_id}
         )
 
-      biennale_id =
-        Enum.find_value(rows, fn {rt_id, oid} -> if be_rt && rt_id == be_rt.id, do: oid end)
-
-      project_id =
-        Enum.find_value(rows, fn {rt_id, oid} -> if ep_rt && rt_id == ep_rt.id, do: oid end)
-
-      {biennale_id, project_id}
+      {find_object_id(rows, be_rt), find_object_id(rows, ep_rt)}
     end
+  end
+
+  defp find_object_id(_rows, nil), do: nil
+
+  defp find_object_id(rows, relationship_type) do
+    Enum.find_value(rows, fn {rt_id, oid} -> if rt_id == relationship_type.id, do: oid end)
   end
 
   defp get_sibling_event_ids(event, project, biennale_id, rt) do
@@ -196,30 +199,32 @@ defmodule MykonosBiennaleWeb.EventController do
             distinct: true
         )
 
-      if artwork_ids == [] do
-        []
-      else
-        artworks =
-          Repo.all(
-            from e in Entity,
-              where: e.id in ^artwork_ids and e.visible == true,
-              order_by: [
-                asc: fragment("lower(coalesce(? ->> ?, ?))", e.fields, "title", e.identity)
-              ]
-          )
-
-        media_by_id = batch_media(artwork_ids)
-        creators_by_id = batch_creators(artwork_ids, rt)
-
-        Enum.map(artworks, fn artwork ->
-          %{
-            artwork: artwork,
-            media: Map.get(media_by_id, artwork.id, []),
-            creators: Map.get(creators_by_id, artwork.id, [])
-          }
-        end)
-      end
+      artwork_entries(artwork_ids, rt)
     end
+  end
+
+  defp artwork_entries([], _rt), do: []
+
+  defp artwork_entries(artwork_ids, rt) do
+    artworks =
+      Repo.all(
+        from e in Entity,
+          where: e.id in ^artwork_ids and e.visible == true,
+          order_by: [
+            asc: fragment("lower(coalesce(? ->> ?, ?))", e.fields, "title", e.identity)
+          ]
+      )
+
+    media_by_id = batch_media(artwork_ids)
+    creators_by_id = batch_creators(artwork_ids, rt)
+
+    Enum.map(artworks, fn artwork ->
+      %{
+        artwork: artwork,
+        media: Map.get(media_by_id, artwork.id, []),
+        creators: Map.get(creators_by_id, artwork.id, [])
+      }
+    end)
   end
 
   defp get_films_for_events(event_ids, rt) do
@@ -236,28 +241,30 @@ defmodule MykonosBiennaleWeb.EventController do
             distinct: true
         )
 
-      if film_ids == [] do
-        []
-      else
-        films =
-          Repo.all(
-            from e in Entity,
-              where: e.id in ^film_ids and e.visible == true,
-              order_by: [
-                asc: fragment("lower(coalesce(? ->> ?, ?))", e.fields, "title", e.identity)
-              ]
-          )
-
-        media_by_id = batch_media(film_ids)
-
-        Enum.map(films, fn film ->
-          %{
-            film: film,
-            media: Map.get(media_by_id, film.id, [])
-          }
-        end)
-      end
+      film_entries(film_ids)
     end
+  end
+
+  defp film_entries([]), do: []
+
+  defp film_entries(film_ids) do
+    films =
+      Repo.all(
+        from e in Entity,
+          where: e.id in ^film_ids and e.visible == true,
+          order_by: [
+            asc: fragment("lower(coalesce(? ->> ?, ?))", e.fields, "title", e.identity)
+          ]
+      )
+
+    media_by_id = batch_media(film_ids)
+
+    Enum.map(films, fn film ->
+      %{
+        film: film,
+        media: Map.get(media_by_id, film.id, [])
+      }
+    end)
   end
 
   defp get_event_participants(event, rt) do

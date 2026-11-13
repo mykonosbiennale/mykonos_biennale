@@ -124,7 +124,7 @@ defmodule MykonosBiennaleWeb.PageController do
     program_bg_media =
       find_media_by_role(biennale_links, "program_bg") || Enum.at(biennale_media, 1)
 
-    sponsors = load_sponsors(biennale_links)
+    sponsors = sponsors_for(current_biennale)
 
     team_image_ids =
       structure.team_members
@@ -310,19 +310,10 @@ defmodule MykonosBiennaleWeb.PageController do
           preload: [:subject, :object]
       )
 
-    ep_rt = Map.get(rt, "event_project")
-    ae_rt = Map.get(rt, "artwork_event")
-    sa_rt = Map.get(rt, "screened_at")
-    bt_rt = Map.get(rt, "biennale_team")
-
-    ep_rels = ep_rt && Enum.filter(rels, &(&1.relationship_type_id == ep_rt.id))
-    ae_rels = ae_rt && Enum.filter(rels, &(&1.relationship_type_id == ae_rt.id))
-    sa_rels = sa_rt && Enum.filter(rels, &(&1.relationship_type_id == sa_rt.id))
-    bt_rels = bt_rt && Enum.filter(rels, &(&1.relationship_type_id == bt_rt.id))
-
-    ep_rels = ep_rels || []
-    ae_rels = ae_rels || []
-    sa_rels = sa_rels || []
+    ep_rels = rels_of_type(rels, Map.get(rt, "event_project"))
+    ae_rels = rels_of_type(rels, Map.get(rt, "artwork_event"))
+    sa_rels = rels_of_type(rels, Map.get(rt, "screened_at"))
+    bt_rels = rels_of_type(rels, Map.get(rt, "biennale_team"))
 
     event_project_map =
       ep_rels
@@ -344,11 +335,7 @@ defmodule MykonosBiennaleWeb.PageController do
     artwork_ids = ae_rels |> Enum.map(& &1.subject_id) |> Enum.uniq()
     film_ids = sa_rels |> Enum.map(& &1.subject_id) |> Enum.uniq()
 
-    team_members =
-      case bt_rels do
-        nil -> []
-        rels -> Enum.map(rels, &team_member_from_rel/1)
-      end
+    team_members = Enum.map(bt_rels, &team_member_from_rel/1)
 
     %{
       event_project_map: event_project_map,
@@ -360,6 +347,11 @@ defmodule MykonosBiennaleWeb.PageController do
       team_members: team_members
     }
   end
+
+  defp rels_of_type(_rels, nil), do: []
+
+  defp rels_of_type(rels, relationship_type),
+    do: Enum.filter(rels, &(&1.relationship_type_id == relationship_type.id))
 
   # One query: artwork→participant and film→director relationships with
   # participant entities preloaded (replaces separate participant/director
@@ -456,11 +448,7 @@ defmodule MykonosBiennaleWeb.PageController do
   defp attach_team_photos(team_members, media_links_by_entity, team_images) do
     Enum.map(team_members, fn member ->
       headshot =
-        media_links_by_entity
-        |> Map.get(member.id, [])
-        |> Enum.find_value(fn link ->
-          if link.metadata && link.metadata["role"] == "headshot", do: link.media
-        end)
+        find_media_by_role(Map.get(media_links_by_entity, member.id, []), "headshot")
 
       photo = Map.get(team_images, member[:image_media_id]) || headshot
 
@@ -490,17 +478,8 @@ defmodule MykonosBiennaleWeb.PageController do
     end)
   end
 
-  defp load_sponsors(links) do
-    Enum.filter(links, fn link -> link.metadata && link.metadata["role"] == "sponsor" end)
-    |> Enum.map(fn link ->
-      %{
-        media_id: link.media_id,
-        media: link.media,
-        name: link.metadata["name"] || link.media.caption || "",
-        url: link.metadata["url"] || ""
-      }
-    end)
-  end
+  defp sponsors_for(nil), do: []
+  defp sponsors_for(biennale), do: MykonosBiennale.Sponsors.for_biennale(biennale.id)
 
   defp page_title(nil), do: "Mykonos Biennale"
   defp page_title(biennale), do: "Mykonos Biennale #{biennale.fields["year"]}"

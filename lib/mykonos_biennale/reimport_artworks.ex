@@ -35,74 +35,77 @@ defmodule MykonosBiennale.ReimportArtworks do
 
   def build_groups do
     records = load_export()
+    maps = build_lookup_maps(records)
 
-    arts = Enum.filter(records, &(&1["model"] == "festival.art"))
-    projects = Enum.filter(records, &(&1["model"] == "festival.project"))
-    projectseasons = Enum.filter(records, &(&1["model"] == "festival.projectseason"))
-    artists = Enum.filter(records, &(&1["model"] == "festival.artist"))
-    festivals = Enum.filter(records, &(&1["model"] == "festival.festival"))
-
-    project_map = Enum.into(projects, %{}, &{&1["pk"], &1})
-    projectseason_map = Enum.into(projectseasons, %{}, &{&1["pk"], &1})
-    artist_map = Enum.into(artists, %{}, &{&1["pk"], &1})
-    festival_map = Enum.into(festivals, %{}, &{&1["pk"], &1})
-
-    groups =
-      Enum.group_by(arts, fn art ->
-        title = art["fields"]["title"] || ""
-        title_slug = slugify(title)
-
-        project_pk = get_in(art, ["foreign_keys", "project", "pk"])
-        project = Map.get(project_map, project_pk)
-        project_slug = (project && project["fields"]["slug"]) || ""
-
-        project_x_pk = get_in(art, ["foreign_keys", "project_x", "pk"])
-        ps = Map.get(projectseason_map, project_x_pk)
-        fest_pk = ps && get_in(ps, ["foreign_keys", "festival", "pk"])
-        festival = fest_pk && Map.get(festival_map, fest_pk)
-        year = (festival && to_string(festival["fields"]["year"])) || ""
-
-        artist_pk = get_in(art, ["foreign_keys", "artist", "pk"])
-        artist = Map.get(artist_map, artist_pk)
-        artist_name = (artist && artist["fields"]["name"]) || ""
-
-        _biennale_title = (festival && festival["fields"]["title"]) || ""
-
-        {title_slug, year, project_slug, artist_name}
-      end)
-
-    groups
-    |> Enum.map(fn {{title_slug, year, project_slug, artist_name} = key, items} ->
-      sorted = Enum.sort_by(items, & &1["pk"])
-      first = hd(sorted)
-
-      all_files =
-        items
-        |> Enum.flat_map(fn art ->
-          (art["files"] || [])
-          |> Enum.map(fn f -> Map.get(f, "path", "") |> String.split("/") |> List.last() end)
-          |> Enum.reject(&(&1 in ["", nil]))
-        end)
-        |> Enum.uniq()
-
-      %{
-        key: key,
-        title: first["fields"]["title"] || "Untitled",
-        title_slug: title_slug,
-        year: year,
-        project_slug: project_slug,
-        artist_name: artist_name,
-        biennale_title: get_biennale_title(items, project_map, projectseason_map, festival_map),
-        count: length(items),
-        pks: Enum.map(items, & &1["pk"]),
-        file_names: all_files,
-        description: best_description(items),
-        photo_url: first["fields"]["photo"],
-        art_type: infer_art_type(project_slug),
-        leader: Enum.any?(items, &(&1["fields"]["leader"] == true))
-      }
-    end)
+    records
+    |> Enum.filter(&(&1["model"] == "festival.art"))
+    |> Enum.group_by(&group_key(&1, maps))
+    |> Enum.map(fn {key, items} -> build_group(key, items, maps) end)
     |> Enum.sort_by(fn g -> {g.artist_name, g.year, g.title} end)
+  end
+
+  defp build_lookup_maps(records) do
+    %{
+      projects: index_by_pk(records, "festival.project"),
+      projectseasons: index_by_pk(records, "festival.projectseason"),
+      artists: index_by_pk(records, "festival.artist"),
+      festivals: index_by_pk(records, "festival.festival")
+    }
+  end
+
+  defp index_by_pk(records, model) do
+    for record <- records, record["model"] == model, into: %{}, do: {record["pk"], record}
+  end
+
+  defp group_key(art, maps) do
+    title_slug = slugify(art["fields"]["title"] || "")
+
+    {title_slug, art_year(art, maps), art_project_slug(art, maps), art_artist_name(art, maps)}
+  end
+
+  defp art_project_slug(art, maps) do
+    project = Map.get(maps.projects, get_in(art, ["foreign_keys", "project", "pk"]))
+    (project && project["fields"]["slug"]) || ""
+  end
+
+  defp art_year(art, maps) do
+    ps = Map.get(maps.projectseasons, get_in(art, ["foreign_keys", "project_x", "pk"]))
+    fest_pk = ps && get_in(ps, ["foreign_keys", "festival", "pk"])
+    festival = fest_pk && Map.get(maps.festivals, fest_pk)
+    (festival && to_string(festival["fields"]["year"])) || ""
+  end
+
+  defp art_artist_name(art, maps) do
+    artist = Map.get(maps.artists, get_in(art, ["foreign_keys", "artist", "pk"]))
+    (artist && artist["fields"]["name"]) || ""
+  end
+
+  defp build_group({title_slug, year, project_slug, artist_name} = key, items, maps) do
+    first = items |> Enum.sort_by(& &1["pk"]) |> hd()
+
+    %{
+      key: key,
+      title: first["fields"]["title"] || "Untitled",
+      title_slug: title_slug,
+      year: year,
+      project_slug: project_slug,
+      artist_name: artist_name,
+      biennale_title:
+        get_biennale_title(items, maps.projects, maps.projectseasons, maps.festivals),
+      count: length(items),
+      pks: Enum.map(items, & &1["pk"]),
+      file_names: items |> Enum.flat_map(&item_file_names/1) |> Enum.uniq(),
+      description: best_description(items),
+      photo_url: first["fields"]["photo"],
+      art_type: infer_art_type(project_slug),
+      leader: Enum.any?(items, &(&1["fields"]["leader"] == true))
+    }
+  end
+
+  defp item_file_names(art) do
+    (art["files"] || [])
+    |> Enum.map(fn f -> f |> Map.get("path", "") |> String.split("/") |> List.last() end)
+    |> Enum.reject(&(&1 in ["", nil]))
   end
 
   defp get_biennale_title(items, project_map, _ps_map, fest_map) do
@@ -272,63 +275,51 @@ defmodule MykonosBiennale.ReimportArtworks do
   end
 
   defp attach_participant(artwork, group, artist_pk_to_id) do
-    records = load_export()
-    arts = Enum.filter(records, &(&1["model"] == "festival.art" and &1["pk"] in group.pks))
-
-    artist_pks =
-      arts
-      |> Enum.map(&get_in(&1, ["foreign_keys", "artist", "pk"]))
-      |> Enum.reject(&is_nil/1)
-      |> Enum.uniq()
-
-    for artist_pk <- artist_pks do
+    for artist_pk <- group_pk_values(group, "artist") do
       case Map.get(artist_pk_to_id, artist_pk) do
-        nil ->
-          :ok
-
-        participant_id ->
-          participant = Content.get_participant!(participant_id)
-
-          case Content.list_artwork_linked_participants(artwork)
-               |> Enum.find(&(&1.id == participant_id)) do
-            nil ->
-              Content.attach_participant_to_artwork(artwork, participant, "creator")
-
-            _ ->
-              :ok
-          end
+        nil -> :ok
+        participant_id -> attach_participant_once(artwork, participant_id)
       end
     end
   end
 
+  defp attach_participant_once(artwork, participant_id) do
+    participant = Content.get_participant!(participant_id)
+
+    case Content.list_artwork_linked_participants(artwork)
+         |> Enum.find(&(&1.id == participant_id)) do
+      nil -> Content.attach_participant_to_artwork(artwork, participant, "creator")
+      _ -> :ok
+    end
+  end
+
   defp attach_event(artwork, group, proj_pk_to_event_id) do
+    for project_pk <- group_pk_values(group, "project") do
+      case Map.get(proj_pk_to_event_id, project_pk) do
+        nil -> :ok
+        event_id -> attach_event_once(artwork, event_id)
+      end
+    end
+  end
+
+  defp attach_event_once(artwork, event_id) do
+    event = Content.get_event!(event_id)
+
+    case Content.list_artwork_linked_events(artwork)
+         |> Enum.find(&(&1.id == event_id)) do
+      nil -> Content.attach_event_to_artwork(artwork, event)
+      _ -> :ok
+    end
+  end
+
+  defp group_pk_values(group, foreign_key) do
     records = load_export()
     arts = Enum.filter(records, &(&1["model"] == "festival.art" and &1["pk"] in group.pks))
 
-    project_pks =
-      arts
-      |> Enum.map(&get_in(&1, ["foreign_keys", "project", "pk"]))
-      |> Enum.reject(&is_nil/1)
-      |> Enum.uniq()
-
-    for project_pk <- project_pks do
-      case Map.get(proj_pk_to_event_id, project_pk) do
-        nil ->
-          :ok
-
-        event_id ->
-          event = Content.get_event!(event_id)
-
-          case Content.list_artwork_linked_events(artwork)
-               |> Enum.find(&(&1.id == event_id)) do
-            nil ->
-              Content.attach_event_to_artwork(artwork, event)
-
-            _ ->
-              :ok
-          end
-      end
-    end
+    arts
+    |> Enum.map(&get_in(&1, ["foreign_keys", foreign_key, "pk"]))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
   end
 
   defp build_artist_pk_to_participant_id do
@@ -369,28 +360,21 @@ defmodule MykonosBiennale.ReimportArtworks do
 
     projects
     |> Enum.reduce(%{}, fn proj, acc ->
-      fest_pk = get_in(proj["foreign_keys"], ["festival", "pk"])
-      biennale_id = Map.get(fest_to_biennale, fest_pk)
-
-      proj_slug =
-        normalize_slug(proj["fields"]["slug"])
-
-      project_entity_id = Map.get(slug_to_project, proj_slug)
-      proj_pk = proj["pk"]
-
-      if biennale_id && project_entity_id do
-        import_key = "#{biennale_id}-#{project_entity_id}"
-        event_id = Map.get(events, import_key)
-
-        if event_id do
-          Map.put(acc, proj_pk, event_id)
-        else
-          acc
-        end
-      else
-        acc
+      case project_event_id(proj, fest_to_biennale, slug_to_project, events) do
+        nil -> acc
+        event_id -> Map.put(acc, proj["pk"], event_id)
       end
     end)
+  end
+
+  defp project_event_id(proj, fest_to_biennale, slug_to_project, events) do
+    fest_pk = get_in(proj["foreign_keys"], ["festival", "pk"])
+    biennale_id = Map.get(fest_to_biennale, fest_pk)
+    project_entity_id = Map.get(slug_to_project, normalize_slug(proj["fields"]["slug"]))
+
+    if biennale_id && project_entity_id do
+      Map.get(events, "#{biennale_id}-#{project_entity_id}")
+    end
   end
 
   defp build_project_slug_to_id do

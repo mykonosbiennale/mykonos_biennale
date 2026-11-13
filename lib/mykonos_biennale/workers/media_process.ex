@@ -72,17 +72,7 @@ defmodule MykonosBiennale.Workers.MediaProcess do
     if image_ext?(path) do
       {:ok, :skipped}
 
-      Enum.each(@sizes, fn size ->
-        case Thumbnail.ensure_slug_thumbnail(slug, path, size) do
-          {:ok, _path} -> :ok
-          {:original, _path} -> :ok
-        end
-
-        case Thumbnail.ensure_slug_jpeg(slug, path, size) do
-          {:ok, _path} -> :ok
-          {:original, _path} -> :ok
-        end
-      end)
+      Enum.each(@sizes, &generate_size_variants(slug, path, &1))
 
       {:ok, :generated}
     else
@@ -91,6 +81,14 @@ defmodule MykonosBiennale.Workers.MediaProcess do
   end
 
   defp generate_webp_sizes(_), do: {:ok, :skipped}
+
+  defp generate_size_variants(slug, path, size) do
+    ensure_variant(Thumbnail.ensure_slug_thumbnail(slug, path, size))
+    ensure_variant(Thumbnail.ensure_slug_jpeg(slug, path, size))
+  end
+
+  defp ensure_variant({:ok, _path}), do: :ok
+  defp ensure_variant({:original, _path}), do: :ok
 
   defp generate_avif(%Media{slug: slug, source_type: "upload", source_path: path}, size) do
     if image_ext?(path) do
@@ -105,13 +103,7 @@ defmodule MykonosBiennale.Workers.MediaProcess do
           generate_avif_from_webp(webp_path, avif_path)
 
         true ->
-          case Thumbnail.ensure_slug_thumbnail(slug, path, size) do
-            {:ok, thumb_path} ->
-              generate_avif_from_webp(thumb_path, avif_path)
-
-            {:original, _path} ->
-              {:ok, :no_source}
-          end
+          avif_from_thumbnail(Thumbnail.ensure_slug_thumbnail(slug, path, size), avif_path)
       end
     else
       {:ok, :skipped}
@@ -119,6 +111,11 @@ defmodule MykonosBiennale.Workers.MediaProcess do
   end
 
   defp generate_avif(_media, _size), do: {:ok, :skipped}
+
+  defp avif_from_thumbnail({:ok, thumb_path}, avif_path),
+    do: generate_avif_from_webp(thumb_path, avif_path)
+
+  defp avif_from_thumbnail({:original, _path}, _avif_path), do: {:ok, :no_source}
 
   defp generate_avif_from_webp(webp_path, avif_path) do
     cmd = System.find_executable("magick") || "convert"
@@ -149,38 +146,42 @@ defmodule MykonosBiennale.Workers.MediaProcess do
       press_path = MediaDir.path(slug, "press", ".jpg")
       original_path = MykonosBiennale.Uploads.uploads_path(path)
 
-      if File.exists?(press_path) do
-        {:ok, :already_exists}
-      else
-        args = [
-          original_path,
-          "-resize",
-          "3508x3508>",
-          "-quality",
-          "92",
-          "-strip",
-          press_path
-        ]
-
-        cmd = System.find_executable("magick") || "convert"
-
-        case System.cmd(cmd, args, stderr_to_stdout: true) do
-          {_, 0} ->
-            {:ok, :generated}
-
-          {error, _code} ->
-            require Logger
-            Logger.warning("Press JPEG generation failed for #{original_path}: #{error}")
-            File.rm(press_path)
-            {:error, :press_failed}
-        end
-      end
+      press_jpeg(original_path, press_path)
     else
       {:ok, :skipped}
     end
   end
 
   defp generate_press(_media), do: {:ok, :skipped}
+
+  defp press_jpeg(original_path, press_path) do
+    if File.exists?(press_path) do
+      {:ok, :already_exists}
+    else
+      args = [
+        original_path,
+        "-resize",
+        "3508x3508>",
+        "-quality",
+        "92",
+        "-strip",
+        press_path
+      ]
+
+      cmd = System.find_executable("magick") || "convert"
+
+      case System.cmd(cmd, args, stderr_to_stdout: true) do
+        {_, 0} ->
+          {:ok, :generated}
+
+        {error, _code} ->
+          require Logger
+          Logger.warning("Press JPEG generation failed for #{original_path}: #{error}")
+          File.rm(press_path)
+          {:error, :press_failed}
+      end
+    end
+  end
 
   defp enqueue_avif_and_press(media_id) do
     Enum.each(@sizes, fn size ->
@@ -196,37 +197,13 @@ defmodule MykonosBiennale.Workers.MediaProcess do
     :ok
   end
 
-  defp rotate_media(
-         %Media{id: id, slug: slug, source_type: "upload", source_path: path, metadata: metadata},
-         degrees
-       )
+  defp rotate_media(%Media{source_type: "upload", source_path: path, slug: slug} = media, degrees)
        when is_binary(path) and is_binary(slug) do
     if image_ext?(path) do
       original_path = MykonosBiennale.Uploads.uploads_path(path)
 
       if File.exists?(original_path) do
-        cmd = System.find_executable("magick") || "convert"
-
-        args = [
-          original_path,
-          "-rotate",
-          to_string(degrees),
-          original_path
-        ]
-
-        case System.cmd(cmd, args, stderr_to_stdout: true) do
-          {_, 0} ->
-            Thumbnail.invalidate_slug_cache(slug)
-            generate_webp_sizes(%Media{slug: slug, source_type: "upload", source_path: path})
-            enqueue_avif_and_press(id_for_slug(slug))
-            record_rotation(id, metadata, degrees)
-            {:ok, :rotated}
-
-          {error, _code} ->
-            require Logger
-            Logger.warning("Rotation failed for #{original_path}: #{error}")
-            {:error, :rotate_failed}
-        end
+        run_rotation(media, original_path, degrees)
       else
         {:ok, :no_source}
       end
@@ -236,6 +213,35 @@ defmodule MykonosBiennale.Workers.MediaProcess do
   end
 
   defp rotate_media(_, _), do: {:ok, :skipped}
+
+  defp run_rotation(
+         %Media{id: id, slug: slug, source_path: path, metadata: metadata},
+         original_path,
+         degrees
+       ) do
+    cmd = System.find_executable("magick") || "convert"
+
+    args = [
+      original_path,
+      "-rotate",
+      to_string(degrees),
+      original_path
+    ]
+
+    case System.cmd(cmd, args, stderr_to_stdout: true) do
+      {_, 0} ->
+        Thumbnail.invalidate_slug_cache(slug)
+        generate_webp_sizes(%Media{slug: slug, source_type: "upload", source_path: path})
+        enqueue_avif_and_press(id_for_slug(slug))
+        record_rotation(id, metadata, degrees)
+        {:ok, :rotated}
+
+      {error, _code} ->
+        require Logger
+        Logger.warning("Rotation failed for #{original_path}: #{error}")
+        {:error, :rotate_failed}
+    end
+  end
 
   defp record_rotation(id, metadata, degrees) do
     current = metadata || %{}

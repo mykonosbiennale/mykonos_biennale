@@ -30,21 +30,21 @@ defmodule MykonosBiennale.Content.Participant do
   Creates a participant entity.
   """
   def create(attrs \\ %{}) do
-    first_name = Map.get(attrs, :first_name) || Map.get(attrs, "first_name") || ""
-    last_name = Map.get(attrs, :last_name) || Map.get(attrs, "last_name") || ""
-    name = Map.get(attrs, :name) || Map.get(attrs, "name") || "#{first_name} #{last_name}"
+    first_name = attr(attrs, :first_name) || ""
+    last_name = attr(attrs, :last_name) || ""
+    name = attr(attrs, :name) || "#{first_name} #{last_name}"
 
     fields = %{
       "first_name" => first_name,
       "last_name" => last_name,
       "name" => name,
-      "country" => Map.get(attrs, :country) || Map.get(attrs, "country"),
-      "email" => Map.get(attrs, :email) || Map.get(attrs, "email"),
-      "phone" => Map.get(attrs, :phone) || Map.get(attrs, "phone"),
-      "website" => Map.get(attrs, :website) || Map.get(attrs, "website"),
-      "social_media" => Map.get(attrs, :social_media) || Map.get(attrs, "social_media") || [],
-      "bio" => Map.get(attrs, :bio) || Map.get(attrs, "bio"),
-      "statement" => Map.get(attrs, :statement) || Map.get(attrs, "statement")
+      "country" => attr(attrs, :country),
+      "email" => attr(attrs, :email),
+      "phone" => attr(attrs, :phone),
+      "website" => attr(attrs, :website),
+      "social_media" => attr(attrs, :social_media) || [],
+      "bio" => attr(attrs, :bio),
+      "statement" => attr(attrs, :statement)
     }
 
     slug = Content.slugify("#{first_name}-#{last_name}") <> "-#{System.monotonic_time()}"
@@ -235,31 +235,33 @@ defmodule MykonosBiennale.Content.Participant do
     rt_ids =
       Repo.all(from rt in RelationshipType, where: rt.slug in ^@film_rel_slugs, select: rt.id)
 
-    if rt_ids != [] do
-      rels =
+    case rt_ids do
+      [] ->
+        []
+
+      _ ->
         Repo.all(
           from r in Relationship,
             where: r.object_id == ^participant.id and r.relationship_type_id in ^rt_ids,
             preload: [:subject, :relationship_type]
         )
+        |> Enum.map(&film_work/1)
+    end
+  end
 
-      Enum.map(rels, fn rel ->
-        film = rel.subject
+  defp film_work(rel) do
+    film = rel.subject
 
-        if film && film.visible do
-          %{
-            entity: film,
-            type: film.type,
-            role: rel.relationship_type.label,
-            media: Content.list_media_for_entity(film),
-            events: load_work_events(film, "screened_at")
-          }
-        else
-          %{entity: nil, type: nil, role: nil, media: [], events: []}
-        end
-      end)
+    if film && film.visible do
+      %{
+        entity: film,
+        type: film.type,
+        role: rel.relationship_type.label,
+        media: Content.list_media_for_entity(film),
+        events: load_work_events(film, "screened_at")
+      }
     else
-      []
+      %{entity: nil, type: nil, role: nil, media: [], events: []}
     end
   end
 
@@ -289,22 +291,28 @@ defmodule MykonosBiennale.Content.Participant do
     if all_event_ids == [] do
       %{}
     else
-      be_rt = Repo.get_by(RelationshipType, slug: "biennale_event")
+      event_biennale_map(all_event_ids)
+    end
+  end
 
-      if be_rt do
+  defp event_biennale_map(event_ids) do
+    case Repo.get_by(RelationshipType, slug: "biennale_event") do
+      nil ->
+        %{}
+
+      be_rt ->
         rels =
           Repo.all(
             from r in Relationship,
-              where: r.subject_id in ^all_event_ids and r.relationship_type_id == ^be_rt.id,
+              where: r.subject_id in ^event_ids and r.relationship_type_id == ^be_rt.id,
               preload: [:object]
           )
 
         Enum.into(rels, %{}, fn rel -> {rel.subject_id, rel.object} end)
-      else
-        %{}
-      end
     end
   end
+
+  defp attr(attrs, key), do: Map.get(attrs, key) || Map.get(attrs, to_string(key))
 
   defp group_works_by_biennale(works, biennale_map) do
     works_with_biennale =

@@ -38,23 +38,26 @@ defmodule MykonosBiennale.ContentFixtures do
   @doc "Creates a biennale entity."
   def biennale_fixture(attrs \\ %{}) do
     attrs = to_map(attrs)
-    year = Map.get(attrs, "year") || Map.get(attrs, :year, 2025)
-    theme = Map.get(attrs, "theme") || Map.get(attrs, :theme, "Test Theme")
 
     {:ok, biennale} =
       Content.create_biennale(%{
-        year: year,
-        theme: theme,
-        statement: Map.get(attrs, "statement") || Map.get(attrs, :statement),
-        description: Map.get(attrs, "description") || Map.get(attrs, :description),
-        visible: Map.get(attrs, "visible") || Map.get(attrs, :visible, true),
-        template: Map.get(attrs, "template") || Map.get(attrs, :template, "default"),
-        start_date: Map.get(attrs, "start_date") || Map.get(attrs, :start_date, "2025-09-27"),
-        end_date: Map.get(attrs, "end_date") || Map.get(attrs, :end_date, "2025-10-05"),
-        show_program: Map.get(attrs, "show_program") || Map.get(attrs, :show_program, true)
+        year: fetch_attr(attrs, :year, 2025),
+        theme: fetch_attr(attrs, :theme, "Test Theme"),
+        statement: fetch_attr(attrs, :statement, nil),
+        description: fetch_attr(attrs, :description, nil),
+        visible: fetch_attr(attrs, :visible, true),
+        template: fetch_attr(attrs, :template, "default"),
+        start_date: fetch_attr(attrs, :start_date, "2025-09-27"),
+        end_date: fetch_attr(attrs, :end_date, "2025-10-05"),
+        show_program: fetch_attr(attrs, :show_program, true)
       })
 
     biennale
+  end
+
+  # Prefers the string key, then the atom key (with default).
+  defp fetch_attr(attrs, key, default) do
+    Map.get(attrs, to_string(key)) || Map.get(attrs, key, default)
   end
 
   @doc "Creates a project entity."

@@ -30,6 +30,33 @@ defmodule MykonosBiennaleWeb.UserAuth do
   # the reissuing of tokens completely.
   @session_reissue_age_in_days 7
 
+  @admin_nav_pages %{
+    MykonosBiennaleWeb.Admin.DashboardLive => "dashboard",
+    MykonosBiennaleWeb.Admin.BiennaleLive.Index => "biennales",
+    MykonosBiennaleWeb.Admin.BiennaleLive.Show => "biennales",
+    MykonosBiennaleWeb.Admin.EventLive.Index => "events",
+    MykonosBiennaleWeb.Admin.EventLive.Show => "events",
+    MykonosBiennaleWeb.Admin.ParticipantLive.Index => "participants",
+    MykonosBiennaleWeb.Admin.ParticipantLive.Show => "participants",
+    MykonosBiennaleWeb.Admin.FilmLive.Index => "films",
+    MykonosBiennaleWeb.Admin.FilmLive.Show => "films",
+    MykonosBiennaleWeb.Admin.ArtworkLive.Index => "artworks",
+    MykonosBiennaleWeb.Admin.ArtworkLive.Show => "artworks",
+    MykonosBiennaleWeb.Admin.ArtworkLive.Merge => "artworks",
+    MykonosBiennaleWeb.Admin.ProjectLive.Index => "projects",
+    MykonosBiennaleWeb.Admin.ProjectLive.Show => "projects",
+    MykonosBiennaleWeb.Admin.MediaLive.Index => "media",
+    MykonosBiennaleWeb.Admin.MediaLive.Show => "media",
+    MykonosBiennaleWeb.Admin.PageLive.Index => "pages",
+    MykonosBiennaleWeb.Admin.PageLive.Show => "pages",
+    MykonosBiennaleWeb.Admin.SectionLive.Index => "sections",
+    MykonosBiennaleWeb.Admin.SectionLive.Show => "sections",
+    MykonosBiennaleWeb.Admin.RelationshipTypeLive.Index => "relationship_types",
+    MykonosBiennaleWeb.Admin.RelationshipLive.Index => "relationships",
+    MykonosBiennaleWeb.Admin.RelationshipLive.Show => "relationships",
+    MykonosBiennaleWeb.Admin.UserLive.Index => "users"
+  }
+
   @doc """
   Logs the user in.
 
@@ -234,34 +261,7 @@ defmodule MykonosBiennaleWeb.UserAuth do
   end
 
   def on_mount(:admin_nav_assigns, _params, _session, socket) do
-    current_page =
-      case socket.view do
-        MykonosBiennaleWeb.Admin.DashboardLive -> "dashboard"
-        MykonosBiennaleWeb.Admin.BiennaleLive.Index -> "biennales"
-        MykonosBiennaleWeb.Admin.BiennaleLive.Show -> "biennales"
-        MykonosBiennaleWeb.Admin.EventLive.Index -> "events"
-        MykonosBiennaleWeb.Admin.EventLive.Show -> "events"
-        MykonosBiennaleWeb.Admin.ParticipantLive.Index -> "participants"
-        MykonosBiennaleWeb.Admin.ParticipantLive.Show -> "participants"
-        MykonosBiennaleWeb.Admin.FilmLive.Index -> "films"
-        MykonosBiennaleWeb.Admin.FilmLive.Show -> "films"
-        MykonosBiennaleWeb.Admin.ArtworkLive.Index -> "artworks"
-        MykonosBiennaleWeb.Admin.ArtworkLive.Show -> "artworks"
-        MykonosBiennaleWeb.Admin.ArtworkLive.Merge -> "artworks"
-        MykonosBiennaleWeb.Admin.ProjectLive.Index -> "projects"
-        MykonosBiennaleWeb.Admin.ProjectLive.Show -> "projects"
-        MykonosBiennaleWeb.Admin.MediaLive.Index -> "media"
-        MykonosBiennaleWeb.Admin.MediaLive.Show -> "media"
-        MykonosBiennaleWeb.Admin.PageLive.Index -> "pages"
-        MykonosBiennaleWeb.Admin.PageLive.Show -> "pages"
-        MykonosBiennaleWeb.Admin.SectionLive.Index -> "sections"
-        MykonosBiennaleWeb.Admin.SectionLive.Show -> "sections"
-        MykonosBiennaleWeb.Admin.RelationshipTypeLive.Index -> "relationship_types"
-        MykonosBiennaleWeb.Admin.RelationshipLive.Index -> "relationships"
-        MykonosBiennaleWeb.Admin.RelationshipLive.Show -> "relationships"
-        MykonosBiennaleWeb.Admin.UserLive.Index -> "users"
-        _ -> nil
-      end
+    current_page = Map.get(@admin_nav_pages, socket.view)
 
     {:cont, Phoenix.Component.assign(socket, :current_page, current_page)}
   end

@@ -133,13 +133,16 @@ defmodule MykonosBiennaleWeb.BiennaleHTML do
         {hour, ""} = Integer.parse(h)
 
         suffix = if hour >= 12, do: "PM", else: "AM"
-        display_hour = if hour > 12, do: hour - 12, else: if(hour == 0, do: 12, else: hour)
-        "#{display_hour}:#{m} #{suffix}"
+        "#{display_hour(hour)}:#{m} #{suffix}"
 
       _ ->
         time
     end
   end
+
+  defp display_hour(hour) when hour > 12, do: hour - 12
+  defp display_hour(0), do: 12
+  defp display_hour(hour), do: hour
 
   def format_day(nil), do: nil
 

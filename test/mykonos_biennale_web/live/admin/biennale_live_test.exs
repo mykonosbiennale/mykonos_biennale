@@ -127,11 +127,8 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLiveTest do
       bg = ContentFixtures.media_fixture(caption: "Statement bg")
       Content.attach_media_to_entity(biennale, bg, metadata: %{"role" => "statement_bg"})
 
-      sponsor = ContentFixtures.media_fixture(caption: "Sponsor logo")
-
-      Content.attach_media_to_entity(biennale, sponsor,
-        metadata: %{"role" => "sponsor", "name" => "Acme Co", "url" => "https://acme.example"}
-      )
+      {:ok, sponsor} = MykonosBiennale.Sponsors.save("Acme Co", "https://acme.example")
+      MykonosBiennale.Sponsors.link(sponsor.id, biennale.id)
 
       {:ok, biennale: biennale, member: member, candidate: candidate, bg: bg, sponsor: sponsor}
     end
@@ -226,14 +223,23 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLiveTest do
       refute has_element?(lv, "button[phx-click=remove_bg][phx-value-role=statement_bg]")
     end
 
-    test "remove_sponsor detaches a sponsor logo", %{conn: conn, biennale: b, sponsor: s} do
+    test "remove_sponsor unlinks a sponsor from this biennale", %{
+      conn: conn,
+      biennale: b,
+      sponsor: s
+    } do
       {:ok, lv, _} = live(conn, ~p"/admin/biennales/#{b.id}/edit")
 
       lv
-      |> element("button[phx-click=remove_sponsor][phx-value-media-id=\"#{s.id}\"]")
+      |> element("button[phx-click=remove_sponsor][phx-value-sponsor-id=\"#{s.id}\"]")
       |> render_click()
 
-      refute has_element?(lv, "button[phx-click=remove_sponsor][phx-value-media-id=\"#{s.id}\"]")
+      refute has_element?(
+               lv,
+               "button[phx-click=remove_sponsor][phx-value-sponsor-id=\"#{s.id}\"]"
+             )
+
+      assert MykonosBiennale.Sponsors.for_biennale(b.id) == []
     end
   end
 end

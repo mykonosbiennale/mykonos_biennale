@@ -174,10 +174,7 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
         ""
       end
 
-    types_list =
-      @content_types
-      |> Enum.map(&"'#{&1}'")
-      |> Enum.join(",")
+    types_list = Enum.map_join(@content_types, ",", &"'#{&1}'")
 
     sql = """
     SELECT e.id, e.identity, e.type, e.fields, e.updated_at, e.inserted_at,

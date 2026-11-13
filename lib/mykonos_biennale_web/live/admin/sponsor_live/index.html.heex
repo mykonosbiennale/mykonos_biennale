@@ -28,14 +28,15 @@
                 {sponsor.name}
               </td>
               <td class="px-6 py-4">
-                <%= if sponsor.media && sponsor.media.source_path do %>
+                <%= if sponsor.logo && sponsor.logo.source_path do %>
                   <img
-                    src={MykonosBiennale.Uploads.media_url(sponsor.media, size: "thumb")}
+                    src={MykonosBiennale.Uploads.media_url(sponsor.logo, size: "thumb")}
                     alt={sponsor.name}
                     class="h-10 object-contain rounded"
                   />
                 <% else %>
                   <.icon name="hero-photo" class="w-8 h-8 text-gray-500" />
+                  <span class="block text-xs text-amber-400">Logo missing</span>
                 <% end %>
               </td>
               <td class="px-6 py-4">
@@ -53,18 +54,17 @@
               </td>
               <td class="px-6 py-4">
                 <div class="flex flex-wrap gap-2">
-                  <%= for link <- sponsor.links do %>
-                    <% year = link.entity && link.entity.fields && link.entity.fields["year"] %>
+                  <%= for b <- sponsor.biennales do %>
                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-purple-500/10 border border-purple-500/20">
-                      <span class="text-purple-300 font-medium">{year}</span>
+                      <span class="text-purple-300 font-medium">{b.year}</span>
                       <button
                         type="button"
                         phx-click="remove_year"
-                        phx-value-entity-id={link.entity_id}
-                        phx-value-media-id={link.media_id}
-                        data-confirm="Remove sponsorship in #{year}?"
+                        phx-value-entity-id={sponsor.id}
+                        phx-value-biennale-id={b.id}
+                        data-confirm="Remove sponsorship in #{b.year}?"
                         class="text-gray-600 hover:text-red-400"
-                        title="Remove #{year}"
+                        title="Remove #{b.year}"
                       >
                         <.icon name="hero-x-mark" class="w-3 h-3" />
                       </button>
@@ -236,10 +236,10 @@
 
         <div>
           <label class="block text-sm font-semibold text-gray-900 mb-1">Logo</label>
-          <%= if @sponsor.media && @sponsor.media.source_path do %>
+          <%= if @sponsor.logo && @sponsor.logo.source_path do %>
             <div class="relative group inline-block mb-2">
               <img
-                src={MykonosBiennale.Uploads.media_url(@sponsor.media, size: "card")}
+                src={MykonosBiennale.Uploads.media_url(@sponsor.logo, size: "card")}
                 alt={@sponsor.name}
                 class="h-16 object-contain rounded border border-gray-300"
               />
@@ -256,7 +256,7 @@
               phx-click={JS.dispatch("click", to: "##{@uploads.sponsor_logo.ref}")}
               class="text-blue-600 hover:text-blue-700 font-medium text-sm"
             >
-              <%= if @sponsor.media && @sponsor.media.source_path do %>
+              <%= if @sponsor.logo && @sponsor.logo.source_path do %>
                 Upload a new logo to replace
               <% else %>
                 Click to upload or drag and drop
@@ -289,7 +289,7 @@
           <label class="block text-sm font-semibold text-gray-900 mb-1">Biennales</label>
           <div class="space-y-1">
             <%= for b <- @biennales do %>
-              <% sponsored = Enum.any?(@sponsor.links, &(&1.entity_id == b.id)) %>
+              <% sponsored = Enum.any?(@sponsor.biennales, &(&1.id == b.id)) %>
               <label class={[
                 "flex items-center gap-2 text-sm",
                 if(sponsored, do: "text-gray-400", else: "text-gray-900")

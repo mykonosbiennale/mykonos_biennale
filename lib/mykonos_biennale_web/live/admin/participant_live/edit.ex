@@ -326,48 +326,52 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
         {:noreply, put_flash(socket, :error, "Select an entity")}
 
       true ->
-        {subject_id, object_id} =
-          case direction do
-            "subject" -> {participant.id, selected.id}
-            _ -> {selected.id, participant.id}
-          end
+        insert_relationship(socket, participant, type_id, direction, selected, fields_str)
+    end
+  end
 
-        fields =
-          case fields_str do
-            nil -> %{}
-            "" -> %{}
-            str -> %{"roles" => String.trim(str)}
-          end
+  defp insert_relationship(socket, participant, type_id, direction, selected, fields_str) do
+    {subject_id, object_id} =
+      case direction do
+        "subject" -> {participant.id, selected.id}
+        _ -> {selected.id, participant.id}
+      end
 
-        rt = Repo.get!(MykonosBiennale.Content.RelationshipType, String.to_integer(type_id))
+    fields =
+      case fields_str do
+        nil -> %{}
+        "" -> %{}
+        str -> %{"roles" => String.trim(str)}
+      end
 
-        rel_attrs = %{
-          relationship_type_id: rt.id,
-          subject_id: subject_id,
-          object_id: object_id,
-          fields: fields
-        }
+    rt = Repo.get!(MykonosBiennale.Content.RelationshipType, String.to_integer(type_id))
 
-        case Relationship.changeset(
-               %Relationship{},
-               rel_attrs
-             )
-             |> Repo.insert() do
-          {:ok, _} ->
-            {:noreply,
-             socket
-             |> assign(:relationships, list_relationships(participant))
-             |> assign(:show_add_relationship, false)
-             |> assign(:new_rel_type, nil)
-             |> assign(:new_rel_selected_entity, nil)
-             |> assign(:new_rel_search, "")
-             |> assign(:new_rel_results, [])
-             |> assign(:new_rel_fields, "")
-             |> put_flash(:info, "Relationship created")}
+    rel_attrs = %{
+      relationship_type_id: rt.id,
+      subject_id: subject_id,
+      object_id: object_id,
+      fields: fields
+    }
 
-          {:error, _} ->
-            {:noreply, put_flash(socket, :error, "Failed to create relationship")}
-        end
+    case Relationship.changeset(
+           %Relationship{},
+           rel_attrs
+         )
+         |> Repo.insert() do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> assign(:relationships, list_relationships(participant))
+         |> assign(:show_add_relationship, false)
+         |> assign(:new_rel_type, nil)
+         |> assign(:new_rel_selected_entity, nil)
+         |> assign(:new_rel_search, "")
+         |> assign(:new_rel_results, [])
+         |> assign(:new_rel_fields, "")
+         |> put_flash(:info, "Relationship created")}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to create relationship")}
     end
   end
 

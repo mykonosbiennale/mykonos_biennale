@@ -528,29 +528,8 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
         []
       end
 
-    {poster_links, non_poster_links} =
-      Enum.split_with(all_media_links, fn link ->
-        meta = link.metadata || %{}
-        meta["is_poster"] == true or meta["role"] == "poster"
-      end)
-
-    poster_link = List.first(poster_links)
-
-    {trailer_links, rest_links} =
-      Enum.split_with(non_poster_links, fn link ->
-        meta = link.metadata || %{}
-        meta["role"] == "trailer"
-      end)
-
-    trailer_link = List.first(trailer_links)
-
-    {screening_copy_links, still_links} =
-      Enum.split_with(rest_links, fn link ->
-        meta = link.metadata || %{}
-        meta["role"] == "screening_copy"
-      end)
-
-    screening_copy_link = List.first(screening_copy_links)
+    {poster_link, trailer_link, screening_copy_link, still_links} =
+      split_film_media_links(all_media_links)
 
     linked_relationships =
       if film.id do
@@ -559,25 +538,11 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
         []
       end
 
-    all_participants = Content.list_participants()
-    linked_participant_ids = Enum.map(linked_relationships, & &1.object_id)
-
-    available_participants =
-      Enum.reject(all_participants, fn p -> p.id in linked_participant_ids end)
+    available_participants = available_participants_excluding(linked_relationships)
 
     film_events = Content.list_film_events()
 
-    current_event_id =
-      if film.id do
-        event_rels = Content.list_film_linked_events(film)
-
-        case List.first(event_rels) do
-          nil -> nil
-          rel -> to_string(rel.object_id)
-        end
-      else
-        Map.get(assigns, :default_event_id)
-      end
+    current_event_id = current_film_event_id(film, assigns)
 
     {:ok,
      socket
@@ -616,6 +581,44 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
        max_entries: 1,
        max_file_size: 2_000_000_000
      )}
+  end
+
+  defp split_film_media_links(all_media_links) do
+    {poster_links, non_poster_links} = Enum.split_with(all_media_links, &poster_link?/1)
+    {trailer_links, rest_links} = Enum.split_with(non_poster_links, &link_role?(&1, "trailer"))
+
+    {screening_copy_links, still_links} =
+      Enum.split_with(rest_links, &link_role?(&1, "screening_copy"))
+
+    {List.first(poster_links), List.first(trailer_links), List.first(screening_copy_links),
+     still_links}
+  end
+
+  defp poster_link?(link) do
+    meta = link_meta(link)
+    meta["is_poster"] == true or meta["role"] == "poster"
+  end
+
+  defp link_role?(link, role), do: link_meta(link)["role"] == role
+
+  defp link_meta(link), do: link.metadata || %{}
+
+  defp available_participants_excluding(linked_relationships) do
+    linked_participant_ids = Enum.map(linked_relationships, & &1.object_id)
+    Enum.reject(Content.list_participants(), fn p -> p.id in linked_participant_ids end)
+  end
+
+  defp current_film_event_id(film, assigns) do
+    if film.id do
+      event_rels = Content.list_film_linked_events(film)
+
+      case List.first(event_rels) do
+        nil -> nil
+        rel -> to_string(rel.object_id)
+      end
+    else
+      Map.get(assigns, :default_event_id)
+    end
   end
 
   @impl true
@@ -717,10 +720,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
            }) do
         {:ok, _} ->
           linked_relationships = Content.Film.list_relationships(film)
-          linked_participant_ids = Enum.map(linked_relationships, & &1.object_id)
-
-          available_participants =
-            Enum.reject(Content.list_participants(), fn p -> p.id in linked_participant_ids end)
+          available_participants = available_participants_excluding(linked_relationships)
 
           {:noreply,
            socket
@@ -742,10 +742,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
     {:ok, _} = Content.delete_relationship(rel)
     film = socket.assigns.film
     linked_relationships = Content.Film.list_relationships(film)
-    linked_participant_ids = Enum.map(linked_relationships, & &1.object_id)
-
-    available_participants =
-      Enum.reject(Content.list_participants(), fn p -> p.id in linked_participant_ids end)
+    available_participants = available_participants_excluding(linked_relationships)
 
     {:noreply,
      socket

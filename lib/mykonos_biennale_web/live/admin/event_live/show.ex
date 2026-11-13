@@ -81,26 +81,28 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Show do
             select: r.subject_id
         )
 
-      if artwork_ids == [] do
-        []
-      else
-        artworks =
-          Repo.all(
-            from e in Entity,
-              where: e.id in ^artwork_ids,
-              order_by: [desc: fragment("? ->> ?", e.fields, "date")]
-          )
-
-        media_by_id = batch_media(artwork_ids)
-        creators_by_id = batch_creators(artwork_ids)
-
-        Enum.map(artworks, fn artwork ->
-          {artwork, Map.get(media_by_id, artwork.id, []), Map.get(creators_by_id, artwork.id, [])}
-        end)
-      end
+      load_artwork_tuples(artwork_ids)
     else
       []
     end
+  end
+
+  defp load_artwork_tuples([]), do: []
+
+  defp load_artwork_tuples(artwork_ids) do
+    artworks =
+      Repo.all(
+        from e in Entity,
+          where: e.id in ^artwork_ids,
+          order_by: [desc: fragment("? ->> ?", e.fields, "date")]
+      )
+
+    media_by_id = batch_media(artwork_ids)
+    creators_by_id = batch_creators(artwork_ids)
+
+    Enum.map(artworks, fn artwork ->
+      {artwork, Map.get(media_by_id, artwork.id, []), Map.get(creators_by_id, artwork.id, [])}
+    end)
   end
 
   defp batch_media(artwork_ids) do

@@ -13,36 +13,39 @@ defmodule MykonosBiennaleWeb.Layouts do
 
   def template_path(assigns) when is_map(assigns) do
     cond do
-      module = assigns[:live_module] ->
-        source_path(module)
+      module = assigns[:live_module] -> source_path(module)
+      conn = assigns[:conn] -> conn_template_path(conn)
+      true -> nil
+    end
+  end
 
-      conn = assigns[:conn] ->
-        view = conn.private[:phoenix_view]
-        template = conn.private[:phoenix_template]
-        format = conn.private[:phoenix_format] || "html"
+  defp conn_template_path(conn) do
+    template = conn.private[:phoenix_template]
+    format = conn.private[:phoenix_format] || "html"
+    view_module = resolve_view_module(conn.private[:phoenix_view], format)
 
-        view_module =
-          case view do
-            mod when is_atom(mod) -> mod
-            map when is_map(map) -> Map.get(map, :_) || Map.get(map, format)
-            _ -> nil
-          end
+    if view_module && template do
+      view_template_path(view_module, template)
+    end
+  end
 
-        if view_module && template do
-          case source_path(view_module) do
-            nil ->
-              nil
+  defp resolve_view_module(mod, _format) when is_atom(mod), do: mod
 
-            view_source ->
-              basename = Path.basename(view_source, ".ex")
-              dir = Path.join(Path.dirname(view_source), basename)
-              suffix = if String.contains?(template, "."), do: ".heex", else: ".html.heex"
-              "#{dir}/#{template}#{suffix}"
-          end
-        end
+  defp resolve_view_module(map, format) when is_map(map),
+    do: Map.get(map, :_) || Map.get(map, format)
 
-      true ->
+  defp resolve_view_module(_view, _format), do: nil
+
+  defp view_template_path(view_module, template) do
+    case source_path(view_module) do
+      nil ->
         nil
+
+      view_source ->
+        basename = Path.basename(view_source, ".ex")
+        dir = Path.join(Path.dirname(view_source), basename)
+        suffix = if String.contains?(template, "."), do: ".heex", else: ".html.heex"
+        "#{dir}/#{template}#{suffix}"
     end
   end
 

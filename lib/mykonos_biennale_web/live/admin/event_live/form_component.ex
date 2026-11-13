@@ -595,17 +595,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
         {[], %{}}
       end
 
-    artboard_selected_ids =
-      event.fields
-      |> Map.get("artboard_media_ids", [])
-      |> Enum.map(fn id -> if is_binary(id), do: String.to_integer(id), else: id end)
-
-    artboard_selected_media =
-      artboard_selected_ids
-      |> Enum.map(fn id ->
-        Enum.find_value(artboard_pool, fn %{media: m} -> if m.id == id, do: m end)
-      end)
-      |> Enum.reject(&is_nil/1)
+    {artboard_selected_ids, artboard_selected_media} = artboard_selection(event, artboard_pool)
 
     {:ok,
      socket
@@ -675,17 +665,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     {artboard_pool, artboard_artwork_map} =
       compute_artboard_pool(event, socket.assigns.is_exhibition, current_media_links, poster_link)
 
-    artboard_selected_ids =
-      event.fields
-      |> Map.get("artboard_media_ids", [])
-      |> Enum.map(fn id -> if is_binary(id), do: String.to_integer(id), else: id end)
-
-    artboard_selected_media =
-      artboard_selected_ids
-      |> Enum.map(fn id ->
-        Enum.find_value(artboard_pool, fn %{media: m} -> if m.id == id, do: m end)
-      end)
-      |> Enum.reject(&is_nil/1)
+    {artboard_selected_ids, artboard_selected_media} = artboard_selection(event, artboard_pool)
 
     all_media = Content.list_media()
     attached_ids = Enum.map(current_media_links, & &1.media_id)
@@ -699,6 +679,71 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     |> assign(:artboard_artwork_map, artboard_artwork_map)
     |> assign(:artboard_selected_ids, artboard_selected_ids)
     |> assign(:artboard_selected_media, artboard_selected_media)
+  end
+
+  defp artboard_selection(event, artboard_pool) do
+    selected_ids =
+      event.fields
+      |> Map.get("artboard_media_ids", [])
+      |> Enum.map(fn id -> if is_binary(id), do: String.to_integer(id), else: id end)
+
+    selected_media =
+      selected_ids
+      |> Enum.map(&find_artboard_media(artboard_pool, &1))
+      |> Enum.reject(&is_nil/1)
+
+    {selected_ids, selected_media}
+  end
+
+  defp find_artboard_media(artboard_pool, id) do
+    Enum.find_value(artboard_pool, fn %{media: m} -> if m.id == id, do: m end)
+  end
+
+  defp store_upload(path, entry, caption) do
+    ext = Path.extname(entry.client_name)
+    filename = "#{Ecto.UUID.generate()}#{ext}"
+    dest = MykonosBiennale.Uploads.uploads_path(filename)
+
+    MykonosBiennale.Uploads.ensure_uploads_dir()
+    File.cp!(path, dest)
+
+    Content.create_media(%{
+      source_type: "upload",
+      source_path: filename,
+      mime_type: entry.client_type,
+      original_name: entry.client_name,
+      caption: caption
+    })
+  end
+
+  defp upload_caption(event) do
+    title = event.fields["title"] || "Untitled"
+
+    String.trim("#{title}#{biennale_year_suffix(event)}")
+  end
+
+  defp biennale_year_suffix(event) do
+    case event_biennale_year(event) do
+      nil -> ""
+      year -> " #{year}"
+    end
+  end
+
+  defp upload_result_flash(success_count, error_count) do
+    flash =
+      cond do
+        error_count > 0 and success_count > 0 ->
+          "Uploaded #{success_count} image(s), #{error_count} failed"
+
+        error_count > 0 ->
+          "Upload failed for #{error_count} image(s)"
+
+        true ->
+          "Uploaded #{success_count} image(s) successfully"
+      end
+
+    flash_type = if error_count > 0 and success_count == 0, do: :error, else: :info
+    {flash_type, flash}
   end
 
   @impl true
@@ -779,38 +824,13 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
   def handle_event("save_uploads", _params, socket) do
     event = socket.assigns.event
-    title = event.fields["title"] || "Untitled"
-
-    biennale_year =
-      case event_biennale_year(event) do
-        nil -> ""
-        year -> " #{year}"
-      end
-
-    caption = String.trim("#{title}#{biennale_year}")
+    caption = upload_caption(event)
 
     results =
       consume_uploaded_entries(socket, :images, fn %{path: path}, entry ->
-        ext = Path.extname(entry.client_name)
-        filename = "#{Ecto.UUID.generate()}#{ext}"
-        dest = MykonosBiennale.Uploads.uploads_path(filename)
-
-        MykonosBiennale.Uploads.ensure_uploads_dir()
-        File.cp!(path, dest)
-
-        case Content.create_media(%{
-               source_type: "upload",
-               source_path: filename,
-               mime_type: entry.client_type,
-               original_name: entry.client_name,
-               caption: caption
-             }) do
-          {:ok, media} ->
-            Content.attach_media_to_entity(event, media)
-            {:ok, media}
-
-          {:error, _} = err ->
-            err
+        with {:ok, media} <- store_upload(path, entry, caption) do
+          Content.attach_media_to_entity(event, media)
+          {:ok, media}
         end
       end)
 
@@ -821,19 +841,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
       socket
       |> reload_artboard()
 
-    flash =
-      cond do
-        error_count > 0 and success_count > 0 ->
-          "Uploaded #{success_count} image(s), #{error_count} failed"
-
-        error_count > 0 ->
-          "Upload failed for #{error_count} image(s)"
-
-        true ->
-          "Uploaded #{success_count} image(s) successfully"
-      end
-
-    flash_type = if error_count > 0 and success_count == 0, do: :error, else: :info
+    {flash_type, flash} = upload_result_flash(success_count, error_count)
 
     {:noreply, notify_flash(socket, flash_type, flash)}
   end
@@ -848,26 +856,9 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
     results =
       consume_uploaded_entries(socket, :poster, fn %{path: path}, entry ->
-        ext = Path.extname(entry.client_name)
-        filename = "#{Ecto.UUID.generate()}#{ext}"
-        dest = MykonosBiennale.Uploads.uploads_path(filename)
-
-        MykonosBiennale.Uploads.ensure_uploads_dir()
-        File.cp!(path, dest)
-
-        case Content.create_media(%{
-               source_type: "upload",
-               source_path: filename,
-               mime_type: entry.client_type,
-               original_name: entry.client_name,
-               caption: title
-             }) do
-          {:ok, media} ->
-            set_poster(event, media)
-            {:ok, media}
-
-          {:error, _} = err ->
-            err
+        with {:ok, media} <- store_upload(path, entry, title) do
+          set_poster(event, media)
+          {:ok, media}
         end
       end)
 
