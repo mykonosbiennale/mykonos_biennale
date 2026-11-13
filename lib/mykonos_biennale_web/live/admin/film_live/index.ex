@@ -34,8 +34,8 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
   def handle_params(params, _url, socket) do
     page = String.to_integer(params["page"] || "1")
     search = socket.assigns.search
-    sort_by = (params["sort_by"] || "ref") |> String.to_atom()
-    sort_dir = (params["sort_dir"] || "asc") |> String.to_atom()
+    sort_by = MykonosBiennaleWeb.SafeParams.sort_key(params["sort_by"], :ref)
+    sort_dir = MykonosBiennaleWeb.SafeParams.sort_dir(params["sort_dir"], :asc)
 
     {films, total_count} =
       Content.list_films_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)

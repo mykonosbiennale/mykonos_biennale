@@ -39,14 +39,10 @@ defmodule MykonosBiennaleWeb.BiennaleHTMLTest do
                "<p>Plain</p>"
     end
 
-    test "EEx expressions are evaluated against the assigns" do
-      html = BiennaleHTML.render_content("<p><%= @label %></p>", %{label: "Evaluated"})
-      assert Phoenix.HTML.safe_to_string(html) =~ "Evaluated"
-    end
-
-    test "content that fails to compile is returned unchanged" do
-      broken = "<p><%= @missing %"
-      assert Phoenix.HTML.safe_to_string(BiennaleHTML.render_content(broken, %{})) == broken
+    test "template tags are shown as text, never evaluated" do
+      content = "<p><%= System.cmd(\"id\", []) %></p>"
+      html = BiennaleHTML.render_content(content, %{label: "x"})
+      assert Phoenix.HTML.safe_to_string(html) == content
     end
   end
 

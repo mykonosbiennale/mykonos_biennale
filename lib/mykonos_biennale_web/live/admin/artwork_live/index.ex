@@ -34,8 +34,8 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
   def handle_params(params, _url, socket) do
     page = String.to_integer(params["page"] || "1")
     search = socket.assigns.search
-    sort_by = (params["sort_by"] || "date") |> String.to_atom()
-    sort_dir = (params["sort_dir"] || "desc") |> String.to_atom()
+    sort_by = MykonosBiennaleWeb.SafeParams.sort_key(params["sort_by"], :date)
+    sort_dir = MykonosBiennaleWeb.SafeParams.sort_dir(params["sort_dir"], :desc)
 
     {artworks, total_count} =
       Content.list_artworks_paginated(page, @per_page, search,

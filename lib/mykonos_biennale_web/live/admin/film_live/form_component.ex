@@ -633,9 +633,14 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
     {:noreply, assign(socket, form: to_form(changeset, as: :film))}
   end
 
-  def handle_event("cancel-upload", %{"ref" => ref, "upload" => upload_name}, socket) do
-    {:noreply, cancel_upload(socket, String.to_atom(upload_name), ref)}
+  @upload_names ~w(poster stills trailer_video screening_copy_video)
+
+  def handle_event("cancel-upload", %{"ref" => ref, "upload" => upload_name}, socket)
+      when upload_name in @upload_names do
+    {:noreply, cancel_upload(socket, String.to_existing_atom(upload_name), ref)}
   end
+
+  def handle_event("cancel-upload", _params, socket), do: {:noreply, socket}
 
   def handle_event("detach_poster", _params, socket) do
     film = socket.assigns.film

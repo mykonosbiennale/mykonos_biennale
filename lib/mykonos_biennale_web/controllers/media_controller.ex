@@ -68,6 +68,20 @@ defmodule MykonosBiennaleWeb.MediaController do
   e.g. /media/800x600/UUID.webp
   """
   def show(conn, %{"dimensions" => dimensions, "filename" => filename}) do
+    if plain_filename?(filename) do
+      serve_legacy(conn, dimensions, filename)
+    else
+      text_not_found(conn)
+    end
+  end
+
+  # A bare file name only: no directories, no "..", so nothing outside the
+  # uploads directory can be addressed.
+  defp plain_filename?(filename) do
+    Path.basename(filename) == filename and filename not in ["", ".", ".."]
+  end
+
+  defp serve_legacy(conn, dimensions, filename) do
     {width, height} = parse_dimensions(dimensions)
     basename = Path.rootname(filename)
 
