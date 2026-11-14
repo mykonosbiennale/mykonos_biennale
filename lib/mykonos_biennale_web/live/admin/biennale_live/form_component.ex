@@ -5,6 +5,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
   alias MykonosBiennale.Content
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Sponsors
+  alias MykonosBiennaleWeb.Admin.SEOSection
   alias MykonosBiennaleWeb.BiennaleHTML
 
   alias MykonosBiennale.Content.Entity
@@ -253,6 +254,10 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
             />
           </div>
         <% end %>
+
+        <div class="mt-6">
+          <SEOSection.fields entity={assigns[:biennale]} />
+        </div>
 
         <div class="mt-6 flex items-center justify-end gap-x-6">
           <.link patch={@patch} class="text-sm font-semibold text-gray-400 hover:text-white">
@@ -517,6 +522,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
       case Content.update_biennale(socket.assigns.biennale, attrs) do
         {:ok, biennale} ->
           process_uploads(socket, biennale, save_params)
+          SEOSection.persist(socket.assigns.biennale, biennale, save_params["seo"])
           notify_parent({:saved, biennale})
 
           {:noreply,
@@ -548,6 +554,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
       case Content.create_biennale(attrs) do
         {:ok, biennale} ->
           process_uploads(socket, biennale, save_params)
+          SEOSection.persist(nil, biennale, save_params["seo"])
           notify_parent({:saved, biennale})
 
           {:noreply,

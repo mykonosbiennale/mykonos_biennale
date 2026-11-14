@@ -4,7 +4,7 @@ defmodule MykonosBiennale.MixProject do
   def project do
     [
       app: :mykonos_biennale,
-      version: "0.1.14",
+      version: "0.2.0",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -110,7 +110,8 @@ defmodule MykonosBiennale.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:oratos, "~> 0.3.2", only: [:dev, :test], runtime: false},
-      {:phoenix_prerender, "~> 0.2.0"}
+      {:phoenix_prerender, "~> 0.2.0"},
+      {:phoenix_seo, "~> 0.3.3"}
     ]
   end
 

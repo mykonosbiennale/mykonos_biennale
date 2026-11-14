@@ -4,9 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="Mykonos Biennale" suffix=" · Arts & Film Festival">
-      {assigns[:page_title]}
-    </.live_title>
+    <MykonosBiennaleWeb.Metadata.head
+      seo={assigns[:seo] || %{}}
+      page_title={assigns[:page_title]}
+    />
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
@@ -35,8 +36,10 @@
     <div class="w-full md:w-5/6 mx-auto">
       <header class="w-full relative z-10 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-3">
         <form action={~p"/search"} method="get" class="w-full max-w-xl">
+          <label for="site-search" class="sr-only">Search</label>
           <input
             type="text"
+            id="site-search"
             name="q"
             placeholder="Search…"
             autocomplete="off"
@@ -44,7 +47,9 @@
           />
         </form>
       </header>
-      {@inner_content}
+      <main>
+        {@inner_content}
+      </main>
     </div>
   </body>
 </html>

@@ -11,6 +11,7 @@ defmodule MykonosBiennaleWeb.EventController do
   alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
   alias MykonosBiennaleWeb.EventHTML
+  alias MykonosBiennaleWeb.Metadata
 
   def show(conn, %{"id" => id}) do
     case Repo.get(Entity, id) do
@@ -67,6 +68,10 @@ defmodule MykonosBiennaleWeb.EventController do
     |> assign(:poster, poster)
     |> assign(:participants, participants)
     |> assign(:page_title, "#{event.fields["title"] || "Event"} — Mykonos Biennale")
+    |> assign(
+      :seo,
+      Metadata.for_event(event, Metadata.biennale_year(biennale), conn.request_path)
+    )
     |> put_view(EventHTML)
     |> render(template_for(event_type))
   end

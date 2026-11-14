@@ -6,6 +6,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
   alias MykonosBiennale.Content.Entity
   alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
+  alias MykonosBiennaleWeb.Admin.SEOSection
 
   import Ecto.Query, warn: false
 
@@ -410,6 +411,10 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
           placeholder="https://..."
         />
 
+        <div class="mt-6">
+          <SEOSection.fields entity={assigns[:film]} />
+        </div>
+
         <div class="mt-6 flex items-center justify-between gap-x-6">
           <div class="flex items-center gap-2">
             <input
@@ -757,6 +762,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
   end
 
   def handle_event("save", params, socket) do
+    socket = assign(socket, :seo_params, params["seo"])
     film_params = extract_film_params(params)
     changeset = FilmForm.changeset(socket.assigns.form.source.data, film_params)
 
@@ -775,6 +781,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
     case Content.Film.create(attrs) do
       {:ok, film} ->
         process_uploads(socket, film)
+        SEOSection.persist(nil, film, socket.assigns.seo_params)
         maybe_attach_event(film, event_id)
         maybe_create_participant_relationships(film, attrs)
         send(self(), {__MODULE__, {:saved, film}})
@@ -798,6 +805,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
     case Content.Film.update(socket.assigns.film, attrs) do
       {:ok, film} ->
         process_uploads(socket, film)
+        SEOSection.persist(socket.assigns.film, film, socket.assigns.seo_params)
         maybe_attach_event(film, event_id)
         maybe_create_participant_relationships(film, attrs)
         send(self(), {__MODULE__, {:saved, film}})

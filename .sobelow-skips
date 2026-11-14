@@ -48,3 +48,10 @@ Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web
 Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/film_live/form_component.ex:834,DBE96E
 Traversal.FileModule: Directory Traversal in `File.read`,lib/mykonos_biennale/workers/import_festival.ex:28,BD723F
 CI.System: Command Injection via `System` function,lib/mykonos_biennale/workers/media_process.ex:131,60038C0
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/film_live/form_component.ex:842,1EACAAF
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/biennale_live/form_component.ex:621,208871C
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/biennale_live/form_component.ex:593,2C1F3AC
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/artwork_live/form_component.ex:732,2E24198
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/participant_live/form_component.ex:364,6187D94
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/project_live/form_component.ex:271,6AE777F
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/event_live/form_component.ex:713,72B16AE

@@ -15,6 +15,7 @@ defmodule MykonosBiennale.Application do
       {Oban, Application.fetch_env!(:mykonos_biennale, Oban)},
       {DNSCluster, query: Application.get_env(:mykonos_biennale, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: MykonosBiennale.PubSub},
+      MykonosBiennaleWeb.DiscoveryCache,
       # Start a worker by calling: MykonosBiennale.Worker.start_link(arg)
       # {MykonosBiennale.Worker, arg},
       # Start to serve requests, typically the last entry

@@ -9,6 +9,7 @@ defmodule MykonosBiennale.Content.Entity do
     field :visible, :boolean, default: false
     field :template, :string, default: "default"
     field :fields, :map
+    field :seo, :map, default: %{}
     field :search_index, :string
     field :search_indexed_at, :naive_datetime
 

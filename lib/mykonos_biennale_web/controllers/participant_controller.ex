@@ -6,6 +6,7 @@ defmodule MykonosBiennaleWeb.ParticipantController do
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Entity
   alias MykonosBiennale.Repo
+  alias MykonosBiennaleWeb.Metadata
 
   def show(conn, %{"id" => id}) do
     case Repo.get(Entity, id) do
@@ -36,6 +37,15 @@ defmodule MykonosBiennaleWeb.ParticipantController do
     |> assign(:headshot, headshot)
     |> assign(:biennale_groups, biennale_groups)
     |> assign(:page_title, "#{participant_name(participant)} — Mykonos Biennale")
+    |> assign(
+      :seo,
+      Metadata.for_participant(
+        participant_name(participant),
+        participant,
+        Metadata.image_url(headshot),
+        conn.request_path
+      )
+    )
     |> render(:show)
   end
 

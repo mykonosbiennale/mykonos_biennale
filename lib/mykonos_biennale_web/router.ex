@@ -43,6 +43,9 @@ defmodule MykonosBiennaleWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/sitemap.xml", SitemapController, :show
+    get "/llms.txt", LlmsController, :show
+    get "/robots.txt", RobotsController, :show
   end
 
   scope "/media", MykonosBiennaleWeb do
@@ -57,7 +60,7 @@ defmodule MykonosBiennaleWeb.Router do
     get "/archive", ArchiveController, :index
     live "/archive/:year", ArchiveDetailLive
     live "/program", ProgramLive
-    live "/about", AboutLive
+    get "/about", AboutController, :show
     live "/search", PublicSearchLive
     get "/page/:slug", SitePageController, :show
     get "/art/:id", ArtworkController, :show

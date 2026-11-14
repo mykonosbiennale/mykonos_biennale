@@ -4,6 +4,7 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
   alias Ecto.Changeset
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Media
+  alias MykonosBiennaleWeb.Admin.SEOSection
 
   defmodule ProjectForm do
     @moduledoc false
@@ -46,6 +47,10 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
           <.input field={@form[:title]} type="text" label="Title" required />
           <.input field={@form[:description]} type="textarea" label="Description" rows="4" />
           <.input field={@form[:statement]} type="textarea" label="Statement" rows="4" />
+        </div>
+
+        <div class="mt-6">
+          <SEOSection.fields entity={assigns[:project]} />
         </div>
 
         <div class="mt-6 flex items-center justify-end gap-x-6">
@@ -365,6 +370,7 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
   end
 
   def handle_event("save", params, socket) do
+    socket = assign(socket, :seo_params, params["seo"])
     project_params = extract_project_params(params)
     save_project(socket, socket.assigns.action, project_params)
   end
@@ -410,6 +416,7 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
 
       case Content.update_project(socket.assigns.project, attrs) do
         {:ok, project} ->
+          SEOSection.persist(socket.assigns.project, project, socket.assigns.seo_params)
           notify_parent({:saved, project})
 
           {:noreply,
@@ -439,6 +446,7 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.FormComponent do
 
       case Content.create_project(attrs) do
         {:ok, project} ->
+          SEOSection.persist(nil, project, socket.assigns.seo_params)
           notify_parent({:saved, project})
 
           {:noreply,

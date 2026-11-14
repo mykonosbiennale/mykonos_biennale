@@ -13,6 +13,9 @@ defmodule MykonosBiennaleWeb.RouterCoverageTest do
   # Path params are normalized to :id for comparison.
   @tested_routes [
     {:get, "/"},
+    {:get, "/sitemap.xml"},
+    {:get, "/llms.txt"},
+    {:get, "/robots.txt"},
     {:get, "/media/:dimensions/:filename"},
     {:get, "/media/:filename"},
     {:get, "/archive"},

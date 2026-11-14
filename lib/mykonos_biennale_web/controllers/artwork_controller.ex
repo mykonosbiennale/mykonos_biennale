@@ -8,6 +8,7 @@ defmodule MykonosBiennaleWeb.ArtworkController do
   alias MykonosBiennale.Content.Relationship
   alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
+  alias MykonosBiennaleWeb.Metadata
 
   def show(conn, %{"id" => id}) do
     case Repo.get(Entity, id) do
@@ -29,6 +30,9 @@ defmodule MykonosBiennaleWeb.ArtworkController do
     end
   end
 
+  defp artist_name([first | _]), do: first.identity
+  defp artist_name(_), do: nil
+
   defp render_artwork(conn, artwork) do
     media = Content.list_media_for_entity(artwork)
     participants = list_linked_participants(artwork)
@@ -40,6 +44,15 @@ defmodule MykonosBiennaleWeb.ArtworkController do
     |> assign(:participants, participants)
     |> assign(:events, events)
     |> assign(:page_title, "#{artwork.fields["title"] || "Untitled"} — Mykonos Biennale")
+    |> assign(
+      :seo,
+      Metadata.for_artwork(
+        artwork,
+        artist_name(participants),
+        Metadata.first_image_url(media),
+        conn.request_path
+      )
+    )
     |> render(:show)
   end
 

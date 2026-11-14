@@ -14,7 +14,7 @@ defmodule MykonosBiennaleWeb.ParticipantHTML do
     ~H"""
     <div class="group block">
       <%= if @link do %>
-        <a href={@link}>
+        <a href={@link} aria-label={work_title(@work.entity)}>
           <div class="aspect-square overflow-hidden rounded-lg bg-neutral-900 mb-3">
             <.work_image work={@work} />
           </div>

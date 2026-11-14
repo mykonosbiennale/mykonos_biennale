@@ -10,6 +10,7 @@ defmodule MykonosBiennaleWeb.FilmController do
   alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
   alias MykonosBiennaleWeb.FilmHTML
+  alias MykonosBiennaleWeb.Metadata
 
   @film_types ["Short Film", "Video", "Dance", "Animation", "Documentary"]
 
@@ -56,8 +57,27 @@ defmodule MykonosBiennaleWeb.FilmController do
     |> assign(:crew, crew)
     |> assign(:description, description)
     |> assign(:page_title, "#{film.identity} — Mykonos Biennale")
+    |> assign(
+      :seo,
+      Metadata.for_film(
+        film,
+        director_name(crew),
+        Metadata.biennale_year(biennale),
+        Metadata.image_url(poster),
+        conn.request_path
+      )
+    )
     |> put_view(FilmHTML)
     |> render(:show)
+  end
+
+  defp director_name(crew) do
+    crew
+    |> Enum.find_value(fn {role, people} -> String.downcase(role) == "director" && people end)
+    |> case do
+      [first | _] -> first.identity
+      _ -> nil
+    end
   end
 
   defp pick_description(film) do
