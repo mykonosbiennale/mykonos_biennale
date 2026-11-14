@@ -34,6 +34,13 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipTypeLive.Index do
     |> assign(:relationship_type, nil)
   end
 
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.RelationshipTypeLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
+  end
+
   @impl true
   def handle_info(
         {MykonosBiennaleWeb.Admin.RelationshipTypeLive.FormComponent,

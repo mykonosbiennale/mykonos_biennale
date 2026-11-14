@@ -27,8 +27,8 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
   def handle_params(params, _url, socket) do
     page = String.to_integer(params["page"] || "1")
     search = socket.assigns.search
-    sort_by = (params["sort_by"] || "inserted_at") |> String.to_atom()
-    sort_dir = (params["sort_dir"] || "desc") |> String.to_atom()
+    sort_by = MykonosBiennaleWeb.SafeParams.sort_key(params["sort_by"], :inserted_at)
+    sort_dir = MykonosBiennaleWeb.SafeParams.sort_dir(params["sort_dir"], :desc)
 
     {relationships, total_count} =
       Content.list_relationships_paginated(page, @per_page, search,
@@ -71,6 +71,13 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.Index do
 
   defp apply_action(socket, :index, _params) do
     socket |> assign(:page_title, "Relationships") |> assign(:relationship, nil)
+  end
+
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
   end
 
   @impl true

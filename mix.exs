@@ -4,14 +4,15 @@ defmodule MykonosBiennale.MixProject do
   def project do
     [
       app: :mykonos_biennale,
-      version: "0.1.13",
+      version: "0.1.14",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      test_coverage: [ignore_modules: coverage_ignored_modules()]
     ]
   end
 
@@ -22,6 +23,46 @@ defmodule MykonosBiennale.MixProject do
     [
       mod: {MykonosBiennale.Application, []},
       extra_applications: [:logger, :runtime_tools, :ssl, :crypto]
+    ]
+  end
+
+  def cli do
+    [preferred_envs: [ci: :test]]
+  end
+
+  # Modules that are wiring or operator tooling rather than behaviour worth
+  # unit testing. Excluded from the coverage report only.
+  defp coverage_ignored_modules do
+    [
+      # One-off operator tasks (run by hand, not by the app)
+      Mix.Tasks.App.Dump,
+      Mix.Tasks.App.Restore,
+      Mix.Tasks.Mb.Media.GenerateAll,
+      Mix.Tasks.Mb.Reindex,
+      Mix.Tasks.Mb.Users,
+      # Framework wiring: supervision tree, endpoint, telemetry, release, adapters
+      MykonosBiennale.Application,
+      MykonosBiennale.Mailer,
+      MykonosBiennale.Release,
+      MykonosBiennale.Repo,
+      MykonosBiennaleWeb.Endpoint,
+      MykonosBiennaleWeb.Telemetry,
+      # Framework-generated error page template (its only uncovered line is the defmodule)
+      MykonosBiennaleWeb.ErrorHTML,
+      MykonosBiennaleWeb,
+      # One-off legacy data importers (run by hand against the old database dumps)
+      MykonosBiennale.Workers.ImportCorrections,
+      MykonosBiennale.Workers.ImportFestival,
+      MykonosBiennale.Workers.ImportFilmfestival,
+      # Test support: helpers and fixtures are exercised through the tests that use them
+      MykonosBiennaleWeb.AdminCase,
+      MykonosBiennaleWeb.ConnCase,
+      MykonosBiennale.DataCase,
+      MykonosBiennale.AccountsFixtures,
+      MykonosBiennale.ContentFixtures,
+      MykonosBiennale.GoldenFixtures,
+      MykonosBiennale.SiteFixtures,
+      MykonosBiennaleTest.LogFilter
     ]
   end
 
@@ -92,6 +133,13 @@ defmodule MykonosBiennale.MixProject do
         "tailwind mykonos_biennale --minify",
         "esbuild mykonos_biennale --minify",
         "phx.digest"
+      ],
+      ci: [
+        "compile --warnings-as-errors",
+        "format --check-formatted",
+        "credo --strict",
+        "sobelow --config --private --exit",
+        "test --warnings-as-errors"
       ]
     ]
   end

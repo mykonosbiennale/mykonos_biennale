@@ -9,8 +9,8 @@ defmodule MykonosBiennale.Search do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Repo
   alias MykonosBiennale.Search.Transliterate
 
   @type hit :: %{
@@ -326,28 +326,32 @@ defmodule MykonosBiennale.Search do
 
   defp entity_subtitle(%Entity{type: "biennale"}), do: "Biennale Edition"
 
+  defp entity_subtitle(%Entity{type: "event", fields: fields}) do
+    parts =
+      [Map.get(fields, "type"), Map.get(fields, "date"), Map.get(fields, "location")]
+      |> Enum.reject(&is_nil/1)
+
+    if parts == [], do: "Event", else: Enum.join(parts, " · ")
+  end
+
+  defp entity_subtitle(%Entity{type: "participant", fields: fields}) do
+    Map.get(fields, "country") || "Artist"
+  end
+
   defp entity_subtitle(%Entity{type: type, fields: fields}) do
-    cond do
-      type == "event" ->
-        date = Map.get(fields, "date")
-        location = Map.get(fields, "location")
-        parts = [Map.get(fields, "type"), date, location] |> Enum.reject(&is_nil/1)
-        if parts == [], do: "Event", else: Enum.join(parts, " · ")
-
-      type == "participant" ->
-        country = Map.get(fields, "country")
-        if country, do: country, else: "Artist"
-
-      type in work_types() ->
-        type_label = humanize_type(type)
-        date = Map.get(fields, "date")
-        dir_by = Map.get(fields, "dir_by")
-        base = if date, do: "#{type_label} · #{date}", else: type_label
-        if dir_by && dir_by != "", do: "#{base} · Dir. #{dir_by}", else: base
-
-      true ->
-        humanize_type(type)
+    if type in work_types() do
+      work_subtitle(type, fields)
+    else
+      humanize_type(type)
     end
+  end
+
+  defp work_subtitle(type, fields) do
+    type_label = humanize_type(type)
+    date = Map.get(fields, "date")
+    dir_by = Map.get(fields, "dir_by")
+    base = if date, do: "#{type_label} · #{date}", else: type_label
+    if dir_by && dir_by != "", do: "#{base} · Dir. #{dir_by}", else: base
   end
 
   defp humanize_type("Short Film"), do: "Short Film"

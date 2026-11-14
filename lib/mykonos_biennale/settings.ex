@@ -1,4 +1,8 @@
 defmodule MykonosBiennale.Settings do
+  @moduledoc """
+  Key/value application settings persisted in the settings table, such as the current biennale year.
+  """
+
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Settings.Setting
 

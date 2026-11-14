@@ -2,8 +2,9 @@ defmodule MykonosBiennale.SiteTest do
   use MykonosBiennale.DataCase, async: true
 
   alias MykonosBiennale.Site
+  alias MykonosBiennale.Site.Page
+  alias MykonosBiennale.Site.Section
   alias MykonosBiennale.SiteFixtures
-  alias MykonosBiennale.Site.{Page, Section}
 
   describe "page CRUD" do
     test "create_page/1 creates a page" do

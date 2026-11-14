@@ -3,9 +3,9 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Show do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Repo
 
   @impl true
   def mount(_params, _session, socket) do
@@ -33,7 +33,8 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Show do
   end
 
   defp get_poster(film) do
-    alias MykonosBiennale.Content.{Media, EntityMedia}
+    alias MykonosBiennale.Content.EntityMedia
+    alias MykonosBiennale.Content.Media
 
     Repo.one(
       from em in EntityMedia,

@@ -7,7 +7,10 @@ defmodule MykonosBiennaleWeb.Admin.UserLive.FormComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div data-theme="light" class="bg-white rounded-xl [&_.label]:text-gray-900 [&_h1]:text-gray-900">
+    <div
+      data-theme="light"
+      class="bg-white rounded-xl [&_.label]:text-gray-900 [&_h1]:text-gray-900"
+    >
       <.header>
         {@title}
       </.header>
@@ -145,7 +148,7 @@ defmodule MykonosBiennaleWeb.Admin.UserLive.FormComponent do
         {:noreply, assign(socket, :temporary_password, password)}
 
       {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, "Failed to generate temporary password")}
+        {:noreply, notify_flash(socket, :error, "Failed to generate temporary password")}
     end
   end
 
@@ -161,14 +164,16 @@ defmodule MykonosBiennaleWeb.Admin.UserLive.FormComponent do
 
     case Accounts.send_temporary_password_email(user, password) do
       {:ok, _} ->
+        # Flashes set inside a LiveComponent don't reach the page layout, so
+        # the parent LiveView shows this one.
         {:noreply,
          socket
-         |> put_flash(:info, "Password email sent to #{user.email}")
+         |> notify_flash(:info, "Password email sent to #{user.email}")
          |> assign(:temporary_password, nil)}
 
       {:error, _reason} ->
         {:noreply,
-         put_flash(
+         notify_flash(
            socket,
            :error,
            "Failed to send email. You can copy the password above and send it manually."
@@ -183,7 +188,7 @@ defmodule MykonosBiennaleWeb.Admin.UserLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "User updated successfully")
+         |> notify_flash(:info, "User updated successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -199,7 +204,7 @@ defmodule MykonosBiennaleWeb.Admin.UserLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "User created successfully")
+         |> notify_flash(:info, "User created successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -208,4 +213,9 @@ defmodule MykonosBiennaleWeb.Admin.UserLive.FormComponent do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
+  end
 end

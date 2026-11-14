@@ -3,9 +3,13 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
 
   @per_page 24
 
@@ -30,8 +34,8 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
   def handle_params(params, _url, socket) do
     page = String.to_integer(params["page"] || "1")
     search = socket.assigns.search
-    sort_by = (params["sort_by"] || "ref") |> String.to_atom()
-    sort_dir = (params["sort_dir"] || "asc") |> String.to_atom()
+    sort_by = MykonosBiennaleWeb.SafeParams.sort_key(params["sort_by"], :ref)
+    sort_dir = MykonosBiennaleWeb.SafeParams.sort_dir(params["sort_dir"], :asc)
 
     {films, total_count} =
       Content.list_films_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
@@ -80,6 +84,13 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.Index do
 
   defp apply_action(socket, :index, _params) do
     socket |> assign(:page_title, "Films & Videos") |> assign(:film, nil)
+  end
+
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.FilmLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
   end
 
   @impl true

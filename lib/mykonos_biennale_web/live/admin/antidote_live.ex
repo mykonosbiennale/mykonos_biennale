@@ -3,8 +3,12 @@ defmodule MykonosBiennaleWeb.Admin.AntidoteLive do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.{Antidote, Content, Repo, Settings, Uploads}
+  alias MykonosBiennale.Antidote
+  alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Repo
+  alias MykonosBiennale.Settings
+  alias MykonosBiennale.Uploads
 
   @max_upload_bytes 25_000_000
 
@@ -88,44 +92,40 @@ defmodule MykonosBiennaleWeb.Admin.AntidoteLive do
   def handle_event("save", params, socket) do
     event = socket.assigns.event
 
-    cond do
-      is_nil(event) ->
-        {:noreply,
-         put_flash(socket, :error, "No Antidote event found for #{socket.assigns.year}.")}
+    if is_nil(event) do
+      {:noreply, put_flash(socket, :error, "No Antidote event found for #{socket.assigns.year}.")}
+    else
+      artist = Map.merge(socket.assigns.artist_form, params["artist"] || %{})
+      artwork = Map.merge(socket.assigns.artwork_form, params["artwork"] || %{})
 
-      true ->
-        artist = Map.merge(socket.assigns.artist_form, params["artist"] || %{})
-        artwork = Map.merge(socket.assigns.artwork_form, params["artwork"] || %{})
+      uploads =
+        consume_uploaded_entries(socket, :images, fn %{path: path}, entry ->
+          ext = Path.extname(entry.client_name)
+          filename = "#{Ecto.UUID.generate()}#{ext}"
+          Uploads.ensure_uploads_dir()
+          File.cp!(path, Uploads.uploads_path(filename))
 
-        uploads =
-          consume_uploaded_entries(socket, :images, fn %{path: path}, entry ->
-            ext = Path.extname(entry.client_name)
-            filename = "#{Ecto.UUID.generate()}#{ext}"
-            Uploads.ensure_uploads_dir()
-            File.cp!(path, Uploads.uploads_path(filename))
+          {:ok, %{path: filename, mime_type: entry.client_type, original_name: entry.client_name}}
+        end)
 
-            {:ok,
-             %{path: filename, mime_type: entry.client_type, original_name: entry.client_name}}
-          end)
+      case Antidote.save_work(event, artist, artwork, uploads) do
+        {:ok, result} ->
+          review = %{
+            event: event,
+            participant: result.participant,
+            artwork: result.artwork,
+            media: result.media
+          }
 
-        case Antidote.save_work(event, artist, artwork, uploads) do
-          {:ok, result} ->
-            review = %{
-              event: event,
-              participant: result.participant,
-              artwork: result.artwork,
-              media: result.media
-            }
+          {:noreply,
+           socket
+           |> assign(:review, review)
+           |> assign(:step, :review)
+           |> assign(:selected_media_ids, Enum.map(result.media, & &1.id))}
 
-            {:noreply,
-             socket
-             |> assign(:review, review)
-             |> assign(:step, :review)
-             |> assign(:selected_media_ids, Enum.map(result.media, & &1.id))}
-
-          {:error, reason} ->
-            {:noreply, put_flash(socket, :error, "Nothing was saved: #{inspect(reason)}")}
-        end
+        {:error, reason} ->
+          {:noreply, put_flash(socket, :error, "Nothing was saved: #{inspect(reason)}")}
+      end
     end
   end
 

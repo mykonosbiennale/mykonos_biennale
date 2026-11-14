@@ -8,10 +8,16 @@ defmodule Mix.Tasks.App.Dump do
   """
   use Mix.Task
 
+  alias MykonosBiennale.Accounts.User
+  alias MykonosBiennale.Accounts.UserToken
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
-  alias MykonosBiennale.Site.{Page, Section}
-  alias MykonosBiennale.Accounts.{User, UserToken}
+  alias MykonosBiennale.Site.Page
+  alias MykonosBiennale.Site.Section
 
   @shortdoc "Dump all data to JSON"
 

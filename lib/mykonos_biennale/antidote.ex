@@ -5,7 +5,9 @@ defmodule MykonosBiennale.Antidote do
   """
 
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Artwork, Entity, Participant}
+  alias MykonosBiennale.Content.Artwork
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Participant
   alias MykonosBiennale.Repo
 
   @doc """

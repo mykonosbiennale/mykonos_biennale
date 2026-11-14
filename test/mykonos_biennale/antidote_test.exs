@@ -1,8 +1,10 @@
 defmodule MykonosBiennale.AntidoteTest do
   use MykonosBiennale.DataCase, async: true
 
-  alias MykonosBiennale.{Antidote, Content, Repo}
+  alias MykonosBiennale.Antidote
+  alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Artwork
+  alias MykonosBiennale.Repo
 
   defp event do
     {:ok, event} = Content.create_event(%{title: "Treasure Hunt - Antidote", type: "exhibition"})

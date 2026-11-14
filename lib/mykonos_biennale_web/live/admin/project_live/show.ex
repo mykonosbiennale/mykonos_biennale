@@ -3,9 +3,11 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.Show do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
 
   @impl true
   def mount(_params, _session, socket) do
@@ -59,47 +61,48 @@ defmodule MykonosBiennaleWeb.Admin.ProjectLive.Show do
     if ap_rt == nil or ae_rt == nil or ep_rt == nil do
       []
     else
-      event_ids =
-        Repo.all(
-          from r in Relationship,
-            where: r.object_id == ^project.id and r.relationship_type_id == ^ep_rt.id,
-            select: r.subject_id
-        )
-
-      if event_ids == [] do
-        []
+      with [_ | _] = event_ids <- project_event_ids(project, ep_rt),
+           [_ | _] = artwork_ids <- event_artwork_ids(event_ids, ae_rt),
+           [_ | _] = participant_ids <- artwork_participant_ids(artwork_ids, ap_rt) do
+        participants_sorted_by_name(participant_ids)
       else
-        artwork_ids =
-          Repo.all(
-            from r in Relationship,
-              where: r.object_id in ^event_ids and r.relationship_type_id == ^ae_rt.id,
-              select: r.subject_id
-          )
-
-        if artwork_ids == [] do
-          []
-        else
-          participant_ids =
-            Repo.all(
-              from r in Relationship,
-                where: r.subject_id in ^artwork_ids and r.relationship_type_id == ^ap_rt.id,
-                select: r.object_id
-            )
-            |> Enum.uniq()
-
-          if participant_ids == [] do
-            []
-          else
-            Repo.all(from e in Entity, where: e.id in ^participant_ids)
-            |> Enum.sort_by(fn p ->
-              last = p.fields["last_name"] || ""
-              first = p.fields["first_name"] || ""
-              {last, first}
-            end)
-          end
-        end
+        _ -> []
       end
     end
+  end
+
+  defp participants_sorted_by_name(participant_ids) do
+    Repo.all(from e in Entity, where: e.id in ^participant_ids)
+    |> Enum.sort_by(fn p ->
+      last = p.fields["last_name"] || ""
+      first = p.fields["first_name"] || ""
+      {last, first}
+    end)
+  end
+
+  defp project_event_ids(project, ep_rt) do
+    Repo.all(
+      from r in Relationship,
+        where: r.object_id == ^project.id and r.relationship_type_id == ^ep_rt.id,
+        select: r.subject_id
+    )
+  end
+
+  defp event_artwork_ids(event_ids, ae_rt) do
+    Repo.all(
+      from r in Relationship,
+        where: r.object_id in ^event_ids and r.relationship_type_id == ^ae_rt.id,
+        select: r.subject_id
+    )
+  end
+
+  defp artwork_participant_ids(artwork_ids, ap_rt) do
+    Repo.all(
+      from r in Relationship,
+        where: r.subject_id in ^artwork_ids and r.relationship_type_id == ^ap_rt.id,
+        select: r.object_id
+    )
+    |> Enum.uniq()
   end
 
   @impl true

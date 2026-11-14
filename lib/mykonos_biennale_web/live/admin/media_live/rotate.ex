@@ -3,10 +3,10 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Rotate do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content.Media
-  alias MykonosBiennale.Workers.MediaProcess
+  alias MykonosBiennale.Repo
   alias MykonosBiennale.Uploads
+  alias MykonosBiennale.Workers.MediaProcess
 
   @per_page 200
 

@@ -30,6 +30,13 @@ defmodule MykonosBiennaleWeb.Admin.SectionLive.Index do
     |> assign(:section, nil)
   end
 
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.SectionLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
+  end
+
   @impl true
   def handle_info({MykonosBiennaleWeb.Admin.SectionLive.FormComponent, {:saved, section}}, socket) do
     {:noreply, stream_insert(socket, :sections, section)}

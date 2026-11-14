@@ -1,10 +1,10 @@
 defmodule MykonosBiennale.SearchTest do
   use MykonosBiennale.DataCase, async: true
 
-  alias MykonosBiennale.Search
-  alias MykonosBiennale.Search.Transliterate
-  alias MykonosBiennale.Search.Indexer
   alias MykonosBiennale.ContentFixtures
+  alias MykonosBiennale.Search
+  alias MykonosBiennale.Search.Indexer
+  alias MykonosBiennale.Search.Transliterate
 
   describe "Transliterate.normalize/1" do
     test "strips diacritics from Latin text" do

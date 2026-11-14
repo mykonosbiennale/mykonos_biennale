@@ -1,8 +1,8 @@
 defmodule MykonosBiennaleWeb.GoldenSmokeTest do
   use MykonosBiennaleWeb.ConnCase
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Repo
 
   setup do
     ids = MykonosBiennale.GoldenFixtures.load_golden_data!()

@@ -33,6 +33,17 @@ defmodule MykonosBiennaleWeb.Admin.UserLive.Index do
     {:noreply, stream_insert(socket, :users, user)}
   end
 
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.UserLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
+  end
+
+  # Ignore stray messages. The Swoosh test adapter notifies the sending
+  # process with {:email, _}; the LiveView is that process in tests.
+  def handle_info(_message, socket), do: {:noreply, socket}
+
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     user = Accounts.get_user!(id)

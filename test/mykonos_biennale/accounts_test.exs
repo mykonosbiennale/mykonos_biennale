@@ -4,7 +4,8 @@ defmodule MykonosBiennale.AccountsTest do
   alias MykonosBiennale.Accounts
 
   import MykonosBiennale.AccountsFixtures
-  alias MykonosBiennale.Accounts.{User, UserToken}
+  alias MykonosBiennale.Accounts.User
+  alias MykonosBiennale.Accounts.UserToken
 
   describe "get_user_by_email/1" do
     test "does not return the user if the email does not exist" do

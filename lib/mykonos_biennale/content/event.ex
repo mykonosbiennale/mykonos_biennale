@@ -4,9 +4,11 @@ defmodule MykonosBiennale.Content.Event do
   """
 
   import Ecto.Query, warn: false
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
 
   def list_for_biennale(biennale_year) do
     biennale_entity = Content.Biennale.get_by_year(biennale_year)
@@ -55,19 +57,19 @@ defmodule MykonosBiennale.Content.Event do
   end
 
   def create(attrs \\ %{}) do
-    title = Map.get(attrs, :title) || Map.get(attrs, "title")
-    biennale_entity_id = Map.get(attrs, :biennale_id) || Map.get(attrs, "biennale_id")
-    festival_entity_id = Map.get(attrs, :festival_id) || Map.get(attrs, "festival_id")
-    project_entity_id = Map.get(attrs, :project_id) || Map.get(attrs, "project_id")
+    title = attr(attrs, :title)
+    biennale_entity_id = attr(attrs, :biennale_id)
+    festival_entity_id = attr(attrs, :festival_id)
+    project_entity_id = attr(attrs, :project_id)
 
     fields = %{
       "title" => title,
-      "description" => Map.get(attrs, :description) || Map.get(attrs, "description"),
-      "type" => Map.get(attrs, :type) || Map.get(attrs, "type"),
-      "date" => Map.get(attrs, :date) || Map.get(attrs, "date"),
-      "time" => Map.get(attrs, :time) || Map.get(attrs, "time"),
-      "location" => Map.get(attrs, :location) || Map.get(attrs, "location"),
-      "tickets" => Map.get(attrs, :tickets) || Map.get(attrs, "tickets"),
+      "description" => attr(attrs, :description),
+      "type" => attr(attrs, :type),
+      "date" => attr(attrs, :date),
+      "time" => attr(attrs, :time),
+      "location" => attr(attrs, :location),
+      "tickets" => attr(attrs, :tickets),
       "show_project" => Map.get(attrs, :show_project, Map.get(attrs, "show_project", true))
     }
 
@@ -192,6 +194,9 @@ defmodule MykonosBiennale.Content.Event do
     Entity.changeset(event_entity, entity_attrs)
   end
 
+  # Reads a field from attrs by atom key, falling back to the string key.
+  defp attr(attrs, key), do: Map.get(attrs, key) || Map.get(attrs, to_string(key))
+
   defp admin_relationship_query do
     rt_ids =
       from rt in RelationshipType,
@@ -271,39 +276,44 @@ defmodule MykonosBiennale.Content.Event do
   Returns a list of `%{media: %Media{}, artwork: %Entity{}}` maps.
   """
   def list_artwork_media_for_event(%Entity{id: event_id}) do
-    ae_rt = Repo.get_by(RelationshipType, slug: "artwork_event")
-
-    if ae_rt do
-      artwork_ids =
-        Repo.all(
-          from r in Relationship,
-            where: r.object_id == ^event_id and r.relationship_type_id == ^ae_rt.id,
-            select: r.subject_id
-        )
-
-      if artwork_ids == [] do
-        []
-      else
-        artworks =
-          Repo.all(from e in Entity, where: e.id in ^artwork_ids)
-          |> Enum.into(%{}, fn a -> {a.id, a} end)
-
-        records =
-          Repo.all(
-            from em in Content.EntityMedia,
-              where: em.entity_id in ^artwork_ids,
-              join: m in assoc(em, :media),
-              order_by: [em.entity_id, em.position],
-              select: %{media: m, entity_id: em.entity_id}
-          )
-
-        Enum.map(records, fn %{media: media, entity_id: artwork_id} ->
-          %{media: media, artwork: Map.get(artworks, artwork_id)}
-        end)
-      end
-    else
-      []
+    case Repo.get_by(RelationshipType, slug: "artwork_event") do
+      nil -> []
+      ae_rt -> event_artwork_media(event_id, ae_rt)
     end
+  end
+
+  defp event_artwork_media(event_id, ae_rt) do
+    artwork_ids =
+      Repo.all(
+        from r in Relationship,
+          where: r.object_id == ^event_id and r.relationship_type_id == ^ae_rt.id,
+          select: r.subject_id
+      )
+
+    if artwork_ids == [] do
+      []
+    else
+      artworks_media(artwork_ids)
+    end
+  end
+
+  defp artworks_media(artwork_ids) do
+    artworks =
+      Repo.all(from e in Entity, where: e.id in ^artwork_ids)
+      |> Enum.into(%{}, fn a -> {a.id, a} end)
+
+    records =
+      Repo.all(
+        from em in Content.EntityMedia,
+          where: em.entity_id in ^artwork_ids,
+          join: m in assoc(em, :media),
+          order_by: [em.entity_id, em.position],
+          select: %{media: m, entity_id: em.entity_id}
+      )
+
+    Enum.map(records, fn %{media: media, entity_id: artwork_id} ->
+      %{media: media, artwork: Map.get(artworks, artwork_id)}
+    end)
   end
 
   @doc """

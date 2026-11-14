@@ -1,15 +1,14 @@
 defmodule MykonosBiennaleWeb.ErrorHTMLTest do
-  use MykonosBiennaleWeb.ConnCase, async: true
+  use ExUnit.Case, async: true
 
-  # Bring render_to_string/4 for testing custom views
-  import Phoenix.Template, only: [render_to_string: 4]
+  alias MykonosBiennaleWeb.ErrorHTML
 
-  test "renders 404.html" do
-    assert render_to_string(MykonosBiennaleWeb.ErrorHTML, "404", "html", []) == "Not Found"
+  test "renders the status message for known error templates" do
+    assert ErrorHTML.render("404.html", %{}) == "Not Found"
+    assert ErrorHTML.render("500.html", %{}) == "Internal Server Error"
   end
 
-  test "renders 500.html" do
-    assert render_to_string(MykonosBiennaleWeb.ErrorHTML, "500", "html", []) ==
-             "Internal Server Error"
+  test "falls back to the status message for any other status template" do
+    assert ErrorHTML.render("403.html", %{}) == "Forbidden"
   end
 end

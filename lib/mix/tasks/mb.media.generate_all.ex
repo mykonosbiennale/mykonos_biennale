@@ -16,11 +16,12 @@ defmodule Mix.Tasks.Mb.Media.GenerateAll do
       mix mb.media.generate_all --force      # Regenerate even if files exist
   """
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content.Media
-  alias MykonosBiennale.Thumbnail
   alias MykonosBiennale.MediaDir
+  alias MykonosBiennale.Repo
+  alias MykonosBiennale.Thumbnail
   import Ecto.Query
+  alias MykonosBiennale.Workers.MediaProcess
 
   @sizes ~w(hero card thumb admin)
 
@@ -33,10 +34,6 @@ defmodule Mix.Tasks.Mb.Media.GenerateAll do
 
     start_repo()
 
-    generate_avif? = opts[:avif] || opts[:all] || false
-    generate_press? = opts[:press] || opts[:all] || false
-    force? = opts[:force] || false
-
     media =
       from(m in Media,
         where: m.source_type == "upload" and not is_nil(m.slug),
@@ -48,38 +45,50 @@ defmodule Mix.Tasks.Mb.Media.GenerateAll do
     total = length(media)
     Mix.shell().info("Found #{total} media records with slugs")
 
+    ctx = %{
+      total: total,
+      avif?: opts[:avif] || opts[:all] || false,
+      press?: opts[:press] || opts[:all] || false,
+      force?: opts[:force] || false
+    }
+
     MediaDir.ensure_media_dir()
 
     {generated, skipped, failed} =
-      Enum.reduce(media, {0, 0, 0}, fn {id, slug, source_path}, {gen, skip, fail} ->
-        if image_ext?(source_path) do
-          result = generate_thumbnails(slug, source_path, force?)
+      Enum.reduce(media, {0, 0, 0}, &process_media(&1, &2, ctx))
 
-          case result do
-            :generated ->
-              if rem(gen + 1, 50) == 0 do
-                Mix.shell().info("  #{gen + 1}/#{total} processed...")
-              end
+    report_summary(generated, skipped, failed, ctx)
+  end
 
-              if generate_avif?, do: enqueue_avif(id)
-              if generate_press?, do: enqueue_press(id)
-              {gen + 1, skip, fail}
+  defp process_media({id, slug, source_path}, {gen, skip, fail} = acc, ctx) do
+    if image_ext?(source_path) do
+      slug
+      |> generate_thumbnails(source_path, ctx.force?)
+      |> handle_result(id, acc, ctx)
+    else
+      {gen, skip + 1, fail}
+    end
+  end
 
-            :skipped ->
-              {gen, skip + 1, fail}
+  defp handle_result(:generated, id, {gen, skip, fail}, ctx) do
+    if rem(gen + 1, 50) == 0 do
+      Mix.shell().info("  #{gen + 1}/#{ctx.total} processed...")
+    end
 
-            {:error, _} ->
-              {gen, skip, fail + 1}
-          end
-        else
-          {gen, skip + 1, fail}
-        end
-      end)
+    if ctx.avif?, do: enqueue_avif(id)
+    if ctx.press?, do: enqueue_press(id)
+    {gen + 1, skip, fail}
+  end
 
+  defp handle_result(:skipped, _id, {gen, skip, fail}, _ctx), do: {gen, skip + 1, fail}
+
+  defp handle_result({:error, _}, _id, {gen, skip, fail}, _ctx), do: {gen, skip, fail + 1}
+
+  defp report_summary(generated, skipped, failed, ctx) do
     Mix.shell().info("Done! Generated: #{generated}, Skipped: #{skipped}, Failed: #{failed}")
 
-    if generate_avif?, do: Mix.shell().info("AVIF jobs enqueued for processing")
-    if generate_press?, do: Mix.shell().info("Press JPEG jobs enqueued for processing")
+    if ctx.avif?, do: Mix.shell().info("AVIF jobs enqueued for processing")
+    if ctx.press?, do: Mix.shell().info("Press JPEG jobs enqueued for processing")
   end
 
   defp generate_thumbnails(slug, source_path, force?) do
@@ -123,14 +132,14 @@ defmodule Mix.Tasks.Mb.Media.GenerateAll do
   defp enqueue_avif(media_id) do
     Enum.each(@sizes, fn size ->
       %{kind: "avif", media_id: media_id, size: size}
-      |> MykonosBiennale.Workers.MediaProcess.new()
+      |> MediaProcess.new()
       |> Oban.insert()
     end)
   end
 
   defp enqueue_press(media_id) do
     %{kind: "press", media_id: media_id}
-    |> MykonosBiennale.Workers.MediaProcess.new()
+    |> MediaProcess.new()
     |> Oban.insert()
   end
 

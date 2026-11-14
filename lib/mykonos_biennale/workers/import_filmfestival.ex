@@ -15,8 +15,12 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
   import Ecto.Query, warn: false
 
   alias MykonosBiennale.Content
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
 
   @records_path "exports/filmfestival/records.json"
 
@@ -151,57 +155,7 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
     films = selected_films()
     IO.puts("Stage 2: Importing #{length(films)} selected films...")
 
-    results =
-      for film <- films do
-        pk = film["pk"]
-        fields = film["fields"]
-        title = String.trim(fields["title"] || "Untitled")
-        entity_type = film_type_to_entity_type(fields["film_type"])
-
-        existing = find_existing_film(pk)
-
-        if existing do
-          IO.puts("  Skipping film PK #{pk} (already ID #{existing.id})")
-          {:skipped, existing}
-        else
-          film_fields =
-            @film_field_keys
-            |> Enum.reduce(%{}, fn key, acc ->
-              val = fields[key]
-              if val != nil and val != "", do: Map.put(acc, key, val), else: acc
-            end)
-
-          attrs = %{
-            identity: title,
-            type: entity_type,
-            slug: Content.slugify(title) <> "-#{System.monotonic_time()}",
-            visible: true,
-            fields: film_fields
-          }
-
-          case Content.create_entity(attrs) do
-            {:ok, entity} ->
-              updated_fields =
-                entity.fields
-                |> Map.put("original_record", film)
-                |> Map.put("import_pk", to_string(pk))
-                |> Map.put("import_model", "filmfestival.film")
-                |> Map.put("import_slug", fields["slug"])
-                |> Map.put("import_poster_url", clean_string(fields["poster"]))
-
-              entity
-              |> Ecto.Changeset.change(fields: updated_fields)
-              |> Repo.update!()
-
-              IO.puts("  Created #{entity_type}: #{title} (PK #{pk}, ID #{entity.id})")
-              {:created, entity}
-
-            {:error, changeset} ->
-              IO.puts("  ERROR film PK #{pk} (#{title}): #{inspect(changeset.errors)}")
-              {:error, changeset}
-          end
-        end
-      end
+    results = for film <- films, do: import_film(film)
 
     created = Enum.count(results, &match?({:created, _}, &1))
     skipped = Enum.count(results, &match?({:skipped, _}, &1))
@@ -209,6 +163,66 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
 
     IO.puts("\nStage 2 complete: #{created} created, #{skipped} skipped, #{errors} errors")
     :ok
+  end
+
+  defp import_film(film) do
+    pk = film["pk"]
+    fields = film["fields"]
+    title = String.trim(fields["title"] || "Untitled")
+    entity_type = film_type_to_entity_type(fields["film_type"])
+
+    existing = find_existing_film(pk)
+
+    if existing do
+      IO.puts("  Skipping film PK #{pk} (already ID #{existing.id})")
+      {:skipped, existing}
+    else
+      create_film_entity(film, title, entity_type)
+    end
+  end
+
+  defp create_film_entity(film, title, entity_type) do
+    pk = film["pk"]
+    fields = film["fields"]
+
+    film_fields =
+      Enum.reduce(@film_field_keys, %{}, fn key, acc ->
+        put_present_field(acc, key, fields[key])
+      end)
+
+    attrs = %{
+      identity: title,
+      type: entity_type,
+      slug: Content.slugify(title) <> "-#{System.monotonic_time()}",
+      visible: true,
+      fields: film_fields
+    }
+
+    case Content.create_entity(attrs) do
+      {:ok, entity} ->
+        updated_fields =
+          entity.fields
+          |> Map.put("original_record", film)
+          |> Map.put("import_pk", to_string(pk))
+          |> Map.put("import_model", "filmfestival.film")
+          |> Map.put("import_slug", fields["slug"])
+          |> Map.put("import_poster_url", clean_string(fields["poster"]))
+
+        entity
+        |> Ecto.Changeset.change(fields: updated_fields)
+        |> Repo.update!()
+
+        IO.puts("  Created #{entity_type}: #{title} (PK #{pk}, ID #{entity.id})")
+        {:created, entity}
+
+      {:error, changeset} ->
+        IO.puts("  ERROR film PK #{pk} (#{title}): #{inspect(changeset.errors)}")
+        {:error, changeset}
+    end
+  end
+
+  defp put_present_field(acc, key, val) do
+    if val != nil and val != "", do: Map.put(acc, key, val), else: acc
   end
 
   @doc """
@@ -223,50 +237,10 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
 
     results =
       for film <- films do
-        pk = film["pk"]
         project_pk = get_in(film["foreign_keys"], ["project", "pk"])
         event_id = Map.get(project_pk_to_event_id, project_pk)
 
-        film_entity = find_existing_film(pk)
-
-        cond do
-          film_entity == nil ->
-            IO.puts("  Skipping PK #{pk}: film entity not found")
-            {:skipped, :no_entity}
-
-          event_id == nil ->
-            IO.puts("  Skipping PK #{pk}: no event for project PK #{project_pk}")
-            {:skipped, :no_event}
-
-          true ->
-            existing =
-              Repo.one(
-                from r in Relationship,
-                  where:
-                    r.subject_id == ^film_entity.id and
-                      r.relationship_type_id == ^rt.id and
-                      r.object_id == ^event_id
-              )
-
-            if existing do
-              {:skipped, :exists}
-            else
-              case Content.create_relationship(%{
-                     slug: "screened_at",
-                     label: "screened_at",
-                     subject_id: film_entity.id,
-                     object_id: event_id,
-                     fields: %{}
-                   }) do
-                {:ok, _} ->
-                  {:created, pk}
-
-                {:error, cs} ->
-                  IO.puts("  ERROR screened_at PK #{pk}: #{inspect(cs.errors)}")
-                  {:error, cs}
-              end
-            end
-        end
+        link_film_to_event(film, project_pk, event_id, rt)
       end
 
     created = Enum.count(results, &match?({:created, _}, &1))
@@ -275,6 +249,58 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
 
     IO.puts("\nStage 3 complete: #{created} created, #{skipped} skipped, #{errors} errors")
     :ok
+  end
+
+  defp link_film_to_event(film, project_pk, event_id, rt) do
+    pk = film["pk"]
+    film_entity = find_existing_film(pk)
+
+    cond do
+      film_entity == nil ->
+        IO.puts("  Skipping PK #{pk}: film entity not found")
+        {:skipped, :no_entity}
+
+      event_id == nil ->
+        IO.puts("  Skipping PK #{pk}: no event for project PK #{project_pk}")
+        {:skipped, :no_event}
+
+      true ->
+        ensure_screened_at(film_entity, event_id, rt, pk)
+    end
+  end
+
+  defp ensure_screened_at(film_entity, event_id, rt, pk) do
+    existing =
+      Repo.one(
+        from r in Relationship,
+          where:
+            r.subject_id == ^film_entity.id and
+              r.relationship_type_id == ^rt.id and
+              r.object_id == ^event_id
+      )
+
+    if existing do
+      {:skipped, :exists}
+    else
+      create_screened_at(film_entity, event_id, pk)
+    end
+  end
+
+  defp create_screened_at(film_entity, event_id, pk) do
+    case Content.create_relationship(%{
+           slug: "screened_at",
+           label: "screened_at",
+           subject_id: film_entity.id,
+           object_id: event_id,
+           fields: %{}
+         }) do
+      {:ok, _} ->
+        {:created, pk}
+
+      {:error, cs} ->
+        IO.puts("  ERROR screened_at PK #{pk}: #{inspect(cs.errors)}")
+        {:error, cs}
+    end
   end
 
   @doc """
@@ -296,51 +322,7 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
           entries = parse_credit_entries(field, raw)
 
           for {name, _role} <- entries, reduce: acc do
-            acc ->
-              canonical = canonical_name(name)
-              cached = Agent.get(name_map, &Map.get(&1, canonical))
-
-              cond do
-                cached != nil ->
-                  %{acc | skipped: acc.skipped + 1}
-
-                find_participant_by_canonical_name(canonical) != nil ->
-                  Agent.update(name_map, &Map.put(&1, canonical, :existing))
-                  %{acc | skipped: acc.skipped + 1}
-
-                true ->
-                  {first_name, last_name} = split_name(name)
-
-                  case Content.create_participant(%{
-                         first_name: first_name,
-                         last_name: last_name,
-                         name: String.trim(name),
-                         visible: true
-                       }) do
-                    {:ok, participant} ->
-                      updated_fields =
-                        participant.fields
-                        |> Map.put("import_model", "filmfestival.credit")
-                        |> Map.put("import_name", canonical)
-                        |> Map.put("import_film_pks", [to_string(film["pk"])])
-
-                      participant
-                      |> Ecto.Changeset.change(fields: updated_fields)
-                      |> Repo.update!()
-
-                      Agent.update(name_map, &Map.put(&1, canonical, participant.id))
-
-                      if rem(acc.created, 100) == 0 and acc.created > 0 do
-                        IO.puts("    ...#{acc.created} participants created so far")
-                      end
-
-                      %{acc | created: acc.created + 1}
-
-                    {:error, cs} ->
-                      IO.puts("  ERROR participant '#{name}': #{inspect(cs.errors)}")
-                      %{acc | errors: acc.errors + 1}
-                  end
-              end
+            acc -> register_credit_participant(name, film, name_map, acc)
           end
       end
 
@@ -351,6 +333,57 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
     )
 
     :ok
+  end
+
+  defp register_credit_participant(name, film, name_map, acc) do
+    canonical = canonical_name(name)
+    cached = Agent.get(name_map, &Map.get(&1, canonical))
+
+    cond do
+      cached != nil ->
+        %{acc | skipped: acc.skipped + 1}
+
+      find_participant_by_canonical_name(canonical) != nil ->
+        Agent.update(name_map, &Map.put(&1, canonical, :existing))
+        %{acc | skipped: acc.skipped + 1}
+
+      true ->
+        create_credit_participant(name, canonical, film, name_map, acc)
+    end
+  end
+
+  defp create_credit_participant(name, canonical, film, name_map, acc) do
+    {first_name, last_name} = split_name(name)
+
+    case Content.create_participant(%{
+           first_name: first_name,
+           last_name: last_name,
+           name: String.trim(name),
+           visible: true
+         }) do
+      {:ok, participant} ->
+        updated_fields =
+          participant.fields
+          |> Map.put("import_model", "filmfestival.credit")
+          |> Map.put("import_name", canonical)
+          |> Map.put("import_film_pks", [to_string(film["pk"])])
+
+        participant
+        |> Ecto.Changeset.change(fields: updated_fields)
+        |> Repo.update!()
+
+        Agent.update(name_map, &Map.put(&1, canonical, participant.id))
+
+        if rem(acc.created, 100) == 0 and acc.created > 0 do
+          IO.puts("    ...#{acc.created} participants created so far")
+        end
+
+        %{acc | created: acc.created + 1}
+
+      {:error, cs} ->
+        IO.puts("  ERROR participant '#{name}': #{inspect(cs.errors)}")
+        %{acc | errors: acc.errors + 1}
+    end
   end
 
   @doc """
@@ -367,67 +400,7 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
       for film <- films,
           field <- credit_fields,
           reduce: %{created: 0, updated: 0, skipped: 0, errors: 0} do
-        acc ->
-          raw = film["fields"][field] || ""
-          entries = parse_credit_entries(field, raw)
-          film_entity = find_existing_film(film["pk"])
-
-          if film_entity == nil do
-            acc
-          else
-            for {name, role} <- entries, reduce: acc do
-              acc ->
-                canonical = canonical_name(name)
-                participant = find_participant_by_canonical_name(canonical)
-
-                if participant == nil do
-                  acc
-                else
-                  slug = resolve_slug(field)
-                  role = role_or_default(field, role)
-                  rt = Repo.get_by!(RelationshipType, slug: slug)
-
-                  existing =
-                    Repo.one(
-                      from r in Relationship,
-                        where:
-                          r.subject_id == ^film_entity.id and
-                            r.object_id == ^participant.id and
-                            r.relationship_type_id == ^rt.id
-                    )
-
-                  cond do
-                    existing == nil ->
-                      case Content.create_relationship(%{
-                             slug: slug,
-                             label: slug,
-                             subject_id: film_entity.id,
-                             object_id: participant.id,
-                             fields: %{"roles" => role}
-                           }) do
-                        {:ok, _} ->
-                          %{acc | created: acc.created + 1}
-
-                        {:error, cs} ->
-                          IO.puts("  ERROR rel #{slug} #{name}: #{inspect(cs.errors)}")
-                          %{acc | errors: acc.errors + 1}
-                      end
-
-                    role_not_in_existing?(existing, role) ->
-                      merged = merge_roles(existing.fields["roles"], role)
-
-                      existing
-                      |> Ecto.Changeset.change(fields: Map.put(existing.fields, "roles", merged))
-                      |> Repo.update!()
-
-                      %{acc | updated: acc.updated + 1}
-
-                    true ->
-                      %{acc | skipped: acc.skipped + 1}
-                  end
-                end
-            end
-          end
+        acc -> merge_film_credits(film, field, acc)
       end
 
     IO.puts(
@@ -435,6 +408,76 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
     )
 
     :ok
+  end
+
+  defp merge_film_credits(film, field, acc) do
+    raw = film["fields"][field] || ""
+    entries = parse_credit_entries(field, raw)
+    film_entity = find_existing_film(film["pk"])
+
+    if film_entity == nil do
+      acc
+    else
+      for {name, role} <- entries, reduce: acc do
+        acc -> merge_credit(film_entity, field, name, role, acc)
+      end
+    end
+  end
+
+  defp merge_credit(film_entity, field, name, role, acc) do
+    canonical = canonical_name(name)
+    participant = find_participant_by_canonical_name(canonical)
+
+    if participant == nil do
+      acc
+    else
+      slug = resolve_slug(field)
+      role = role_or_default(field, role)
+      rt = Repo.get_by!(RelationshipType, slug: slug)
+
+      existing =
+        Repo.one(
+          from r in Relationship,
+            where:
+              r.subject_id == ^film_entity.id and
+                r.object_id == ^participant.id and
+                r.relationship_type_id == ^rt.id
+        )
+
+      cond do
+        existing == nil ->
+          create_credit(film_entity, participant, slug, role, name, acc)
+
+        role_not_in_existing?(existing, role) ->
+          merged = merge_roles(existing.fields["roles"], role)
+
+          existing
+          |> Ecto.Changeset.change(fields: Map.put(existing.fields, "roles", merged))
+          |> Repo.update!()
+
+          %{acc | updated: acc.updated + 1}
+
+        true ->
+          %{acc | skipped: acc.skipped + 1}
+      end
+    end
+  end
+
+  defp create_credit(film_entity, participant, slug, role, name, acc) do
+    case Content.create_relationship(%{
+           slug: slug,
+           label: slug,
+           subject_id: film_entity.id,
+           object_id: participant.id,
+           fields: %{"roles" => role}
+         }) do
+      {:ok, _} ->
+        %{acc | created: acc.created + 1}
+
+      {:error, cs} ->
+        IO.puts("  ERROR rel #{slug} #{name}: #{inspect(cs.errors)}")
+        %{acc | errors: acc.errors + 1}
+    end
   end
 
   @doc """
@@ -457,49 +500,54 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
 
     count =
       for {film, idx} <- Enum.with_index(films, 1), reduce: 0 do
-        count ->
-          pk = film["pk"]
-          poster_url = film["fields"]["poster"] || ""
-
-          if poster_url == "" do
-            if rem(idx, 50) == 0, do: IO.puts("  [#{idx}/#{total}] skipping (no poster)...")
-            count
-          else
-            film_entity = find_existing_film(pk)
-
-            if film_entity == nil do
-              if rem(idx, 50) == 0,
-                do: IO.puts("  [#{idx}/#{total}] skipping (entity not found)...")
-
-              count
-            else
-              if already_has_media_with_url?(film_entity, poster_url) do
-                if rem(idx, 50) == 0,
-                  do: IO.puts("  [#{idx}/#{total}] skipping (already imported)...")
-
-                count
-              else
-                title = String.trim(film["fields"]["title"] || "Film")
-
-                case download_and_create_media(poster_url, "#{title} poster", film_entity, %{
-                       "role" => "poster",
-                       "is_poster" => true
-                     }) do
-                  {:ok, _} ->
-                    if rem(idx, 25) == 0, do: IO.puts("  [#{idx}/#{total}] poster OK: #{title}")
-                    count + 1
-
-                  {:error, reason} ->
-                    IO.puts("    [#{idx}/#{total}] ERROR poster PK #{pk}: #{reason}")
-                    count
-                end
-              end
-            end
-          end
+        count -> import_poster(film, idx, total, count)
       end
 
     IO.puts("  #{count} posters downloaded")
     count
+  end
+
+  defp import_poster(film, idx, total, count) do
+    poster_url = film["fields"]["poster"] || ""
+
+    if poster_url == "" do
+      if rem(idx, 50) == 0, do: IO.puts("  [#{idx}/#{total}] skipping (no poster)...")
+      count
+    else
+      film_entity = find_existing_film(film["pk"])
+      download_poster(film, poster_url, film_entity, idx, total, count)
+    end
+  end
+
+  defp download_poster(_film, _poster_url, nil, idx, total, count) do
+    if rem(idx, 50) == 0, do: IO.puts("  [#{idx}/#{total}] skipping (entity not found)...")
+    count
+  end
+
+  defp download_poster(film, poster_url, film_entity, idx, total, count) do
+    if already_has_media_with_url?(film_entity, poster_url) do
+      if rem(idx, 50) == 0, do: IO.puts("  [#{idx}/#{total}] skipping (already imported)...")
+      count
+    else
+      fetch_poster(film, poster_url, film_entity, idx, total, count)
+    end
+  end
+
+  defp fetch_poster(film, poster_url, film_entity, idx, total, count) do
+    title = String.trim(film["fields"]["title"] || "Film")
+
+    case download_and_create_media(poster_url, "#{title} poster", film_entity, %{
+           "role" => "poster",
+           "is_poster" => true
+         }) do
+      {:ok, _} ->
+        if rem(idx, 25) == 0, do: IO.puts("  [#{idx}/#{total}] poster OK: #{title}")
+        count + 1
+
+      {:error, reason} ->
+        IO.puts("    [#{idx}/#{total}] ERROR poster PK #{film["pk"]}: #{reason}")
+        count
+    end
   end
 
   defp import_film_images do
@@ -524,42 +572,54 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
 
     count =
       for {image, idx} <- Enum.with_index(relevant_images, 1), reduce: 0 do
-        count ->
-          film_pk = get_in(image["foreign_keys"], ["film", "pk"])
-          film_entity_id = Map.get(film_pk_to_entity_id, film_pk)
-
-          if film_entity_id == nil do
-            count
-          else
-            film_entity = Repo.get!(Entity, film_entity_id)
-            img_url = image["fields"]["image"] || ""
-            image_type = image["fields"]["image_type"] || "Screenshot"
-            role = String.downcase(image_type)
-            title = image["fields"]["title"] || image_type
-
-            if img_url == "" or already_has_media_with_url?(film_entity, img_url) do
-              if rem(idx, 50) == 0, do: IO.puts("  [#{idx}/#{total_imgs}] skipping image...")
-              count
-            else
-              case download_and_create_media(img_url, title, film_entity, %{
-                     "role" => role,
-                     "import_pk" => to_string(image["pk"]),
-                     "import_model" => "filmfestival.image"
-                   }) do
-                {:ok, _} ->
-                  if rem(idx, 25) == 0, do: IO.puts("  [#{idx}/#{total_imgs}] image OK: #{title}")
-                  count + 1
-
-                {:error, reason} ->
-                  IO.puts("    [#{idx}/#{total_imgs}] ERROR image PK #{image["pk"]}: #{reason}")
-                  count
-              end
-            end
-          end
+        count -> import_film_image(image, idx, total_imgs, film_pk_to_entity_id, count)
       end
 
     IO.puts("  #{count} screenshots/stills downloaded")
     count
+  end
+
+  defp import_film_image(image, idx, total, film_pk_to_entity_id, count) do
+    film_pk = get_in(image["foreign_keys"], ["film", "pk"])
+    film_entity_id = Map.get(film_pk_to_entity_id, film_pk)
+
+    if film_entity_id == nil do
+      count
+    else
+      film_entity = Repo.get!(Entity, film_entity_id)
+      download_film_image(image, film_entity, idx, total, count)
+    end
+  end
+
+  defp download_film_image(image, film_entity, idx, total, count) do
+    img_url = image["fields"]["image"] || ""
+
+    if img_url == "" or already_has_media_with_url?(film_entity, img_url) do
+      if rem(idx, 50) == 0, do: IO.puts("  [#{idx}/#{total}] skipping image...")
+      count
+    else
+      fetch_film_image(image, img_url, film_entity, idx, total, count)
+    end
+  end
+
+  defp fetch_film_image(image, img_url, film_entity, idx, total, count) do
+    image_type = image["fields"]["image_type"] || "Screenshot"
+    role = String.downcase(image_type)
+    title = image["fields"]["title"] || image_type
+
+    case download_and_create_media(img_url, title, film_entity, %{
+           "role" => role,
+           "import_pk" => to_string(image["pk"]),
+           "import_model" => "filmfestival.image"
+         }) do
+      {:ok, _} ->
+        if rem(idx, 25) == 0, do: IO.puts("  [#{idx}/#{total}] image OK: #{title}")
+        count + 1
+
+      {:error, reason} ->
+        IO.puts("    [#{idx}/#{total}] ERROR image PK #{image["pk"]}: #{reason}")
+        count
+    end
   end
 
   @doc """
@@ -744,22 +804,26 @@ defmodule MykonosBiennale.Workers.ImportFilmfestival do
   defp download_and_create_media(url, caption, entity, metadata) do
     case download_s3_image(url) do
       {:ok, local_filename} ->
-        case Content.create_media(%{
-               source_type: "upload",
-               source_path: local_filename,
-               caption: caption,
-               metadata: Map.put(metadata, "imported_from", url)
-             }) do
-          {:ok, media} ->
-            Content.attach_media_to_entity(entity, media, metadata: metadata)
-            {:ok, media}
-
-          {:error, changeset} ->
-            {:error, inspect(changeset.errors)}
-        end
+        create_media_for_entity(url, local_filename, caption, entity, metadata)
 
       {:error, reason} ->
         {:error, "Download failed: #{reason}"}
+    end
+  end
+
+  defp create_media_for_entity(url, local_filename, caption, entity, metadata) do
+    case Content.create_media(%{
+           source_type: "upload",
+           source_path: local_filename,
+           caption: caption,
+           metadata: Map.put(metadata, "imported_from", url)
+         }) do
+      {:ok, media} ->
+        Content.attach_media_to_entity(entity, media, metadata: metadata)
+        {:ok, media}
+
+      {:error, changeset} ->
+        {:error, inspect(changeset.errors)}
     end
   end
 end

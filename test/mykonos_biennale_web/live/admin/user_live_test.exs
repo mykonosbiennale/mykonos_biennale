@@ -64,4 +64,58 @@ defmodule MykonosBiennaleWeb.Admin.UserLiveTest do
       assert conn.status == 302
     end
   end
+
+  describe "User form handlers" do
+    setup do
+      user = MykonosBiennale.AccountsFixtures.user_fixture()
+      {:ok, user: user}
+    end
+
+    test "validate with a malformed email keeps the form open", %{conn: conn, user: u} do
+      {:ok, lv, _} = live(conn, ~p"/admin/users/#{u.id}/edit")
+      lv |> form("#user-form", user: %{email: "not-an-email"}) |> render_change()
+      assert has_element?(lv, "#user-form")
+    end
+
+    test "save changes the user's email", %{conn: conn, user: u} do
+      {:ok, lv, _} = live(conn, ~p"/admin/users/#{u.id}/edit")
+
+      lv
+      |> form("#user-form", user: %{email: "changed-#{u.id}@example.com"})
+      |> render_submit()
+
+      assert MykonosBiennale.Repo.get!(MykonosBiennale.Accounts.User, u.id).email ==
+               "changed-#{u.id}@example.com"
+    end
+
+    test "save with an invalid email keeps the form open and changes nothing", %{
+      conn: conn,
+      user: u
+    } do
+      {:ok, lv, _} = live(conn, ~p"/admin/users/#{u.id}/edit")
+      lv |> form("#user-form", user: %{email: "bad"}) |> render_submit()
+      assert has_element?(lv, "#user-form")
+      assert MykonosBiennale.Repo.get!(MykonosBiennale.Accounts.User, u.id).email == u.email
+    end
+
+    test "generate_password shows the temporary password controls", %{conn: conn, user: u} do
+      {:ok, lv, _} = live(conn, ~p"/admin/users/#{u.id}/edit")
+      lv |> element("button[phx-click=generate_password]") |> render_click()
+      assert has_element?(lv, "button[phx-click=send_password_email]")
+    end
+
+    test "send_password_email sends the email and clears the password", %{conn: conn, user: u} do
+      {:ok, lv, _} = live(conn, ~p"/admin/users/#{u.id}/edit")
+      lv |> element("button[phx-click=generate_password]") |> render_click()
+      lv |> element("button[phx-click=send_password_email]") |> render_click()
+      assert render(lv) =~ "Password email sent to #{u.email}"
+      refute has_element?(lv, "button[phx-click=send_password_email]")
+    end
+
+    test "new user with a blank email keeps the form open", %{conn: conn} do
+      {:ok, lv, _} = live(conn, ~p"/admin/users/new")
+      lv |> form("#user-form", user: %{email: ""}) |> render_submit()
+      assert has_element?(lv, "#user-form")
+    end
+  end
 end
