@@ -3,9 +3,12 @@ defmodule MykonosBiennaleWeb.Admin.TeamLive.Member do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Media, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
 
   @team_roles [
     curator: "Curator",
@@ -100,9 +103,7 @@ defmodule MykonosBiennaleWeb.Admin.TeamLive.Member do
     update_rel_fields(rel_id, fn fields ->
       fields
       |> Map.put("role", role)
-      |> then(fn f ->
-        if image_media_id, do: Map.put(f, "image_media_id", image_media_id), else: f
-      end)
+      |> put_image_media_id(image_media_id)
     end)
 
     {:noreply,
@@ -199,6 +200,10 @@ defmodule MykonosBiennaleWeb.Admin.TeamLive.Member do
     |> Enum.find_value(fn link ->
       if link.metadata && link.metadata["role"] == "headshot", do: link.media
     end)
+  end
+
+  defp put_image_media_id(fields, image_media_id) do
+    if image_media_id, do: Map.put(fields, "image_media_id", image_media_id), else: fields
   end
 
   defp update_rel_fields(rel_id, fun) do

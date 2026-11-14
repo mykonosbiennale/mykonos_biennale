@@ -40,6 +40,13 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.Index do
     |> assign(:biennale, nil)
   end
 
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
+  end
+
   @impl true
   def handle_info(
         {MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent, {:saved, biennale}},

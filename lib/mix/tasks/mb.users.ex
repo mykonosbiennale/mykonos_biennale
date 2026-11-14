@@ -31,8 +31,8 @@ defmodule Mix.Tasks.Mb.Users do
   """
 
   alias MykonosBiennale.Accounts
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Accounts.User
+  alias MykonosBiennale.Repo
 
   def run(args) do
     start_repo()

@@ -16,6 +16,7 @@ defmodule MykonosBiennaleWeb.ConnCase do
   """
 
   use ExUnit.CaseTemplate
+  alias MykonosBiennale.Accounts.Scope
 
   using do
     quote do
@@ -47,7 +48,7 @@ defmodule MykonosBiennaleWeb.ConnCase do
   """
   def register_and_log_in_user(%{conn: conn} = context) do
     user = MykonosBiennale.AccountsFixtures.user_fixture()
-    scope = MykonosBiennale.Accounts.Scope.for_user(user)
+    scope = Scope.for_user(user)
 
     opts =
       context

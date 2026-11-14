@@ -23,8 +23,9 @@ defmodule MykonosBiennale.Workers.SearchReindex do
 
   import Ecto.Query, warn: false
 
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Relationship
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Relationship, EntityMedia}
   alias MykonosBiennale.Search.Indexer
 
   @impl Oban.Worker

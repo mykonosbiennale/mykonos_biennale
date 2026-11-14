@@ -4,9 +4,10 @@ defmodule MykonosBiennale.Content.Biennale do
   """
 
   import Ecto.Query, warn: false
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Repo
 
   @doc """
   Returns the list of biennales (entities with type "biennale") ordered by year descending.

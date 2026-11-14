@@ -83,8 +83,8 @@ defmodule MykonosBiennaleWeb do
       import MykonosBiennaleWeb.CoreComponents
 
       # Common modules used in templates
-      alias Phoenix.LiveView.JS
       alias MykonosBiennaleWeb.Layouts
+      alias Phoenix.LiveView.JS
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

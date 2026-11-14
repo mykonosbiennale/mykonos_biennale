@@ -5,7 +5,8 @@ defmodule MykonosBiennale.Site do
 
   import Ecto.Query, warn: false
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Site.{Page, Section}
+  alias MykonosBiennale.Site.Page
+  alias MykonosBiennale.Site.Section
 
   ## Pages
 

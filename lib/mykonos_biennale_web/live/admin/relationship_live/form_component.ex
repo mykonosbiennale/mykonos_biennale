@@ -1,9 +1,10 @@
 defmodule MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
-  alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship}
   alias Ecto.Changeset
+  alias MykonosBiennale.Content
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Relationship
 
   import Ecto.Query, warn: false
   alias MykonosBiennale.Repo
@@ -35,7 +36,7 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent do
               <%= for rt <- @relationship_types do %>
                 <option
                   value={rt.id}
-                  selected={to_string(rt.id) == @form[:relationship_type_id].value}
+                  selected={to_string(rt.id) == to_string(@form[:relationship_type_id].value)}
                 >
                   {rt.slug} ({rt.label})
                 </option>
@@ -53,7 +54,7 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent do
               <%= for e <- @entities do %>
                 <option
                   value={e.id}
-                  selected={to_string(e.id) == @form[:subject_id].value}
+                  selected={to_string(e.id) == to_string(@form[:subject_id].value)}
                 >
                   {entity_label(e)} [{e.type}]
                 </option>
@@ -71,7 +72,7 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent do
               <%= for e <- @entities do %>
                 <option
                   value={e.id}
-                  selected={to_string(e.id) == @form[:object_id].value}
+                  selected={to_string(e.id) == to_string(@form[:object_id].value)}
                 >
                   {entity_label(e)} [{e.type}]
                 </option>
@@ -157,7 +158,7 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Relationship updated")
+         |> notify_flash(:info, "Relationship updated")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Changeset{} = changeset} ->
@@ -173,7 +174,7 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Relationship created")
+         |> notify_flash(:info, "Relationship created")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Changeset{} = changeset} ->
@@ -241,4 +242,9 @@ defmodule MykonosBiennaleWeb.Admin.RelationshipLive.FormComponent do
   end
 
   defp format_fields_value(_), do: ""
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
+  end
 end

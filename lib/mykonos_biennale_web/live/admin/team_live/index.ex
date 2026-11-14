@@ -3,9 +3,11 @@ defmodule MykonosBiennaleWeb.Admin.TeamLive.Index do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
 
   @team_roles [
     curator: "Curator",
@@ -63,16 +65,7 @@ defmodule MykonosBiennaleWeb.Admin.TeamLive.Index do
         |> Enum.map(fn {participant_id, rels} ->
           participant = hd(rels).object
 
-          memberships =
-            Enum.map(rels, fn rel ->
-              %{
-                rel_id: rel.id,
-                biennale_id: rel.subject_id,
-                year: rel.subject && rel.subject.fields["year"],
-                role: rel.fields && rel.fields["role"]
-              }
-            end)
-            |> Enum.sort_by(&(-&1.year))
+          memberships = Enum.map(rels, &membership_entry/1) |> Enum.sort_by(&(-&1.year))
 
           %{participant_id: participant_id, name: participant.identity, memberships: memberships}
         end)
@@ -207,6 +200,15 @@ defmodule MykonosBiennaleWeb.Admin.TeamLive.Index do
      socket
      |> load_team()
      |> put_flash(:info, "Team member removed")}
+  end
+
+  defp membership_entry(rel) do
+    %{
+      rel_id: rel.id,
+      biennale_id: rel.subject_id,
+      year: rel.subject && rel.subject.fields["year"],
+      role: rel.fields && rel.fields["role"]
+    }
   end
 
   defp biennale_ids_from_params(params) do

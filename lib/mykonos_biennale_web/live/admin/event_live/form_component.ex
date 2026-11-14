@@ -3,9 +3,11 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Relationship, Media, Entity}
   alias Ecto.Changeset
+  alias MykonosBiennale.Content
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
 
   defmodule EventForm do
     @moduledoc false
@@ -593,17 +595,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
         {[], %{}}
       end
 
-    artboard_selected_ids =
-      event.fields
-      |> Map.get("artboard_media_ids", [])
-      |> Enum.map(fn id -> if is_binary(id), do: String.to_integer(id), else: id end)
-
-    artboard_selected_media =
-      artboard_selected_ids
-      |> Enum.map(fn id ->
-        Enum.find_value(artboard_pool, fn %{media: m} -> if m.id == id, do: m end)
-      end)
-      |> Enum.reject(&is_nil/1)
+    {artboard_selected_ids, artboard_selected_media} = artboard_selection(event, artboard_pool)
 
     {:ok,
      socket
@@ -673,17 +665,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     {artboard_pool, artboard_artwork_map} =
       compute_artboard_pool(event, socket.assigns.is_exhibition, current_media_links, poster_link)
 
-    artboard_selected_ids =
-      event.fields
-      |> Map.get("artboard_media_ids", [])
-      |> Enum.map(fn id -> if is_binary(id), do: String.to_integer(id), else: id end)
-
-    artboard_selected_media =
-      artboard_selected_ids
-      |> Enum.map(fn id ->
-        Enum.find_value(artboard_pool, fn %{media: m} -> if m.id == id, do: m end)
-      end)
-      |> Enum.reject(&is_nil/1)
+    {artboard_selected_ids, artboard_selected_media} = artboard_selection(event, artboard_pool)
 
     all_media = Content.list_media()
     attached_ids = Enum.map(current_media_links, & &1.media_id)
@@ -697,6 +679,71 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     |> assign(:artboard_artwork_map, artboard_artwork_map)
     |> assign(:artboard_selected_ids, artboard_selected_ids)
     |> assign(:artboard_selected_media, artboard_selected_media)
+  end
+
+  defp artboard_selection(event, artboard_pool) do
+    selected_ids =
+      event.fields
+      |> Map.get("artboard_media_ids", [])
+      |> Enum.map(fn id -> if is_binary(id), do: String.to_integer(id), else: id end)
+
+    selected_media =
+      selected_ids
+      |> Enum.map(&find_artboard_media(artboard_pool, &1))
+      |> Enum.reject(&is_nil/1)
+
+    {selected_ids, selected_media}
+  end
+
+  defp find_artboard_media(artboard_pool, id) do
+    Enum.find_value(artboard_pool, fn %{media: m} -> if m.id == id, do: m end)
+  end
+
+  defp store_upload(path, entry, caption) do
+    ext = Path.extname(entry.client_name)
+    filename = "#{Ecto.UUID.generate()}#{ext}"
+    dest = MykonosBiennale.Uploads.uploads_path(filename)
+
+    MykonosBiennale.Uploads.ensure_uploads_dir()
+    File.cp!(path, dest)
+
+    Content.create_media(%{
+      source_type: "upload",
+      source_path: filename,
+      mime_type: entry.client_type,
+      original_name: entry.client_name,
+      caption: caption
+    })
+  end
+
+  defp upload_caption(event) do
+    title = event.fields["title"] || "Untitled"
+
+    String.trim("#{title}#{biennale_year_suffix(event)}")
+  end
+
+  defp biennale_year_suffix(event) do
+    case event_biennale_year(event) do
+      nil -> ""
+      year -> " #{year}"
+    end
+  end
+
+  defp upload_result_flash(success_count, error_count) do
+    flash =
+      cond do
+        error_count > 0 and success_count > 0 ->
+          "Uploaded #{success_count} image(s), #{error_count} failed"
+
+        error_count > 0 ->
+          "Upload failed for #{error_count} image(s)"
+
+        true ->
+          "Uploaded #{success_count} image(s) successfully"
+      end
+
+    flash_type = if error_count > 0 and success_count == 0, do: :error, else: :info
+    {flash_type, flash}
   end
 
   @impl true
@@ -726,13 +773,13 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
           {:noreply,
            socket
            |> reload_artboard()
-           |> put_flash(:info, "Media attached successfully")}
+           |> notify_flash(:info, "Media attached successfully")}
 
         {:error, reason} ->
-          {:noreply, put_flash(socket, :error, reason)}
+          {:noreply, notify_flash(socket, :error, reason)}
       end
     else
-      {:noreply, put_flash(socket, :error, "Save the event first before attaching media")}
+      {:noreply, notify_flash(socket, :error, "Save the event first before attaching media")}
     end
   end
 
@@ -745,7 +792,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     {:noreply,
      socket
      |> reload_artboard()
-     |> put_flash(:info, "Media detached successfully")}
+     |> notify_flash(:info, "Media detached successfully")}
   end
 
   def handle_event("reorder_media_links", %{"media_ids" => media_ids}, socket) do
@@ -777,38 +824,13 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
   def handle_event("save_uploads", _params, socket) do
     event = socket.assigns.event
-    title = event.fields["title"] || "Untitled"
-
-    biennale_year =
-      case event_biennale_year(event) do
-        nil -> ""
-        year -> " #{year}"
-      end
-
-    caption = String.trim("#{title}#{biennale_year}")
+    caption = upload_caption(event)
 
     results =
       consume_uploaded_entries(socket, :images, fn %{path: path}, entry ->
-        ext = Path.extname(entry.client_name)
-        filename = "#{Ecto.UUID.generate()}#{ext}"
-        dest = MykonosBiennale.Uploads.uploads_path(filename)
-
-        MykonosBiennale.Uploads.ensure_uploads_dir()
-        File.cp!(path, dest)
-
-        case Content.create_media(%{
-               source_type: "upload",
-               source_path: filename,
-               mime_type: entry.client_type,
-               original_name: entry.client_name,
-               caption: caption
-             }) do
-          {:ok, media} ->
-            Content.attach_media_to_entity(event, media)
-            {:ok, media}
-
-          {:error, _} = err ->
-            err
+        with {:ok, media} <- store_upload(path, entry, caption) do
+          Content.attach_media_to_entity(event, media)
+          {:ok, media}
         end
       end)
 
@@ -819,21 +841,9 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
       socket
       |> reload_artboard()
 
-    flash =
-      cond do
-        error_count > 0 and success_count > 0 ->
-          "Uploaded #{success_count} image(s), #{error_count} failed"
+    {flash_type, flash} = upload_result_flash(success_count, error_count)
 
-        error_count > 0 ->
-          "Upload failed for #{error_count} image(s)"
-
-        true ->
-          "Uploaded #{success_count} image(s) successfully"
-      end
-
-    flash_type = if error_count > 0 and success_count == 0, do: :error, else: :info
-
-    {:noreply, put_flash(socket, flash_type, flash)}
+    {:noreply, notify_flash(socket, flash_type, flash)}
   end
 
   def handle_event("cancel-poster-upload", %{"ref" => ref}, socket) do
@@ -846,26 +856,9 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
     results =
       consume_uploaded_entries(socket, :poster, fn %{path: path}, entry ->
-        ext = Path.extname(entry.client_name)
-        filename = "#{Ecto.UUID.generate()}#{ext}"
-        dest = MykonosBiennale.Uploads.uploads_path(filename)
-
-        MykonosBiennale.Uploads.ensure_uploads_dir()
-        File.cp!(path, dest)
-
-        case Content.create_media(%{
-               source_type: "upload",
-               source_path: filename,
-               mime_type: entry.client_type,
-               original_name: entry.client_name,
-               caption: title
-             }) do
-          {:ok, media} ->
-            set_poster(event, media)
-            {:ok, media}
-
-          {:error, _} = err ->
-            err
+        with {:ok, media} <- store_upload(path, entry, title) do
+          set_poster(event, media)
+          {:ok, media}
         end
       end)
 
@@ -874,10 +867,10 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
         [{:ok, _} | _] ->
           socket
           |> reload_artboard()
-          |> put_flash(:info, "Poster saved")
+          |> notify_flash(:info, "Poster saved")
 
         _ ->
-          put_flash(socket, :error, "Could not save poster")
+          notify_flash(socket, :error, "Could not save poster")
       end
 
     {:noreply, socket}
@@ -896,10 +889,10 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
         {:noreply,
          socket
          |> reload_artboard()
-         |> put_flash(:info, "Poster set")}
+         |> notify_flash(:info, "Poster set")}
 
       {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Could not set poster: #{inspect(reason)}")}
+        {:noreply, notify_flash(socket, :error, "Could not set poster: #{inspect(reason)}")}
     end
   end
 
@@ -915,7 +908,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     {:noreply,
      socket
      |> reload_artboard()
-     |> put_flash(:info, "Poster removed")}
+     |> notify_flash(:info, "Poster removed")}
   end
 
   def handle_event("add_to_artboard", %{"media-id" => media_id}, socket) do
@@ -932,10 +925,10 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
           |> assign(:event, updated_event)
           |> reload_artboard()
 
-        {:noreply, put_flash(socket, :info, "Added to art board")}
+        {:noreply, notify_flash(socket, :info, "Added to art board")}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Could not update art board")}
+        {:noreply, notify_flash(socket, :error, "Could not update art board")}
     end
   end
 
@@ -952,10 +945,10 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
           |> assign(:event, updated_event)
           |> reload_artboard()
 
-        {:noreply, put_flash(socket, :info, "Removed from art board")}
+        {:noreply, notify_flash(socket, :info, "Removed from art board")}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Could not update art board")}
+        {:noreply, notify_flash(socket, :error, "Could not update art board")}
     end
   end
 
@@ -973,7 +966,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
         {:noreply, socket}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Could not reorder art board")}
+        {:noreply, notify_flash(socket, :error, "Could not reorder art board")}
     end
   end
 
@@ -1025,13 +1018,13 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
           {:noreply,
            socket
-           |> put_flash(:info, "Event updated successfully")
+           |> notify_flash(:info, "Event updated successfully")
            |> push_patch(to: socket.assigns.patch)}
 
         {:error, %Ecto.Changeset{} = entity_changeset} ->
           {:noreply,
            socket
-           |> put_flash(:error, "Could not update event")
+           |> notify_flash(:error, "Could not update event")
            |> assign(
              :form,
              to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :event)
@@ -1055,13 +1048,13 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
           {:noreply,
            socket
-           |> put_flash(:info, "Event created successfully")
+           |> notify_flash(:info, "Event created successfully")
            |> push_patch(to: socket.assigns.patch)}
 
         {:error, %Ecto.Changeset{} = entity_changeset} ->
           {:noreply,
            socket
-           |> put_flash(:error, "Could not create event")
+           |> notify_flash(:error, "Could not create event")
            |> assign(
              :form,
              to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :event)
@@ -1178,4 +1171,9 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
   defp error_to_string(:not_accepted), do: "File type not accepted"
   defp error_to_string(:too_many_files), do: "Too many files selected"
   defp error_to_string(err), do: "Upload error: #{inspect(err)}"
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
+  end
 end

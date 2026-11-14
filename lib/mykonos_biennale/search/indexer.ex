@@ -30,8 +30,12 @@ defmodule MykonosBiennale.Search.Indexer do
 
   import Ecto.Query, warn: false
 
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
   alias MykonosBiennale.Search.Transliterate
 
   # Subject -> Object: how to label the relationship in the subject's index.

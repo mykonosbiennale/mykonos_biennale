@@ -36,6 +36,13 @@ defmodule MykonosBiennaleWeb.Admin.PageLive.Index do
     |> assign(:page, nil)
   end
 
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.PageLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
+  end
+
   @impl true
   def handle_info({MykonosBiennaleWeb.Admin.PageLive.FormComponent, {:saved, page}}, socket) do
     {:noreply, stream_insert(socket, :pages, page)}

@@ -48,39 +48,23 @@ defmodule MykonosBiennale.Content.Media do
     |> validate_source_fields()
   end
 
+  # For new records, id is nil — slug will be set after insert.
   defp maybe_generate_slug(changeset) do
-    case get_field(changeset, :slug) do
-      nil ->
-        case get_field(changeset, :source_type) do
-          "upload" ->
-            source_path = get_field(changeset, :source_path)
-
-            if source_path do
-              id = get_field(changeset, :id)
-              # For new records, id is nil — slug will be set after insert
-              if id do
-                put_change(
-                  changeset,
-                  :slug,
-                  MediaSlug.generate(
-                    id,
-                    get_field(changeset, :caption),
-                    get_field(changeset, :original_name)
-                  )
-                )
-              else
-                changeset
-              end
-            else
-              changeset
-            end
-
-          _ ->
-            changeset
-        end
-
-      _ ->
-        changeset
+    with nil <- get_field(changeset, :slug),
+         "upload" <- get_field(changeset, :source_type),
+         source_path when not is_nil(source_path) <- get_field(changeset, :source_path),
+         id when not is_nil(id) <- get_field(changeset, :id) do
+      put_change(
+        changeset,
+        :slug,
+        MediaSlug.generate(
+          id,
+          get_field(changeset, :caption),
+          get_field(changeset, :original_name)
+        )
+      )
+    else
+      _ -> changeset
     end
   end
 

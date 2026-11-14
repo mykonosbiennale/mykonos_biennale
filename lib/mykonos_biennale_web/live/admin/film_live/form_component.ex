@@ -1,10 +1,11 @@
 defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
-  alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content
-  alias MykonosBiennale.Content.{Entity, RelationshipType}
   alias Ecto.Changeset
+  alias MykonosBiennale.Content
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.RelationshipType
+  alias MykonosBiennale.Repo
 
   import Ecto.Query, warn: false
 
@@ -527,29 +528,8 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
         []
       end
 
-    {poster_links, non_poster_links} =
-      Enum.split_with(all_media_links, fn link ->
-        meta = link.metadata || %{}
-        meta["is_poster"] == true or meta["role"] == "poster"
-      end)
-
-    poster_link = List.first(poster_links)
-
-    {trailer_links, rest_links} =
-      Enum.split_with(non_poster_links, fn link ->
-        meta = link.metadata || %{}
-        meta["role"] == "trailer"
-      end)
-
-    trailer_link = List.first(trailer_links)
-
-    {screening_copy_links, still_links} =
-      Enum.split_with(rest_links, fn link ->
-        meta = link.metadata || %{}
-        meta["role"] == "screening_copy"
-      end)
-
-    screening_copy_link = List.first(screening_copy_links)
+    {poster_link, trailer_link, screening_copy_link, still_links} =
+      split_film_media_links(all_media_links)
 
     linked_relationships =
       if film.id do
@@ -558,25 +538,11 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
         []
       end
 
-    all_participants = Content.list_participants()
-    linked_participant_ids = Enum.map(linked_relationships, & &1.object_id)
-
-    available_participants =
-      Enum.reject(all_participants, fn p -> p.id in linked_participant_ids end)
+    available_participants = available_participants_excluding(linked_relationships)
 
     film_events = Content.list_film_events()
 
-    current_event_id =
-      if film.id do
-        event_rels = Content.list_film_linked_events(film)
-
-        case List.first(event_rels) do
-          nil -> nil
-          rel -> to_string(rel.object_id)
-        end
-      else
-        Map.get(assigns, :default_event_id)
-      end
+    current_event_id = current_film_event_id(film, assigns)
 
     {:ok,
      socket
@@ -617,6 +583,44 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
      )}
   end
 
+  defp split_film_media_links(all_media_links) do
+    {poster_links, non_poster_links} = Enum.split_with(all_media_links, &poster_link?/1)
+    {trailer_links, rest_links} = Enum.split_with(non_poster_links, &link_role?(&1, "trailer"))
+
+    {screening_copy_links, still_links} =
+      Enum.split_with(rest_links, &link_role?(&1, "screening_copy"))
+
+    {List.first(poster_links), List.first(trailer_links), List.first(screening_copy_links),
+     still_links}
+  end
+
+  defp poster_link?(link) do
+    meta = link_meta(link)
+    meta["is_poster"] == true or meta["role"] == "poster"
+  end
+
+  defp link_role?(link, role), do: link_meta(link)["role"] == role
+
+  defp link_meta(link), do: link.metadata || %{}
+
+  defp available_participants_excluding(linked_relationships) do
+    linked_participant_ids = Enum.map(linked_relationships, & &1.object_id)
+    Enum.reject(Content.list_participants(), fn p -> p.id in linked_participant_ids end)
+  end
+
+  defp current_film_event_id(film, assigns) do
+    if film.id do
+      event_rels = Content.list_film_linked_events(film)
+
+      case List.first(event_rels) do
+        nil -> nil
+        rel -> to_string(rel.object_id)
+      end
+    else
+      Map.get(assigns, :default_event_id)
+    end
+  end
+
   @impl true
   def handle_event("validate", params, socket) do
     film_params = extract_film_params(params)
@@ -629,9 +633,14 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
     {:noreply, assign(socket, form: to_form(changeset, as: :film))}
   end
 
-  def handle_event("cancel-upload", %{"ref" => ref, "upload" => upload_name}, socket) do
-    {:noreply, cancel_upload(socket, String.to_atom(upload_name), ref)}
+  @upload_names ~w(poster stills trailer_video screening_copy_video)
+
+  def handle_event("cancel-upload", %{"ref" => ref, "upload" => upload_name}, socket)
+      when upload_name in @upload_names do
+    {:noreply, cancel_upload(socket, String.to_existing_atom(upload_name), ref)}
   end
+
+  def handle_event("cancel-upload", _params, socket), do: {:noreply, socket}
 
   def handle_event("detach_poster", _params, socket) do
     film = socket.assigns.film
@@ -642,7 +651,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
       {:ok, :detached} = Content.detach_media_from_entity(film, media)
     end
 
-    {:noreply, assign(socket, :poster_link, nil) |> put_flash(:info, "Poster detached")}
+    {:noreply, assign(socket, :poster_link, nil) |> notify_flash(:info, "Poster detached")}
   end
 
   def handle_event("detach_trailer", _params, socket) do
@@ -654,7 +663,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
       {:ok, :detached} = Content.detach_media_from_entity(film, media)
     end
 
-    {:noreply, assign(socket, :trailer_link, nil) |> put_flash(:info, "Trailer detached")}
+    {:noreply, assign(socket, :trailer_link, nil) |> notify_flash(:info, "Trailer detached")}
   end
 
   def handle_event("detach_screening_copy", _params, socket) do
@@ -667,7 +676,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
     end
 
     {:noreply,
-     assign(socket, :screening_copy_link, nil) |> put_flash(:info, "Screening copy detached")}
+     assign(socket, :screening_copy_link, nil) |> notify_flash(:info, "Screening copy detached")}
   end
 
   def handle_event("detach_media", %{"media-id" => media_id}, socket) do
@@ -676,7 +685,7 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
     {:ok, :detached} = Content.detach_media_from_entity(film, media)
     still_links = Enum.reject(socket.assigns.still_links, fn l -> l.media_id == media.id end)
 
-    {:noreply, assign(socket, :still_links, still_links) |> put_flash(:info, "Still detached")}
+    {:noreply, assign(socket, :still_links, still_links) |> notify_flash(:info, "Still detached")}
   end
 
   def handle_event(
@@ -716,22 +725,20 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
            }) do
         {:ok, _} ->
           linked_relationships = Content.Film.list_relationships(film)
-          linked_participant_ids = Enum.map(linked_relationships, & &1.object_id)
-
-          available_participants =
-            Enum.reject(Content.list_participants(), fn p -> p.id in linked_participant_ids end)
+          available_participants = available_participants_excluding(linked_relationships)
 
           {:noreply,
            socket
            |> assign(:linked_relationships, linked_relationships)
            |> assign(:available_participants, available_participants)
-           |> put_flash(:info, "Relationship added")}
+           |> notify_flash(:info, "Relationship added")}
 
         {:error, reason} ->
-          {:noreply, put_flash(socket, :error, "Could not add relationship: #{inspect(reason)}")}
+          {:noreply,
+           notify_flash(socket, :error, "Could not add relationship: #{inspect(reason)}")}
       end
     else
-      {:noreply, put_flash(socket, :error, "Save the film first")}
+      {:noreply, notify_flash(socket, :error, "Save the film first")}
     end
   end
 
@@ -740,16 +747,13 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
     {:ok, _} = Content.delete_relationship(rel)
     film = socket.assigns.film
     linked_relationships = Content.Film.list_relationships(film)
-    linked_participant_ids = Enum.map(linked_relationships, & &1.object_id)
-
-    available_participants =
-      Enum.reject(Content.list_participants(), fn p -> p.id in linked_participant_ids end)
+    available_participants = available_participants_excluding(linked_relationships)
 
     {:noreply,
      socket
      |> assign(:linked_relationships, linked_relationships)
      |> assign(:available_participants, available_participants)
-     |> put_flash(:info, "Relationship removed")}
+     |> notify_flash(:info, "Relationship removed")}
   end
 
   def handle_event("save", params, socket) do
@@ -778,15 +782,15 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
         if save_and_more do
           {:noreply,
            socket
-           |> put_flash(:info, "Film created — add another")
+           |> notify_flash(:info, "Film created — add another")
            |> push_patch(to: "/admin/films/new?event_id=#{event_id || ""}")}
         else
           {:noreply,
-           socket |> put_flash(:info, "Film created") |> push_patch(to: socket.assigns.patch)}
+           socket |> notify_flash(:info, "Film created") |> push_patch(to: socket.assigns.patch)}
         end
 
       {:error, %Ecto.Changeset{}} ->
-        {:noreply, put_flash(socket, :error, "Could not create film")}
+        {:noreply, notify_flash(socket, :error, "Could not create film")}
     end
   end
 
@@ -801,15 +805,15 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
         if save_and_more do
           {:noreply,
            socket
-           |> put_flash(:info, "Film updated — add another")
+           |> notify_flash(:info, "Film updated — add another")
            |> push_patch(to: "/admin/films/new?event_id=#{event_id || ""}")}
         else
           {:noreply,
-           socket |> put_flash(:info, "Film updated") |> push_patch(to: socket.assigns.patch)}
+           socket |> notify_flash(:info, "Film updated") |> push_patch(to: socket.assigns.patch)}
         end
 
       {:error, %Ecto.Changeset{}} ->
-        {:noreply, put_flash(socket, :error, "Could not update film")}
+        {:noreply, notify_flash(socket, :error, "Could not update film")}
     end
   end
 
@@ -981,4 +985,9 @@ defmodule MykonosBiennaleWeb.Admin.FilmLive.FormComponent do
   end
 
   defp field(_, _), do: nil
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
+  end
 end

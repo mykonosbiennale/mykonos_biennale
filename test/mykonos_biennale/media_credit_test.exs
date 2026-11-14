@@ -1,8 +1,9 @@
 defmodule MykonosBiennale.MediaCreditTest do
   use MykonosBiennale.DataCase, async: true
 
-  alias MykonosBiennale.{Content, MediaCredit}
+  alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.MediaCredit
 
   defp participant(name) do
     {:ok, p} = Content.create_participant(%{name: name, first_name: "", last_name: name})

@@ -1,18 +1,20 @@
 defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
   use MykonosBiennaleWeb, :live_view
 
+  alias Ecto.Changeset
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Entity
   alias MykonosBiennale.Repo
-  alias Ecto.Changeset
 
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennaleWeb.Admin.ParticipantLive.EditHTML
   alias MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent
   alias MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent.ParticipantForm
 
   @social_platforms FormComponent.social_platforms()
 
   @impl true
-  def render(assigns), do: MykonosBiennaleWeb.Admin.ParticipantLive.EditHTML.render(assigns)
+  def render(assigns), do: EditHTML.render(assigns)
 
   @impl true
   def mount(_params, _session, socket) do
@@ -151,7 +153,9 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
 
   # ── Linked artworks ──
 
-  def handle_event("search_artwork_to_link", %{"search" => search}, socket) do
+  def handle_event("search_artwork_to_link", params, socket) do
+    search = params["search"] || params["value"] || ""
+
     participant = socket.assigns.participant
 
     results =
@@ -214,7 +218,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
     # target_name is like "rel_type_2279"
     "rel_type_" <> rel_id = target_name
     type_id_str = params[target_name]
-    rel = Repo.get(MykonosBiennale.Content.Relationship, rel_id)
+    rel = Repo.get(Relationship, rel_id)
 
     if rel do
       type_id = String.to_integer(type_id_str)
@@ -233,7 +237,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
   end
 
   def handle_event("update_rel_role", %{"rel-id" => rel_id, "value" => role}, socket) do
-    rel = Repo.get(MykonosBiennale.Content.Relationship, rel_id)
+    rel = Repo.get(Relationship, rel_id)
 
     if rel do
       fields = if String.trim(role) == "", do: %{}, else: %{"roles" => String.trim(role)}
@@ -252,7 +256,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
   end
 
   def handle_event("delete_relationship", %{"rel-id" => rel_id}, socket) do
-    rel = Repo.get(MykonosBiennale.Content.Relationship, rel_id)
+    rel = Repo.get(Relationship, rel_id)
 
     if rel do
       {:ok, _} = Content.delete_relationship(rel)
@@ -322,48 +326,52 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
         {:noreply, put_flash(socket, :error, "Select an entity")}
 
       true ->
-        {subject_id, object_id} =
-          case direction do
-            "subject" -> {participant.id, selected.id}
-            _ -> {selected.id, participant.id}
-          end
+        insert_relationship(socket, participant, type_id, direction, selected, fields_str)
+    end
+  end
 
-        fields =
-          case fields_str do
-            nil -> %{}
-            "" -> %{}
-            str -> %{"roles" => String.trim(str)}
-          end
+  defp insert_relationship(socket, participant, type_id, direction, selected, fields_str) do
+    {subject_id, object_id} =
+      case direction do
+        "subject" -> {participant.id, selected.id}
+        _ -> {selected.id, participant.id}
+      end
 
-        rt = Repo.get!(MykonosBiennale.Content.RelationshipType, String.to_integer(type_id))
+    fields =
+      case fields_str do
+        nil -> %{}
+        "" -> %{}
+        str -> %{"roles" => String.trim(str)}
+      end
 
-        rel_attrs = %{
-          relationship_type_id: rt.id,
-          subject_id: subject_id,
-          object_id: object_id,
-          fields: fields
-        }
+    rt = Repo.get!(MykonosBiennale.Content.RelationshipType, String.to_integer(type_id))
 
-        case MykonosBiennale.Content.Relationship.changeset(
-               %MykonosBiennale.Content.Relationship{},
-               rel_attrs
-             )
-             |> Repo.insert() do
-          {:ok, _} ->
-            {:noreply,
-             socket
-             |> assign(:relationships, list_relationships(participant))
-             |> assign(:show_add_relationship, false)
-             |> assign(:new_rel_type, nil)
-             |> assign(:new_rel_selected_entity, nil)
-             |> assign(:new_rel_search, "")
-             |> assign(:new_rel_results, [])
-             |> assign(:new_rel_fields, "")
-             |> put_flash(:info, "Relationship created")}
+    rel_attrs = %{
+      relationship_type_id: rt.id,
+      subject_id: subject_id,
+      object_id: object_id,
+      fields: fields
+    }
 
-          {:error, _} ->
-            {:noreply, put_flash(socket, :error, "Failed to create relationship")}
-        end
+    case Relationship.changeset(
+           %Relationship{},
+           rel_attrs
+         )
+         |> Repo.insert() do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> assign(:relationships, list_relationships(participant))
+         |> assign(:show_add_relationship, false)
+         |> assign(:new_rel_type, nil)
+         |> assign(:new_rel_selected_entity, nil)
+         |> assign(:new_rel_search, "")
+         |> assign(:new_rel_results, [])
+         |> assign(:new_rel_fields, "")
+         |> put_flash(:info, "Relationship created")}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to create relationship")}
     end
   end
 
@@ -486,7 +494,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.Edit do
     import Ecto.Query
 
     Repo.all(
-      from r in MykonosBiennale.Content.Relationship,
+      from r in Relationship,
         where: r.subject_id == ^participant.id or r.object_id == ^participant.id,
         preload: [:subject, :object, :relationship_type]
     )

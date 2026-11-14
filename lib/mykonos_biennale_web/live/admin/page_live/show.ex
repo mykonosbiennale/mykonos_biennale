@@ -44,7 +44,8 @@ defmodule MykonosBiennaleWeb.Admin.PageLive.Show do
 
   @impl true
   def handle_info({MykonosBiennaleWeb.Admin.PageLive.FormComponent, {:saved, page}}, socket) do
-    {:noreply, assign(socket, :page, page)}
+    # Reload so associations the template reads (e.g. sections) are preloaded.
+    {:noreply, assign(socket, :page, Site.get_page!(page.id))}
   end
 
   @impl true

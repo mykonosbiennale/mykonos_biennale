@@ -49,6 +49,12 @@ jobs:
       - name: Compile with warnings as errors
         run: mix compile --warnings-as-errors
 
+      - name: Credo (strict)
+        run: mix credo --strict
+
+      - name: Sobelow (security)
+        run: mix sobelow --config --private --exit
+
       - name: Create database
         run: mix ecto.create
 

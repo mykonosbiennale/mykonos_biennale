@@ -23,8 +23,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
   def handle_params(params, _url, socket) do
     page = String.to_integer(params["page"] || "1")
     search = socket.assigns.search
-    sort_by = (params["sort_by"] || "id") |> String.to_atom()
-    sort_dir = (params["sort_dir"] || "desc") |> String.to_atom()
+    sort_by = MykonosBiennaleWeb.SafeParams.sort_key(params["sort_by"], :id)
+    sort_dir = MykonosBiennaleWeb.SafeParams.sort_dir(params["sort_dir"], :desc)
 
     {events, total_count} =
       Content.list_events_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
@@ -71,6 +71,13 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Index do
 
   defp apply_action(socket, :index, _params) do
     socket |> assign(:page_title, "Manage Events") |> assign(:event, nil)
+  end
+
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.EventLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
   end
 
   @impl true

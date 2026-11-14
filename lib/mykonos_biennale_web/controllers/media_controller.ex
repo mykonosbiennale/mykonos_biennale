@@ -12,6 +12,7 @@ defmodule MykonosBiennaleWeb.MediaController do
   }
 
   @source_exts ~w(.jpg .jpeg .png .gif .webp .bmp .tiff .tif)
+  @slug_exts ~w(.webp .avif .jpg .jpeg)
 
   @doc """
   Handles slug-based URLs: /media/:filename
@@ -20,54 +21,45 @@ defmodule MykonosBiennaleWeb.MediaController do
   """
   def show_slug(conn, %{"filename" => filename}) do
     case MykonosBiennale.MediaDir.parse_filename(filename) do
-      {:ok, %{slug: slug, size: size, ext: ".webp"}} ->
-        case Content.get_media_by_slug(slug) do
-          nil ->
-            conn
-            |> put_status(404)
-            |> text("Not found")
-
-          media ->
-            serve_slug_thumbnail(conn, media, size, "image/webp")
-        end
-
-      {:ok, %{slug: slug, size: size, ext: ".avif"}} ->
-        case Content.get_media_by_slug(slug) do
-          nil ->
-            conn
-            |> put_status(404)
-            |> text("Not found")
-
-          media ->
-            serve_avif(conn, media, size)
-        end
-
-      {:ok, %{slug: slug, size: size, ext: ".jpg"}} ->
-        case Content.get_media_by_slug(slug) do
-          nil ->
-            conn
-            |> put_status(404)
-            |> text("Not found")
-
-          media ->
-            serve_slug_jpeg(conn, media, size)
-        end
-
-      {:ok, %{slug: slug, size: size, ext: ".jpeg"}} ->
-        case Content.get_media_by_slug(slug) do
-          nil ->
-            conn
-            |> put_status(404)
-            |> text("Not found")
-
-          media ->
-            serve_slug_jpeg(conn, media, size)
-        end
+      {:ok, %{slug: slug, size: size, ext: ext}} when ext in @slug_exts ->
+        serve_slug_media(conn, slug, size, ext)
 
       _ ->
-        conn
-        |> put_status(404)
-        |> text("Not found")
+        text_not_found(conn)
+    end
+  end
+
+  defp serve_slug_media(conn, slug, size, ext) do
+    case Content.get_media_by_slug(slug) do
+      nil -> text_not_found(conn)
+      media -> serve_slug_by_ext(conn, media, size, ext)
+    end
+  end
+
+  defp serve_slug_by_ext(conn, media, size, ".webp"),
+    do: serve_slug_thumbnail(conn, media, size, "image/webp")
+
+  defp serve_slug_by_ext(conn, media, size, ".avif"), do: serve_avif(conn, media, size)
+  defp serve_slug_by_ext(conn, media, size, _jpeg), do: serve_slug_jpeg(conn, media, size)
+
+  defp text_not_found(conn) do
+    conn
+    |> put_status(404)
+    |> text("Not found")
+  end
+
+  # Serves the original source file, or 404 if it is missing on disk.
+  defp serve_original(conn, media, original_path) do
+    if File.exists?(original_path) do
+      ext = Path.extname(media.source_path) |> String.downcase()
+      mime = mime_type(ext)
+
+      conn
+      |> put_resp_header("content-type", mime)
+      |> put_resp_header("cache-control", "public, max-age=31536000, immutable")
+      |> send_file(200, original_path)
+    else
+      text_not_found(conn)
     end
   end
 
@@ -76,6 +68,20 @@ defmodule MykonosBiennaleWeb.MediaController do
   e.g. /media/800x600/UUID.webp
   """
   def show(conn, %{"dimensions" => dimensions, "filename" => filename}) do
+    if plain_filename?(filename) do
+      serve_legacy(conn, dimensions, filename)
+    else
+      text_not_found(conn)
+    end
+  end
+
+  # A bare file name only: no directories, no "..", so nothing outside the
+  # uploads directory can be addressed.
+  defp plain_filename?(filename) do
+    Path.basename(filename) == filename and filename not in ["", ".", ".."]
+  end
+
+  defp serve_legacy(conn, dimensions, filename) do
     {width, height} = parse_dimensions(dimensions)
     basename = Path.rootname(filename)
 
@@ -122,19 +128,7 @@ defmodule MykonosBiennaleWeb.MediaController do
         |> send_file(200, thumb_path)
 
       {:original, original_path} ->
-        if File.exists?(original_path) do
-          ext = Path.extname(media.source_path) |> String.downcase()
-          mime = mime_type(ext)
-
-          conn
-          |> put_resp_header("content-type", mime)
-          |> put_resp_header("cache-control", "public, max-age=31536000, immutable")
-          |> send_file(200, original_path)
-        else
-          conn
-          |> put_status(404)
-          |> text("Not found")
-        end
+        serve_original(conn, media, original_path)
     end
   end
 
@@ -142,50 +136,36 @@ defmodule MykonosBiennaleWeb.MediaController do
     avif_path = MykonosBiennale.MediaDir.path(media.slug, size, ".avif")
 
     if File.exists?(avif_path) do
-      conn
-      |> put_resp_header("content-type", "image/avif")
-      |> put_resp_header("cache-control", "public, max-age=31536000, immutable")
-      |> send_file(200, avif_path)
+      serve_avif_file(conn, avif_path)
     else
-      case Thumbnail.ensure_slug_thumbnail(media.slug, media.source_path, size) do
-        {:ok, webp_path} ->
-          case generate_avif_from_webp(webp_path, avif_path) do
-            :ok ->
-              conn
-              |> put_resp_header("content-type", "image/avif")
-              |> put_resp_header("cache-control", "public, max-age=31536000, immutable")
-              |> send_file(200, avif_path)
+      serve_generated_avif(conn, media, size, avif_path)
+    end
+  end
 
-            :error ->
-              serve_slug_thumbnail(conn, media, size, "image/webp")
-          end
+  defp serve_avif_file(conn, avif_path) do
+    conn
+    |> put_resp_header("content-type", "image/avif")
+    |> put_resp_header("cache-control", "public, max-age=31536000, immutable")
+    |> send_file(200, avif_path)
+  end
 
-        {:original, original_path} ->
-          if File.exists?(original_path) do
-            ext = Path.extname(media.source_path) |> String.downcase()
-            mime = mime_type(ext)
+  defp serve_generated_avif(conn, media, size, avif_path) do
+    case Thumbnail.ensure_slug_thumbnail(media.slug, media.source_path, size) do
+      {:ok, webp_path} ->
+        case generate_avif_from_webp(webp_path, avif_path) do
+          :ok -> serve_avif_file(conn, avif_path)
+          :error -> serve_slug_thumbnail(conn, media, size, "image/webp")
+        end
 
-            conn
-            |> put_resp_header("content-type", mime)
-            |> put_resp_header("cache-control", "public, max-age=31536000, immutable")
-            |> send_file(200, original_path)
-          else
-            conn
-            |> put_status(404)
-            |> text("Not found")
-          end
-      end
+      {:original, original_path} ->
+        serve_original(conn, media, original_path)
     end
   end
 
   defp generate_avif_from_webp(webp_path, avif_path) do
     media_dir = Path.expand(MykonosBiennale.MediaDir.media_dir())
 
-    if not String.starts_with?(Path.expand(avif_path), media_dir) do
-      require Logger
-      Logger.warning("AVIF path outside media dir rejected: #{avif_path}")
-      :error
-    else
+    if String.starts_with?(Path.expand(avif_path), media_dir) do
       cmd = System.find_executable("magick") || "convert"
 
       args = [webp_path, "-quality", "65", "-strip", avif_path]
@@ -200,6 +180,10 @@ defmodule MykonosBiennaleWeb.MediaController do
           File.rm(avif_path)
           :error
       end
+    else
+      require Logger
+      Logger.warning("AVIF path outside media dir rejected: #{avif_path}")
+      :error
     end
   end
 
@@ -212,19 +196,7 @@ defmodule MykonosBiennaleWeb.MediaController do
         |> send_file(200, jpeg_path)
 
       {:original, original_path} ->
-        if File.exists?(original_path) do
-          ext = Path.extname(media.source_path) |> String.downcase()
-          mime = mime_type(ext)
-
-          conn
-          |> put_resp_header("content-type", mime)
-          |> put_resp_header("cache-control", "public, max-age=31536000, immutable")
-          |> send_file(200, original_path)
-        else
-          conn
-          |> put_status(404)
-          |> text("Not found")
-        end
+        serve_original(conn, media, original_path)
     end
   end
 

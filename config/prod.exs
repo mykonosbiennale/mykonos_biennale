@@ -8,7 +8,10 @@ config :mykonos_biennale, :media_dir, "/data/media"
 # which you should run after static files are built and
 # before starting your production server.
 config :mykonos_biennale, MykonosBiennaleWeb.Endpoint,
-  cache_static_manifest: "priv/static/cache_manifest.json"
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  # TLS is terminated by the hosting proxy, which sets X-Forwarded-Proto.
+  # Redirect plain HTTP to HTTPS and send HSTS.
+  force_ssl: [hsts: true, rewrite_on: [:x_forwarded_proto]]
 
 # Configures Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Req

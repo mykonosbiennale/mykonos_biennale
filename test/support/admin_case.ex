@@ -17,9 +17,9 @@ defmodule MykonosBiennaleWeb.AdminCase do
       import Phoenix.LiveViewTest
       import MykonosBiennaleWeb.AdminCase
 
-      alias MykonosBiennale.Repo
       alias MykonosBiennale.Content
       alias MykonosBiennale.ContentFixtures
+      alias MykonosBiennale.Repo
       alias MykonosBiennale.SiteFixtures
     end
   end

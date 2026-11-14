@@ -8,10 +8,15 @@ defmodule MykonosBiennale.Content do
   """
 
   import Ecto.Query, warn: false
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.EntityMedia
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType, Media, EntityMedia}
-  alias MykonosBiennale.Workers.SearchReindex
   alias MykonosBiennale.Thumbnail
+  alias MykonosBiennale.Workers.MediaProcess
+  alias MykonosBiennale.Workers.SearchReindex
 
   ## Delegates - Biennale
 
@@ -280,7 +285,7 @@ defmodule MykonosBiennale.Content do
   defp tap_ok(other, _fun), do: other
 
   defp enqueue_media_process(%Media{source_type: "upload"} = media) do
-    MykonosBiennale.Workers.MediaProcess.enqueue_all(media.id)
+    MediaProcess.enqueue_all(media.id)
   end
 
   defp enqueue_media_process(_media), do: :ok
@@ -331,6 +336,27 @@ defmodule MykonosBiennale.Content do
   Pass `slug` and `label` (or just `slug` if the type already exists).
   """
   def create_relationship(attrs \\ %{}) do
+    cond do
+      attrs[:relationship_type_id] || attrs["relationship_type_id"] ->
+        insert_relationship(attrs)
+
+      attrs[:slug] || attrs["slug"] ->
+        create_relationship_by_slug(attrs)
+
+      # No type and no slug: let the changeset report the missing type.
+      true ->
+        insert_relationship(attrs)
+    end
+  end
+
+  defp insert_relationship(attrs) do
+    %Relationship{}
+    |> Relationship.changeset(attrs)
+    |> Repo.insert()
+    |> tap_ok(&enqueue_relationship_endpoints/1)
+  end
+
+  defp create_relationship_by_slug(attrs) do
     slug = attrs[:slug] || attrs["slug"]
     rest = Map.drop(attrs, [:slug, "slug"])
 
@@ -344,12 +370,7 @@ defmodule MykonosBiennale.Content do
 
     rt = ensure_relationship_type!(slug, label)
 
-    attrs = Map.put(rest, :relationship_type_id, rt.id)
-
-    %Relationship{}
-    |> Relationship.changeset(attrs)
-    |> Repo.insert()
-    |> tap_ok(&enqueue_relationship_endpoints/1)
+    insert_relationship(Map.put(rest, :relationship_type_id, rt.id))
   end
 
   @doc """
@@ -426,7 +447,7 @@ defmodule MykonosBiennale.Content do
         from(m in base_query,
           where:
             (not is_nil(m.search_index) and like(m.search_index, ^pattern)) or
-              like(m.caption, ^pattern)
+              ilike(m.caption, ^pattern)
         )
       else
         base_query
@@ -470,7 +491,7 @@ defmodule MykonosBiennale.Content do
         from(e in base_query,
           where:
             (not is_nil(e.search_index) and like(e.search_index, ^pattern)) or
-              like(e.identity, ^pattern)
+              ilike(e.identity, ^pattern)
         )
       else
         base_query
@@ -504,7 +525,7 @@ defmodule MykonosBiennale.Content do
         from(e in base_query,
           where:
             (not is_nil(e.search_index) and like(e.search_index, ^pattern)) or
-              like(e.identity, ^pattern)
+              ilike(e.identity, ^pattern)
         )
       else
         base_query
@@ -539,7 +560,7 @@ defmodule MykonosBiennale.Content do
         from(e in base_query,
           where:
             (not is_nil(e.search_index) and like(e.search_index, ^pattern)) or
-              like(e.identity, ^pattern)
+              ilike(e.identity, ^pattern)
         )
       else
         base_query
@@ -572,7 +593,7 @@ defmodule MykonosBiennale.Content do
         from(e in base_query,
           where:
             (not is_nil(e.search_index) and like(e.search_index, ^pattern)) or
-              like(e.identity, ^pattern)
+              ilike(e.identity, ^pattern)
         )
       else
         base_query
@@ -724,8 +745,8 @@ defmodule MykonosBiennale.Content do
             where:
               like(s.search_index, ^pattern) or
                 like(o.search_index, ^pattern) or
-                like(rt.slug, ^pattern) or
-                like(rt.label, ^pattern),
+                ilike(rt.slug, ^pattern) or
+                ilike(rt.label, ^pattern),
             preload: [:subject, :object, :relationship_type],
             order_by: ^order
           )
@@ -741,8 +762,8 @@ defmodule MykonosBiennale.Content do
             where:
               like(s.search_index, ^pattern) or
                 like(o.search_index, ^pattern) or
-                like(rt.slug, ^pattern) or
-                like(rt.label, ^pattern),
+                ilike(rt.slug, ^pattern) or
+                ilike(rt.label, ^pattern),
             select: count(r.id)
           )
 
@@ -857,7 +878,7 @@ defmodule MykonosBiennale.Content do
     case result do
       {:ok, updated} ->
         if updated.slug && updated.source_type == "upload" do
-          MykonosBiennale.Workers.MediaProcess.enqueue_all(updated.id)
+          MediaProcess.enqueue_all(updated.id)
         end
 
         SearchReindex.enqueue_media(updated.id)

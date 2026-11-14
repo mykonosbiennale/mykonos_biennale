@@ -1,9 +1,9 @@
 defmodule MykonosBiennaleWeb.Admin.SectionLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
-  alias MykonosBiennale.Site.Section
-  alias MykonosBiennale.Site
   alias Ecto.Changeset
+  alias MykonosBiennale.Site
+  alias MykonosBiennale.Site.Section
 
   @impl true
   def render(assigns) do
@@ -128,7 +128,7 @@ defmodule MykonosBiennaleWeb.Admin.SectionLive.FormComponent do
         {:noreply, assign(socket, form: to_form(changeset, as: :section))}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Invalid JSON in metadata")}
+        {:noreply, notify_flash(socket, :error, "Invalid JSON in metadata")}
     end
   end
 
@@ -144,13 +144,13 @@ defmodule MykonosBiennaleWeb.Admin.SectionLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Section updated successfully")
+         |> notify_flash(:info, "Section updated successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply,
          socket
-         |> put_flash(:error, "Could not update section")
+         |> notify_flash(:error, "Could not update section")
          |> assign(form: to_form(changeset, as: :section))}
     end
   end
@@ -162,13 +162,13 @@ defmodule MykonosBiennaleWeb.Admin.SectionLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Section created successfully")
+         |> notify_flash(:info, "Section created successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply,
          socket
-         |> put_flash(:error, "Could not create section")
+         |> notify_flash(:error, "Could not create section")
          |> assign(form: to_form(changeset, as: :section))}
     end
   end
@@ -195,4 +195,9 @@ defmodule MykonosBiennaleWeb.Admin.SectionLive.FormComponent do
   end
 
   defp slugify(_), do: "section"
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
+  end
 end

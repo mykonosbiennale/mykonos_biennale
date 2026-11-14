@@ -1,10 +1,10 @@
 defmodule MykonosBiennaleWeb.UserAuthTest do
   use MykonosBiennaleWeb.ConnCase
 
-  alias Phoenix.LiveView
   alias MykonosBiennale.Accounts
   alias MykonosBiennale.Accounts.Scope
   alias MykonosBiennaleWeb.UserAuth
+  alias Phoenix.LiveView
 
   import MykonosBiennale.AccountsFixtures
 

@@ -3,8 +3,10 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
   alias MykonosBiennale.Content
   alias MykonosBiennale.Thumbnail
 
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
 
   @film_types ["Short Film", "Video", "Dance", "Animation", "Documentary"]
 
@@ -172,10 +174,7 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
         ""
       end
 
-    types_list =
-      @content_types
-      |> Enum.map(&"'#{&1}'")
-      |> Enum.join(",")
+    types_list = Enum.map_join(@content_types, ",", &"'#{&1}'")
 
     sql = """
     SELECT e.id, e.identity, e.type, e.fields, e.updated_at, e.inserted_at,

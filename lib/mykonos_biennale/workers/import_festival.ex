@@ -16,8 +16,8 @@ defmodule MykonosBiennale.Workers.ImportFestival do
   import Ecto.Query, warn: false
 
   alias MykonosBiennale.Content
-  alias MykonosBiennale.Repo
   alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Repo
 
   @records_path "exports/festival/records.json"
 
@@ -72,48 +72,7 @@ defmodule MykonosBiennale.Workers.ImportFestival do
     festivals = records_by_model("festival.festival")
     IO.puts("Stage 1: Importing #{length(festivals)} festivals as biennales...")
 
-    results =
-      for festival <- festivals do
-        pk = festival["pk"]
-        fields = festival["fields"]
-
-        existing = find_existing_by_type("festival.festival", pk, "biennale")
-
-        if existing do
-          IO.puts("  Skipping festival PK #{pk} (already imported as biennale ID #{existing.id})")
-          {:skipped, existing}
-        else
-          year = fields["year"]
-          title = fields["title"]
-
-          attrs = %{
-            year: year,
-            theme: title,
-            statement: clean_string(fields["statement"]),
-            visible: true
-          }
-
-          case Content.create_biennale(attrs) do
-            {:ok, biennale} ->
-              updated_fields =
-                biennale.fields
-                |> Map.put("original_record", festival)
-                |> Map.put("import_pk", to_string(pk))
-                |> Map.put("import_model", "festival.festival")
-
-              biennale
-              |> Ecto.Changeset.change(fields: updated_fields)
-              |> Repo.update!()
-
-              IO.puts("  Created biennale: #{year} - #{title} (ID #{biennale.id})")
-              {:created, biennale}
-
-            {:error, changeset} ->
-              IO.puts("  ERROR creating biennale PK #{pk}: #{inspect(changeset.errors)}")
-              {:error, changeset}
-          end
-        end
-      end
+    results = for festival <- festivals, do: import_festival(festival)
 
     created = Enum.count(results, &match?({:created, _}, &1))
     skipped = Enum.count(results, &match?({:skipped, _}, &1))
@@ -122,6 +81,52 @@ defmodule MykonosBiennale.Workers.ImportFestival do
     IO.puts("\nStage 1 complete: #{created} created, #{skipped} skipped, #{errors} errors")
 
     :ok
+  end
+
+  defp import_festival(festival) do
+    pk = festival["pk"]
+    existing = find_existing_by_type("festival.festival", pk, "biennale")
+
+    if existing do
+      IO.puts("  Skipping festival PK #{pk} (already imported as biennale ID #{existing.id})")
+      {:skipped, existing}
+    else
+      create_biennale(festival)
+    end
+  end
+
+  defp create_biennale(festival) do
+    pk = festival["pk"]
+    fields = festival["fields"]
+    year = fields["year"]
+    title = fields["title"]
+
+    attrs = %{
+      year: year,
+      theme: title,
+      statement: clean_string(fields["statement"]),
+      visible: true
+    }
+
+    case Content.create_biennale(attrs) do
+      {:ok, biennale} ->
+        updated_fields =
+          biennale.fields
+          |> Map.put("original_record", festival)
+          |> Map.put("import_pk", to_string(pk))
+          |> Map.put("import_model", "festival.festival")
+
+        biennale
+        |> Ecto.Changeset.change(fields: updated_fields)
+        |> Repo.update!()
+
+        IO.puts("  Created biennale: #{year} - #{title} (ID #{biennale.id})")
+        {:created, biennale}
+
+      {:error, changeset} ->
+        IO.puts("  ERROR creating biennale PK #{pk}: #{inspect(changeset.errors)}")
+        {:error, changeset}
+    end
   end
 
   @slug_normalizations %{
@@ -152,28 +157,8 @@ defmodule MykonosBiennale.Workers.ImportFestival do
     projects = Enum.filter(records, &(&1["model"] == "festival.project"))
     projectxs = Enum.filter(records, &(&1["model"] == "festival.projectx"))
 
-    px_by_slug =
-      projectxs
-      |> Enum.reduce(%{}, fn px, acc ->
-        slug = normalize_slug(px["fields"]["slug"])
-
-        existing = Map.get(acc, slug)
-
-        if existing == nil or
-             (existing["fields"]["statement"] in [nil, "", " "] and
-                px["fields"]["statement"] not in [nil, "", " "]) do
-          Map.put(acc, slug, px)
-        else
-          acc
-        end
-      end)
-
-    proj_by_slug =
-      projects
-      |> Enum.reduce(%{}, fn p, acc ->
-        slug = normalize_slug(p["fields"]["slug"])
-        if Map.has_key?(acc, slug), do: acc, else: Map.put(acc, slug, p)
-      end)
+    px_by_slug = Enum.reduce(projectxs, %{}, &put_preferred_projectx/2)
+    proj_by_slug = Enum.reduce(projects, %{}, &put_first_project/2)
 
     all_slugs =
       MapSet.union(MapSet.new(Map.keys(px_by_slug)), MapSet.new(Map.keys(proj_by_slug)))
@@ -184,52 +169,7 @@ defmodule MykonosBiennale.Workers.ImportFestival do
 
     results =
       for slug <- all_slugs do
-        px = Map.get(px_by_slug, slug)
-        proj = Map.get(proj_by_slug, slug)
-
-        existing = find_existing_by_slug(slug, "project")
-
-        if existing do
-          IO.puts("  Skipping #{slug} (already imported as project ID #{existing.id})")
-          {:skipped, existing}
-        else
-          title = project_title(px, proj, slug)
-          statement = clean_string(px && px["fields"]["statement"])
-
-          original_records = %{
-            "projectx" => px,
-            "project" => proj
-          }
-
-          primary_pk = if px, do: px["pk"], else: proj["pk"]
-
-          attrs = %{
-            title: title,
-            statement: statement,
-            visible: true
-          }
-
-          case Content.create_project(attrs) do
-            {:ok, project} ->
-              updated_fields =
-                project.fields
-                |> Map.put("original_record", original_records)
-                |> Map.put("import_pk", to_string(primary_pk))
-                |> Map.put("import_model", "festival.projectx")
-                |> Map.put("import_slug", slug)
-
-              project
-              |> Ecto.Changeset.change(fields: updated_fields)
-              |> Repo.update!()
-
-              IO.puts("  Created project: #{title} (slug: #{slug}, ID #{project.id})")
-              {:created, project}
-
-            {:error, changeset} ->
-              IO.puts("  ERROR creating project #{slug}: #{inspect(changeset.errors)}")
-              {:error, changeset}
-          end
-        end
+        import_project(slug, Map.get(px_by_slug, slug), Map.get(proj_by_slug, slug))
       end
 
     created = Enum.count(results, &match?({:created, _}, &1))
@@ -239,6 +179,74 @@ defmodule MykonosBiennale.Workers.ImportFestival do
     IO.puts("\nStage 2 complete: #{created} created, #{skipped} skipped, #{errors} errors")
 
     :ok
+  end
+
+  defp put_preferred_projectx(px, acc) do
+    slug = normalize_slug(px["fields"]["slug"])
+    existing = Map.get(acc, slug)
+
+    if existing == nil or
+         (existing["fields"]["statement"] in [nil, "", " "] and
+            px["fields"]["statement"] not in [nil, "", " "]) do
+      Map.put(acc, slug, px)
+    else
+      acc
+    end
+  end
+
+  defp put_first_project(p, acc) do
+    slug = normalize_slug(p["fields"]["slug"])
+    if Map.has_key?(acc, slug), do: acc, else: Map.put(acc, slug, p)
+  end
+
+  defp import_project(slug, px, proj) do
+    existing = find_existing_by_slug(slug, "project")
+
+    if existing do
+      IO.puts("  Skipping #{slug} (already imported as project ID #{existing.id})")
+      {:skipped, existing}
+    else
+      create_project(slug, px, proj)
+    end
+  end
+
+  defp create_project(slug, px, proj) do
+    title = project_title(px, proj, slug)
+    statement = clean_string(px && px["fields"]["statement"])
+
+    original_records = %{
+      "projectx" => px,
+      "project" => proj
+    }
+
+    primary_pk = if px, do: px["pk"], else: proj["pk"]
+
+    attrs = %{
+      title: title,
+      statement: statement,
+      visible: true
+    }
+
+    case Content.create_project(attrs) do
+      {:ok, project} ->
+        updated_fields =
+          project.fields
+          |> Map.put("original_record", original_records)
+          |> Map.put("import_pk", to_string(primary_pk))
+          |> Map.put("import_model", "festival.projectx")
+          |> Map.put("import_slug", slug)
+
+        project
+        |> Ecto.Changeset.change(fields: updated_fields)
+        |> Repo.update!()
+
+        IO.puts("  Created project: #{title} (slug: #{slug}, ID #{project.id})")
+        {:created, project}
+
+      {:error, changeset} ->
+        IO.puts("  ERROR creating project #{slug}: #{inspect(changeset.errors)}")
+        {:error, changeset}
+    end
   end
 
   defp project_title(px, proj, slug) do
@@ -328,39 +336,13 @@ defmodule MykonosBiennale.Workers.ImportFestival do
 
     events_from_projects =
       projects
-      |> Enum.map(fn proj ->
-        fest_pk = get_in(proj["foreign_keys"], ["festival", "pk"])
-        proj_slug = normalize_slug(proj["fields"]["slug"])
-
-        biennale_id = Map.get(fest_to_biennale, fest_pk)
-        project_id = Map.get(slug_to_project, proj_slug)
-
-        {biennale_id, project_id, proj}
-      end)
-      |> Enum.filter(fn {biennale_id, project_id, _} ->
-        biennale_id != nil and project_id != nil
-      end)
+      |> Enum.map(&project_event(&1, fest_to_biennale, slug_to_project))
+      |> Enum.filter(&valid_event?/1)
 
     events_from_seasons =
       projectseasons
-      |> Enum.map(fn ps ->
-        fest_pk = get_in(ps["foreign_keys"], ["festival", "pk"])
-        px_pk = get_in(ps["foreign_keys"], ["project", "pk"])
-
-        biennale_id = Map.get(fest_to_biennale, fest_pk)
-
-        projectx_records =
-          Enum.filter(records, &(&1["model"] == "festival.projectx" and &1["pk"] == px_pk))
-
-        px = List.first(projectx_records)
-        proj_slug = if px, do: normalize_slug(px["fields"]["slug"]), else: nil
-        project_id = if proj_slug, do: Map.get(slug_to_project, proj_slug), else: nil
-
-        {biennale_id, project_id, ps}
-      end)
-      |> Enum.filter(fn {biennale_id, project_id, _} ->
-        biennale_id != nil and project_id != nil
-      end)
+      |> Enum.map(&season_event(&1, records, fest_to_biennale, slug_to_project))
+      |> Enum.filter(&valid_event?/1)
 
     all_events = events_from_projects ++ events_from_seasons
 
@@ -374,73 +356,7 @@ defmodule MykonosBiennale.Workers.ImportFestival do
 
     results =
       for {biennale_id, project_id, source_record} <- deduped do
-        proj_slug =
-          case source_record do
-            %{"fields" => %{"slug" => slug}} ->
-              normalize_slug(slug)
-
-            %{"foreign_keys" => %{"project" => %{"pk" => px_pk}}} ->
-              px =
-                List.first(
-                  Enum.filter(
-                    records,
-                    &(&1["model"] == "festival.projectx" and &1["pk"] == px_pk)
-                  )
-                )
-
-              if px, do: normalize_slug(px["fields"]["slug"]), else: "unknown"
-
-            _ ->
-              "unknown"
-          end
-
-        title =
-          source_record["fields"]["title"] ||
-            proj_slug |> String.replace("-", " ") |> String.capitalize()
-
-        import_key = "#{biennale_id}-#{project_id}"
-
-        existing = find_existing_by_import_key(import_key, "event")
-
-        if existing do
-          IO.puts("  Skipping event #{import_key} (already imported as event ID #{existing.id})")
-
-          {:skipped, existing}
-        else
-          biennale = Content.get_biennale!(biennale_id)
-          year = biennale.fields["year"]
-
-          attrs = %{
-            title: title,
-            type: infer_event_type(proj_slug),
-            date: to_string(year),
-            biennale_id: biennale_id,
-            project_id: project_id,
-            visible: true
-          }
-
-          case Content.create_event(attrs) do
-            {:ok, event} ->
-              updated_fields =
-                event.fields
-                |> Map.put("original_record", source_record)
-                |> Map.put("import_pk", to_string(source_record["pk"]))
-                |> Map.put("import_model", source_record["model"])
-                |> Map.put("import_key", import_key)
-                |> Map.put("import_slug", proj_slug)
-
-              event
-              |> Ecto.Changeset.change(fields: updated_fields)
-              |> Repo.update!()
-
-              IO.puts("  Created event: #{title} (#{year}, #{proj_slug}, ID #{event.id})")
-              {:created, event}
-
-            {:error, changeset} ->
-              IO.puts("  ERROR creating event #{import_key}: #{inspect(changeset.errors)}")
-              {:error, changeset}
-          end
-        end
+        import_event(biennale_id, project_id, source_record, records)
       end
 
     created = Enum.count(results, &match?({:created, _}, &1))
@@ -450,6 +366,108 @@ defmodule MykonosBiennale.Workers.ImportFestival do
     IO.puts("\nStage 3 complete: #{created} created, #{skipped} skipped, #{errors} errors")
 
     :ok
+  end
+
+  defp project_event(proj, fest_to_biennale, slug_to_project) do
+    fest_pk = get_in(proj["foreign_keys"], ["festival", "pk"])
+    proj_slug = normalize_slug(proj["fields"]["slug"])
+
+    biennale_id = Map.get(fest_to_biennale, fest_pk)
+    project_id = Map.get(slug_to_project, proj_slug)
+
+    {biennale_id, project_id, proj}
+  end
+
+  defp season_event(ps, records, fest_to_biennale, slug_to_project) do
+    fest_pk = get_in(ps["foreign_keys"], ["festival", "pk"])
+    px_pk = get_in(ps["foreign_keys"], ["project", "pk"])
+
+    biennale_id = Map.get(fest_to_biennale, fest_pk)
+
+    projectx_records =
+      Enum.filter(records, &(&1["model"] == "festival.projectx" and &1["pk"] == px_pk))
+
+    px = List.first(projectx_records)
+    proj_slug = if px, do: normalize_slug(px["fields"]["slug"]), else: nil
+    project_id = if proj_slug, do: Map.get(slug_to_project, proj_slug), else: nil
+
+    {biennale_id, project_id, ps}
+  end
+
+  defp valid_event?({biennale_id, project_id, _}) do
+    biennale_id != nil and project_id != nil
+  end
+
+  defp import_event(biennale_id, project_id, source_record, records) do
+    proj_slug = event_slug(source_record, records)
+
+    title =
+      source_record["fields"]["title"] ||
+        proj_slug |> String.replace("-", " ") |> String.capitalize()
+
+    import_key = "#{biennale_id}-#{project_id}"
+
+    existing = find_existing_by_import_key(import_key, "event")
+
+    if existing do
+      IO.puts("  Skipping event #{import_key} (already imported as event ID #{existing.id})")
+
+      {:skipped, existing}
+    else
+      create_event(biennale_id, project_id, source_record, title, proj_slug, import_key)
+    end
+  end
+
+  defp event_slug(%{"fields" => %{"slug" => slug}}, _records), do: normalize_slug(slug)
+
+  defp event_slug(%{"foreign_keys" => %{"project" => %{"pk" => px_pk}}}, records) do
+    px =
+      List.first(
+        Enum.filter(
+          records,
+          &(&1["model"] == "festival.projectx" and &1["pk"] == px_pk)
+        )
+      )
+
+    if px, do: normalize_slug(px["fields"]["slug"]), else: "unknown"
+  end
+
+  defp event_slug(_source_record, _records), do: "unknown"
+
+  defp create_event(biennale_id, project_id, source_record, title, proj_slug, import_key) do
+    biennale = Content.get_biennale!(biennale_id)
+    year = biennale.fields["year"]
+
+    attrs = %{
+      title: title,
+      type: infer_event_type(proj_slug),
+      date: to_string(year),
+      biennale_id: biennale_id,
+      project_id: project_id,
+      visible: true
+    }
+
+    case Content.create_event(attrs) do
+      {:ok, event} ->
+        updated_fields =
+          event.fields
+          |> Map.put("original_record", source_record)
+          |> Map.put("import_pk", to_string(source_record["pk"]))
+          |> Map.put("import_model", source_record["model"])
+          |> Map.put("import_key", import_key)
+          |> Map.put("import_slug", proj_slug)
+
+        event
+        |> Ecto.Changeset.change(fields: updated_fields)
+        |> Repo.update!()
+
+        IO.puts("  Created event: #{title} (#{year}, #{proj_slug}, ID #{event.id})")
+        {:created, event}
+
+      {:error, changeset} ->
+        IO.puts("  ERROR creating event #{import_key}: #{inspect(changeset.errors)}")
+        {:error, changeset}
+    end
   end
 
   defp find_existing_by_import_key(import_key, type) do
@@ -491,65 +509,7 @@ defmodule MykonosBiennale.Workers.ImportFestival do
     artists = records_by_model("festival.artist")
     IO.puts("Stage 4: Importing #{length(artists)} artists as participants...")
 
-    results =
-      for artist <- artists do
-        pk = artist["pk"]
-        fields = artist["fields"]
-
-        existing = find_existing_by_type("festival.artist", pk, "participant")
-
-        if existing do
-          IO.puts(
-            "  Skipping artist PK #{pk} (already imported as participant ID #{existing.id})"
-          )
-
-          {:skipped, existing}
-        else
-          raw_name = fields["name"] || ""
-          {first_name, last_name} = split_name(raw_name)
-          name = String.trim(raw_name)
-
-          old_slug = fields["slug"]
-
-          attrs = %{
-            first_name: first_name,
-            last_name: last_name,
-            name: name,
-            country: clean_string(fields["country"]),
-            email: clean_string(fields["email"]),
-            phone: clean_string(fields["phone"]),
-            website: clean_string(fields["homepage"]),
-            bio: clean_string(fields["bio"]),
-            statement: clean_string(fields["statement"]),
-            visible: fields["visible"] != false
-          }
-
-          case Content.create_participant(attrs) do
-            {:ok, participant} ->
-              updated_fields =
-                participant.fields
-                |> Map.put("original_record", artist)
-                |> Map.put("import_pk", to_string(pk))
-                |> Map.put("import_model", "festival.artist")
-                |> Map.put("import_slug", old_slug)
-                |> Map.put("import_event", fields["event"])
-
-              participant
-              |> Ecto.Changeset.change(fields: updated_fields)
-              |> Repo.update!()
-
-              IO.puts("  Created participant: #{name} (PK #{pk}, ID #{participant.id})")
-              {:created, participant}
-
-            {:error, changeset} ->
-              IO.puts(
-                "  ERROR creating artist PK #{pk} (#{raw_name}): #{inspect(changeset.errors)}"
-              )
-
-              {:error, changeset}
-          end
-        end
-      end
+    results = for artist <- artists, do: import_artist(artist)
 
     created = Enum.count(results, &match?({:created, _}, &1))
     skipped = Enum.count(results, &match?({:skipped, _}, &1))
@@ -558,6 +518,65 @@ defmodule MykonosBiennale.Workers.ImportFestival do
     IO.puts("\nStage 4 complete: #{created} created, #{skipped} skipped, #{errors} errors")
 
     :ok
+  end
+
+  defp import_artist(artist) do
+    pk = artist["pk"]
+    existing = find_existing_by_type("festival.artist", pk, "participant")
+
+    if existing do
+      IO.puts("  Skipping artist PK #{pk} (already imported as participant ID #{existing.id})")
+
+      {:skipped, existing}
+    else
+      create_artist_participant(artist)
+    end
+  end
+
+  defp create_artist_participant(artist) do
+    pk = artist["pk"]
+    fields = artist["fields"]
+    raw_name = fields["name"] || ""
+    {first_name, last_name} = split_name(raw_name)
+    name = String.trim(raw_name)
+
+    old_slug = fields["slug"]
+
+    attrs = %{
+      first_name: first_name,
+      last_name: last_name,
+      name: name,
+      country: clean_string(fields["country"]),
+      email: clean_string(fields["email"]),
+      phone: clean_string(fields["phone"]),
+      website: clean_string(fields["homepage"]),
+      bio: clean_string(fields["bio"]),
+      statement: clean_string(fields["statement"]),
+      visible: fields["visible"] != false
+    }
+
+    case Content.create_participant(attrs) do
+      {:ok, participant} ->
+        updated_fields =
+          participant.fields
+          |> Map.put("original_record", artist)
+          |> Map.put("import_pk", to_string(pk))
+          |> Map.put("import_model", "festival.artist")
+          |> Map.put("import_slug", old_slug)
+          |> Map.put("import_event", fields["event"])
+
+        participant
+        |> Ecto.Changeset.change(fields: updated_fields)
+        |> Repo.update!()
+
+        IO.puts("  Created participant: #{name} (PK #{pk}, ID #{participant.id})")
+        {:created, participant}
+
+      {:error, changeset} ->
+        IO.puts("  ERROR creating artist PK #{pk} (#{raw_name}): #{inspect(changeset.errors)}")
+
+        {:error, changeset}
+    end
   end
 
   defp build_artist_pk_to_participant_id do
@@ -595,18 +614,12 @@ defmodule MykonosBiennale.Workers.ImportFestival do
       project_entity_id = Map.get(slug_to_project, proj_slug)
       proj_pk = proj["pk"]
 
-      if biennale_id && project_entity_id do
-        import_key = "#{biennale_id}-#{project_entity_id}"
-        event_id = Map.get(events, import_key)
-
-        if event_id do
-          Map.put(acc, proj_pk, event_id)
-        else
-          acc
+      event_id =
+        if biennale_id && project_entity_id do
+          Map.get(events, "#{biennale_id}-#{project_entity_id}")
         end
-      else
-        acc
-      end
+
+      if event_id, do: Map.put(acc, proj_pk, event_id), else: acc
     end)
   end
 
@@ -666,59 +679,7 @@ defmodule MykonosBiennale.Workers.ImportFestival do
 
     results =
       for art <- arts do
-        pk = art["pk"]
-        fields = art["fields"]
-
-        existing = find_existing_by_type("festival.art", pk, "artwork")
-
-        if existing do
-          {:skipped, existing}
-        else
-          artist_pk = get_in(art["foreign_keys"], ["artist", "pk"])
-          project_pk = get_in(art["foreign_keys"], ["project", "pk"])
-
-          proj_slug = get_project_slug_for_art(project_pk)
-
-          date = get_date_for_art(project_pk, fest_to_biennale)
-          art_type = infer_art_type(proj_slug)
-
-          attrs = %{
-            title: fields["title"] || "Untitled",
-            description: clean_string(fields["description"]),
-            type: art_type,
-            date: date,
-            visible: fields["show"] != false
-          }
-
-          case Content.create_artwork(attrs) do
-            {:ok, artwork} ->
-              leader = fields["leader"] == true
-
-              updated_fields =
-                artwork.fields
-                |> Map.put("original_record", art)
-                |> Map.put("import_pk", to_string(pk))
-                |> Map.put("import_model", "festival.art")
-                |> Map.put("import_slug", fields["slug"])
-                |> Map.put("leader", leader)
-                |> Map.put("import_photo_url", fields["photo"])
-                |> Map.put("import_text", fields["text"])
-
-              artwork
-              |> Ecto.Changeset.change(fields: updated_fields)
-              |> Repo.update!()
-
-              maybe_attach_artist(artwork, artist_pk, artist_pk_to_id)
-              maybe_attach_event(artwork, project_pk, proj_pk_to_event_id)
-
-              IO.puts("  Created artwork: #{fields["title"]} (PK #{pk}, ID #{artwork.id})")
-              {:created, artwork}
-
-            {:error, changeset} ->
-              IO.puts("  ERROR creating art PK #{pk}: #{inspect(changeset.errors)}")
-              {:error, changeset}
-          end
-        end
+        import_art(art, artist_pk_to_id, fest_to_biennale, proj_pk_to_event_id)
       end
 
     created = Enum.count(results, &match?({:created, _}, &1))
@@ -728,6 +689,66 @@ defmodule MykonosBiennale.Workers.ImportFestival do
     IO.puts("\nStage 5 complete: #{created} created, #{skipped} skipped, #{errors} errors")
 
     :ok
+  end
+
+  defp import_art(art, artist_pk_to_id, fest_to_biennale, proj_pk_to_event_id) do
+    pk = art["pk"]
+    existing = find_existing_by_type("festival.art", pk, "artwork")
+
+    if existing do
+      {:skipped, existing}
+    else
+      create_artwork(art, artist_pk_to_id, fest_to_biennale, proj_pk_to_event_id)
+    end
+  end
+
+  defp create_artwork(art, artist_pk_to_id, fest_to_biennale, proj_pk_to_event_id) do
+    pk = art["pk"]
+    fields = art["fields"]
+    artist_pk = get_in(art["foreign_keys"], ["artist", "pk"])
+    project_pk = get_in(art["foreign_keys"], ["project", "pk"])
+
+    proj_slug = get_project_slug_for_art(project_pk)
+
+    date = get_date_for_art(project_pk, fest_to_biennale)
+    art_type = infer_art_type(proj_slug)
+
+    attrs = %{
+      title: fields["title"] || "Untitled",
+      description: clean_string(fields["description"]),
+      type: art_type,
+      date: date,
+      visible: fields["show"] != false
+    }
+
+    case Content.create_artwork(attrs) do
+      {:ok, artwork} ->
+        leader = fields["leader"] == true
+
+        updated_fields =
+          artwork.fields
+          |> Map.put("original_record", art)
+          |> Map.put("import_pk", to_string(pk))
+          |> Map.put("import_model", "festival.art")
+          |> Map.put("import_slug", fields["slug"])
+          |> Map.put("leader", leader)
+          |> Map.put("import_photo_url", fields["photo"])
+          |> Map.put("import_text", fields["text"])
+
+        artwork
+        |> Ecto.Changeset.change(fields: updated_fields)
+        |> Repo.update!()
+
+        maybe_attach_artist(artwork, artist_pk, artist_pk_to_id)
+        maybe_attach_event(artwork, project_pk, proj_pk_to_event_id)
+
+        IO.puts("  Created artwork: #{fields["title"]} (PK #{pk}, ID #{artwork.id})")
+        {:created, artwork}
+
+      {:error, changeset} ->
+        IO.puts("  ERROR creating art PK #{pk}: #{inspect(changeset.errors)}")
+        {:error, changeset}
+    end
   end
 
   defp get_project_slug_for_art(project_pk) do
@@ -874,43 +895,38 @@ defmodule MykonosBiennale.Workers.ImportFestival do
     IO.puts("  Downloading #{length(participants)} participant headshots...")
 
     count =
-      for participant <- Enum.with_index(participants) do
-        {participant, idx} = participant
-
+      for {participant, idx} <- Enum.with_index(participants) do
         if rem(idx, 50) == 0 and idx > 0 do
           IO.puts("    ...#{idx}/#{length(participants)} headshots processed")
         end
 
-        headshot = get_in(participant.fields, ["original_record", "fields", "headshot"]) || ""
-
-        if headshot == "" do
-          0
-        else
-          case already_has_media?(participant) do
-            true ->
-              0
-
-            false ->
-              url =
-                if String.starts_with?(headshot, "http"), do: headshot, else: @s3_base <> headshot
-
-              case download_and_create_media(
-                     url,
-                     participant.fields["name"] || "Headshot",
-                     participant
-                   ) do
-                {:ok, _} ->
-                  1
-
-                {:error, reason} ->
-                  IO.puts("    ERROR headshot for #{participant.fields["name"]}: #{reason}")
-                  0
-              end
-          end
-        end
+        import_headshot(participant)
       end
 
     Enum.sum(count)
+  end
+
+  defp import_headshot(participant) do
+    headshot = get_in(participant.fields, ["original_record", "fields", "headshot"]) || ""
+
+    if headshot == "" or already_has_media?(participant) do
+      0
+    else
+      url = if String.starts_with?(headshot, "http"), do: headshot, else: @s3_base <> headshot
+
+      case download_and_create_media(
+             url,
+             participant.fields["name"] || "Headshot",
+             participant
+           ) do
+        {:ok, _} ->
+          1
+
+        {:error, reason} ->
+          IO.puts("    ERROR headshot for #{participant.fields["name"]}: #{reason}")
+          0
+      end
+    end
   end
 
   defp import_artwork_photos do
@@ -929,43 +945,36 @@ defmodule MykonosBiennale.Workers.ImportFestival do
     IO.puts("  Downloading #{length(artworks)} artwork photos...")
 
     count =
-      for artwork <- Enum.with_index(artworks) do
-        {artwork, idx} = artwork
-
+      for {artwork, idx} <- Enum.with_index(artworks) do
         if rem(idx, 100) == 0 and idx > 0 do
           IO.puts("    ...#{idx}/#{length(artworks)} artwork photos processed")
         end
 
-        photo_url = artwork.fields["import_photo_url"] || ""
-
-        if photo_url == "" do
-          0
-        else
-          case already_has_media?(artwork) do
-            true ->
-              0
-
-            false ->
-              url =
-                if String.starts_with?(photo_url, "http"),
-                  do: photo_url,
-                  else: @s3_base <> photo_url
-
-              caption = artwork.fields["title"] || "Artwork photo"
-
-              case download_and_create_media(url, caption, artwork) do
-                {:ok, _} ->
-                  1
-
-                {:error, reason} ->
-                  IO.puts("    ERROR photo for artwork ID #{artwork.id}: #{reason}")
-                  0
-              end
-          end
-        end
+        import_artwork_photo(artwork)
       end
 
     Enum.sum(count)
+  end
+
+  defp import_artwork_photo(artwork) do
+    photo_url = artwork.fields["import_photo_url"] || ""
+
+    if photo_url == "" or already_has_media?(artwork) do
+      0
+    else
+      url = if String.starts_with?(photo_url, "http"), do: photo_url, else: @s3_base <> photo_url
+
+      caption = artwork.fields["title"] || "Artwork photo"
+
+      case download_and_create_media(url, caption, artwork) do
+        {:ok, _} ->
+          1
+
+        {:error, reason} ->
+          IO.puts("    ERROR photo for artwork ID #{artwork.id}: #{reason}")
+          0
+      end
+    end
   end
 
   defp already_has_media?(entity) do
@@ -980,22 +989,26 @@ defmodule MykonosBiennale.Workers.ImportFestival do
   defp download_and_create_media(url, caption, entity) do
     case download_s3_image(url) do
       {:ok, local_filename} ->
-        case Content.create_media(%{
-               source_type: "upload",
-               source_path: local_filename,
-               caption: caption,
-               metadata: %{"imported_from" => url}
-             }) do
-          {:ok, media} ->
-            Content.attach_media_to_entity(entity, media)
-            {:ok, media}
-
-          {:error, changeset} ->
-            {:error, inspect(changeset.errors)}
-        end
+        create_media_for_entity(url, local_filename, caption, entity)
 
       {:error, reason} ->
         {:error, "Download failed: #{reason}"}
+    end
+  end
+
+  defp create_media_for_entity(url, local_filename, caption, entity) do
+    case Content.create_media(%{
+           source_type: "upload",
+           source_path: local_filename,
+           caption: caption,
+           metadata: %{"imported_from" => url}
+         }) do
+      {:ok, media} ->
+        Content.attach_media_to_entity(entity, media)
+        {:ok, media}
+
+      {:error, changeset} ->
+        {:error, inspect(changeset.errors)}
     end
   end
 end

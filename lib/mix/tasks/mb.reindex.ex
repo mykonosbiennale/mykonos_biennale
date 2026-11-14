@@ -13,8 +13,9 @@ defmodule Mix.Tasks.Mb.Reindex do
   """
   use Mix.Task
 
-  alias MykonosBiennale.{Repo}
-  alias MykonosBiennale.Content.{Entity, Media}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Repo
   alias MykonosBiennale.Search.Indexer
   alias MykonosBiennale.Workers.SearchReindex
 

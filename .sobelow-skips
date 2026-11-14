@@ -1,0 +1,50 @@
+
+Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/mykonos_biennale/uploads.ex:26,3094C3B
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/antidote_live.ex:106,1F110DD
+CI.System: Command Injection via `System` function,lib/mykonos_biennale/thumbnail.ex:282,EE9F9E
+Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/mykonos_biennale/thumbnail.ex:101,2169B88
+Traversal.SendFile: Directory Traversal in `send_file`,lib/mykonos_biennale_web/controllers/media_controller.ex:196,53C0669
+Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/mykonos_biennale/media_dir.ex:33,19209DC
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/artwork_live/form_component.ex:724,4345907
+CI.System: Command Injection via `System` function,lib/mykonos_biennale/workers/media_process.ex:231,4D84D93
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/biennale_live/form_component.ex:586,47F8F5E
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/workers/media_process.ex:138,5DBBD34
+SQL.Query: SQL injection,lib/mykonos_biennale_web/live/admin/dashboard_live.ex:209,118EFE1
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/workers/media_process.ex:180,18130D
+Traversal.SendFile: Directory Traversal in `send_file`,lib/mykonos_biennale_web/controllers/media_controller.ex:149,78426F2
+CI.System: Command Injection via `System` function,lib/mykonos_biennale_web/controllers/media_controller.ex:173,7EE01DF
+Traversal.FileModule: Directory Traversal in `File.write!`,lib/phoenix_prerender/generation_stamp.ex:15,719188F
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/thumbnail.ex:175,5131C60
+Traversal.FileModule: Directory Traversal in `File.write!`,lib/mykonos_biennale/workers/import_filmfestival.ex:779,7ED3EF8
+Traversal.SendFile: Directory Traversal in `send_file`,lib/mykonos_biennale_web/controllers/media_controller.ex:113,6CBB165
+Traversal.SendFile: Directory Traversal in `send_file`,lib/mykonos_biennale_web/controllers/media_controller.ex:103,150253F
+Config.HTTPS: HTTPS Not Enabled,config/prod.exs:0,2B5C077
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/biennale_live/form_component.ex:614,4E09666
+Traversal.SendFile: Directory Traversal in `send_file`,lib/mykonos_biennale_web/controllers/media_controller.ex:60,77F5CC2
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/sponsor_live/index.ex:174,5D7E12
+CI.System: Command Injection via `System` function,lib/mykonos_biennale/thumbnail.ex:258,66EEE6E
+Traversal.FileModule: Directory Traversal in `File.read`,lib/mykonos_biennale/workers/import_filmfestival.ex:31,2303AC4
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/event_live/form_component.ex:708,51D5A93
+Traversal.FileModule: Directory Traversal in `File.read`,lib/phoenix_prerender/generation_stamp.ex:7,4A43D8C
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/participant_live/edit.ex:387,5585F6B
+Traversal.FileModule: Directory Traversal in `File.read`,lib/mykonos_biennale/reimport_artworks.ex:30,156C37B
+XSS.Raw: XSS,lib/mykonos_biennale_web/controllers/film_html.ex:30,6D6488F
+CI.System: Command Injection via `System` function,lib/mykonos_biennale/media_credit.ex:22,5EE643
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/team_live/member.ex:81,3DB6C77
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/project_live/form_component.ex:266,673528A
+XSS.Raw: XSS,lib/mykonos_biennale_web/controllers/site_page_html.ex:10,49DAB6C
+Traversal.FileModule: Directory Traversal in `File.read`,lib/mykonos_biennale/workers/import_corrections.ex:49,2FDCC7E
+Traversal.SendFile: Directory Traversal in `send_file`,lib/mykonos_biennale_web/controllers/media_controller.ex:128,37E4B38
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/participant_live/form_component.ex:357,3CB25D1
+Traversal.FileModule: Directory Traversal in `File.write!`,lib/mykonos_biennale/workers/import_festival.ex:826,7FDA467
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/prerender.ex:91,13DD50F
+CI.System: Command Injection via `System` function,lib/mykonos_biennale/workers/media_process.ex:173,41336D5
+Traversal.FileModule: Directory Traversal in `File.mkdir_p!`,lib/phoenix_prerender/generation_stamp.ex:14,87C24
+XSS.Raw: XSS,lib/mykonos_biennale_web/controllers/biennale_html.ex:160,21C0E3A
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/thumbnail.ex:152,11426F3
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale_web/controllers/media_controller.ex:180,4C548B0
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/thumbnail.ex:192,329181C
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/media_live/form_component.ex:305,4B6705D
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/film_live/form_component.ex:834,DBE96E
+Traversal.FileModule: Directory Traversal in `File.read`,lib/mykonos_biennale/workers/import_festival.ex:28,BD723F
+CI.System: Command Injection via `System` function,lib/mykonos_biennale/workers/media_process.ex:131,60038C0

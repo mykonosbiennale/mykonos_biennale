@@ -1,12 +1,15 @@
 defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
+  alias Ecto.Changeset
   alias MykonosBiennale.Content
   alias MykonosBiennale.Repo
+  alias MykonosBiennale.Sponsors
   alias MykonosBiennaleWeb.BiennaleHTML
-  alias Ecto.Changeset
 
-  alias MykonosBiennale.Content.{Entity, Relationship, RelationshipType}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennale.Content.RelationshipType
 
   @team_roles [
     {"Curator", "curator"},
@@ -219,7 +222,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
                 <button
                   type="button"
                   phx-click="remove_sponsor"
-                  phx-value-media-id={sponsor.media_id}
+                  phx-value-sponsor-id={sponsor.id}
                   phx-target={@myself}
                   class="absolute top-2 right-2 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                 >
@@ -343,7 +346,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     program_bg = find_media_by_role(media_links, "program_bg")
 
     team_members = load_team_members(biennale)
-    sponsors = load_sponsors(media_links)
+    sponsors = sponsors_for(biennale)
 
     {:ok,
      socket
@@ -413,7 +416,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
        socket
        |> assign(:statement_bg, statement_bg)
        |> assign(:program_bg, program_bg)
-       |> put_flash(:info, "Background removed")}
+       |> notify_flash(:info, "Background removed")}
     else
       {:noreply, socket}
     end
@@ -449,13 +452,13 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
            |> assign(:team_members, load_team_members(biennale))
            |> assign(:team_search, "")
            |> assign(:team_search_results, [])
-           |> put_flash(:info, "Team member added")}
+           |> notify_flash(:info, "Team member added")}
 
         {:error, _} ->
-          {:noreply, put_flash(socket, :error, "Could not add team member")}
+          {:noreply, notify_flash(socket, :error, "Could not add team member")}
       end
     else
-      {:noreply, put_flash(socket, :error, "Select a role")}
+      {:noreply, notify_flash(socket, :error, "Select a role")}
     end
   end
 
@@ -482,24 +485,22 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     {:noreply,
      socket
      |> assign(:team_members, load_team_members(biennale))
-     |> put_flash(:info, "Team member removed")}
+     |> notify_flash(:info, "Team member removed")}
   end
 
-  def handle_event("remove_sponsor", %{"media-id" => media_id}, socket) do
+  def handle_event("remove_sponsor", %{"sponsor-id" => sponsor_id}, socket) do
     biennale = socket.assigns.biennale
-    media = Content.get_media!(media_id)
 
     if biennale.id do
-      Content.detach_media_from_entity(biennale, media)
+      Sponsors.unlink(String.to_integer(sponsor_id), biennale.id)
     end
 
-    media_links = Content.list_entity_media_links_for_entity(biennale)
-    sponsors = load_sponsors(media_links)
+    sponsors = sponsors_for(biennale)
 
     {:noreply,
      socket
      |> assign(:sponsors, sponsors)
-     |> put_flash(:info, "Sponsor removed")}
+     |> notify_flash(:info, "Sponsor removed")}
   end
 
   def handle_event("save", params, socket) do
@@ -520,13 +521,13 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
 
           {:noreply,
            socket
-           |> put_flash(:info, "Biennale updated successfully")
+           |> notify_flash(:info, "Biennale updated successfully")
            |> push_patch(to: socket.assigns.patch)}
 
         {:error, %Ecto.Changeset{} = entity_changeset} ->
           {:noreply,
            socket
-           |> put_flash(:error, "Could not update biennale")
+           |> notify_flash(:error, "Could not update biennale")
            |> assign(
              :form,
              to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :biennale)
@@ -551,13 +552,13 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
 
           {:noreply,
            socket
-           |> put_flash(:info, "Biennale created successfully")
+           |> notify_flash(:info, "Biennale created successfully")
            |> push_patch(to: socket.assigns.patch)}
 
         {:error, %Ecto.Changeset{} = entity_changeset} ->
           {:noreply,
            socket
-           |> put_flash(:error, "Could not create biennale")
+           |> notify_flash(:error, "Could not create biennale")
            |> assign(
              :form,
              to_form(Changeset.add_error(changeset, :base, "Save failed"), as: :biennale)
@@ -626,14 +627,21 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
           original_name: original_name
         })
 
-      metadata = %{"role" => "sponsor"}
+      name = if(sponsor_name != "", do: sponsor_name, else: caption)
+      attach_sponsor(biennale, name, sponsor_url, media)
+    end
 
-      metadata =
-        metadata
-        |> Map.put("name", if(sponsor_name != "", do: sponsor_name, else: caption))
-        |> then(fn m -> if sponsor_url != "", do: Map.put(m, "url", sponsor_url), else: m end)
+    # A sponsor can be added by name alone, without a logo.
+    if uploaded_files == [] and sponsor_name != "" do
+      attach_sponsor(biennale, sponsor_name, sponsor_url, nil)
+    end
+  end
 
-      Content.attach_media_to_entity(biennale, media, metadata: metadata)
+  defp attach_sponsor(biennale, name, url, logo) do
+    {:ok, sponsor} = Sponsors.save(name, url, logo: logo)
+
+    if biennale.id do
+      Sponsors.link(sponsor.id, biennale.id)
     end
   end
 
@@ -652,8 +660,7 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
         participant = rel.object
         role = rel.fields && rel.fields["role"]
 
-        role_label =
-          Enum.find_value(@team_roles, fn {label, val} -> if val == role, do: label end) || role
+        role_label = team_role_label(role)
 
         %{
           id: participant.id,
@@ -668,18 +675,12 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
     end
   end
 
-  defp load_sponsors(media_links) do
-    media_links
-    |> Enum.filter(fn link -> link.metadata && link.metadata["role"] == "sponsor" end)
-    |> Enum.map(fn link ->
-      %{
-        media_id: link.media_id,
-        media: link.media,
-        name: link.metadata["name"] || link.media.caption || "",
-        url: link.metadata["url"] || ""
-      }
-    end)
+  defp team_role_label(role) do
+    Enum.find_value(@team_roles, fn {label, val} -> if val == role, do: label end) || role
   end
+
+  defp sponsors_for(%{id: nil}), do: []
+  defp sponsors_for(biennale), do: Sponsors.for_biennale(biennale.id)
 
   defp search_team(search, current_members) do
     import Ecto.Query, warn: false
@@ -796,4 +797,9 @@ defmodule MykonosBiennaleWeb.Admin.BiennaleLive.FormComponent do
   defp error_to_string(:too_large), do: "File is too large (max 10MB)"
   defp error_to_string(:not_accepted), do: "File type not accepted"
   defp error_to_string(err), do: "Upload error: #{inspect(err)}"
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
+  end
 end

@@ -22,14 +22,26 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Index do
   def handle_params(params, _url, socket) do
     page = String.to_integer(params["page"] || "1")
     search = socket.assigns.search
-    sort_by = (params["sort_by"] || "inserted_at") |> String.to_atom()
-    sort_dir = (params["sort_dir"] || "desc") |> String.to_atom()
+    sort_by = MykonosBiennaleWeb.SafeParams.sort_key(params["sort_by"], :inserted_at)
+    sort_dir = MykonosBiennaleWeb.SafeParams.sort_dir(params["sort_dir"], :desc)
 
     {items, total_count} =
       Content.list_media_paginated(page, @per_page, search, sort_by: sort_by, sort_dir: sort_dir)
 
     total_pages = max(1, ceil(total_count / @per_page))
 
+    if page > total_pages do
+      # Past the last page: send the user to the last real page.
+      {:noreply,
+       push_patch(socket,
+         to: patch_path("/admin/media", total_pages, sort_by, sort_dir)
+       )}
+    else
+      show_media_page(socket, params, items, total_count, total_pages, page, sort_by, sort_dir)
+    end
+  end
+
+  defp show_media_page(socket, params, items, total_count, total_pages, page, sort_by, sort_dir) do
     socket =
       socket
       |> assign(:current_page, page)
@@ -53,6 +65,13 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Index do
   end
 
   defp apply_action(socket, :index, _params), do: socket
+
+  def handle_info(
+        {MykonosBiennaleWeb.Admin.MediaLive.FormComponent, {:flash, kind, message}},
+        socket
+      ) do
+    {:noreply, put_flash(socket, kind, message)}
+  end
 
   @impl true
   def handle_info({MykonosBiennaleWeb.Admin.MediaLive.FormComponent, {:saved, media}}, socket) do

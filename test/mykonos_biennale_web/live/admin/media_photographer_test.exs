@@ -3,7 +3,8 @@ defmodule MykonosBiennaleWeb.Admin.MediaPhotographerTest do
 
   import Phoenix.LiveViewTest
 
-  alias MykonosBiennale.{Content, MediaCredit}
+  alias MykonosBiennale.Content
+  alias MykonosBiennale.MediaCredit
 
   test "picks a photographer on the edit form and saves it", %{conn: conn} do
     {:ok, thanos} =

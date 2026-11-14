@@ -7,7 +7,8 @@ defmodule MykonosBiennale.MediaCredit do
 
   import Ecto.Query, warn: false
 
-  alias MykonosBiennale.Content.{Entity, Media}
+  alias MykonosBiennale.Content.Entity
+  alias MykonosBiennale.Content.Media
   alias MykonosBiennale.Repo
 
   def exif_artist(path) do

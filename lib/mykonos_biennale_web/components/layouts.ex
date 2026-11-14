@@ -13,36 +13,39 @@ defmodule MykonosBiennaleWeb.Layouts do
 
   def template_path(assigns) when is_map(assigns) do
     cond do
-      module = assigns[:live_module] ->
-        source_path(module)
+      module = assigns[:live_module] -> source_path(module)
+      conn = assigns[:conn] -> conn_template_path(conn)
+      true -> nil
+    end
+  end
 
-      conn = assigns[:conn] ->
-        view = conn.private[:phoenix_view]
-        template = conn.private[:phoenix_template]
-        format = conn.private[:phoenix_format] || "html"
+  defp conn_template_path(conn) do
+    template = conn.private[:phoenix_template]
+    format = conn.private[:phoenix_format] || "html"
+    view_module = resolve_view_module(conn.private[:phoenix_view], format)
 
-        view_module =
-          case view do
-            mod when is_atom(mod) -> mod
-            map when is_map(map) -> Map.get(map, :_) || Map.get(map, format)
-            _ -> nil
-          end
+    if view_module && template do
+      view_template_path(view_module, template)
+    end
+  end
 
-        if view_module && template do
-          case source_path(view_module) do
-            nil ->
-              nil
+  defp resolve_view_module(mod, _format) when is_atom(mod), do: mod
 
-            view_source ->
-              basename = Path.basename(view_source, ".ex")
-              dir = Path.join(Path.dirname(view_source), basename)
-              suffix = if String.contains?(template, "."), do: ".heex", else: ".html.heex"
-              "#{dir}/#{template}#{suffix}"
-          end
-        end
+  defp resolve_view_module(map, format) when is_map(map),
+    do: Map.get(map, :_) || Map.get(map, format)
 
-      true ->
+  defp resolve_view_module(_view, _format), do: nil
+
+  defp view_template_path(view_module, template) do
+    case source_path(view_module) do
+      nil ->
         nil
+
+      view_source ->
+        basename = Path.basename(view_source, ".ex")
+        dir = Path.join(Path.dirname(view_source), basename)
+        suffix = if String.contains?(template, "."), do: ".heex", else: ".html.heex"
+        "#{dir}/#{template}#{suffix}"
     end
   end
 
@@ -126,40 +129,6 @@ defmodule MykonosBiennaleWeb.Layouts do
         Attempting to reconnect
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
-    </div>
-    """
-  end
-
-  @doc """
-  Provides dark vs light theme toggle based on themes defined in app.css.
-
-  See <head> in root.html.heex which applies the theme before page load.
-  """
-  def theme_toggle(assigns) do
-    ~H"""
-    <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
-
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "system"})}
-        class="flex p-2 cursor-pointer w-1/3"
-      >
-        <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "light"})}
-        class="flex p-2 cursor-pointer w-1/3"
-      >
-        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "dark"})}
-        class="flex p-2 cursor-pointer w-1/3"
-      >
-        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
     </div>
     """
   end

@@ -1,8 +1,8 @@
 defmodule MykonosBiennaleWeb.Admin.PageLive.FormComponent do
   use MykonosBiennaleWeb, :live_component
 
-  alias MykonosBiennale.Site.Page
   alias Ecto.Changeset
+  alias MykonosBiennale.Site.Page
 
   @impl true
   def render(assigns) do
@@ -116,7 +116,7 @@ defmodule MykonosBiennaleWeb.Admin.PageLive.FormComponent do
         {:noreply, assign(socket, form: to_form(changeset, as: :page))}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Invalid JSON in metadata")}
+        {:noreply, notify_flash(socket, :error, "Invalid JSON in metadata")}
     end
   end
 
@@ -132,13 +132,13 @@ defmodule MykonosBiennaleWeb.Admin.PageLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Page updated successfully")
+         |> notify_flash(:info, "Page updated successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply,
          socket
-         |> put_flash(:error, "Could not update page")
+         |> notify_flash(:error, "Could not update page")
          |> assign(form: to_form(changeset, as: :page))}
     end
   end
@@ -150,13 +150,13 @@ defmodule MykonosBiennaleWeb.Admin.PageLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Page created successfully")
+         |> notify_flash(:info, "Page created successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply,
          socket
-         |> put_flash(:error, "Could not create page")
+         |> notify_flash(:error, "Could not create page")
          |> assign(form: to_form(changeset, as: :page))}
     end
   end
@@ -183,4 +183,9 @@ defmodule MykonosBiennaleWeb.Admin.PageLive.FormComponent do
   end
 
   defp slugify(_), do: "page"
+
+  defp notify_flash(socket, kind, message) do
+    send(self(), {__MODULE__, {:flash, kind, message}})
+    socket
+  end
 end

@@ -6,8 +6,8 @@ defmodule MykonosBiennale.Uploads do
   In production, they are stored on the persistent volume at /data/uploads.
   """
 
-  alias MykonosBiennale.Thumbnail
   alias MykonosBiennale.MediaDir
+  alias MykonosBiennale.Thumbnail
 
   def uploads_dir do
     Application.get_env(:mykonos_biennale, :uploads_dir) ||

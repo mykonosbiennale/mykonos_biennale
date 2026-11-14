@@ -1,8 +1,12 @@
 defmodule MykonosBiennale.Accounts.UserNotifier do
+  @moduledoc """
+  Builds and delivers the account emails (confirmation, reset, temporary password).
+  """
+
   import Swoosh.Email
 
-  alias MykonosBiennale.Mailer
   alias MykonosBiennale.Accounts.User
+  alias MykonosBiennale.Mailer
 
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do

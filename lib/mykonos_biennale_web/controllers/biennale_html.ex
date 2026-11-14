@@ -59,7 +59,6 @@ defmodule MykonosBiennaleWeb.BiennaleHTML do
   def archive_teaser(assigns) do
     tiles =
       assigns.biennales
-      |> Enum.reject(&(&1.fields["template"] == "summary"))
       |> Enum.map(fn biennale ->
         bg =
           case Map.get(assigns.media_map, biennale.id, []) do
@@ -134,13 +133,16 @@ defmodule MykonosBiennaleWeb.BiennaleHTML do
         {hour, ""} = Integer.parse(h)
 
         suffix = if hour >= 12, do: "PM", else: "AM"
-        display_hour = if hour > 12, do: hour - 12, else: if(hour == 0, do: 12, else: hour)
-        "#{display_hour}:#{m} #{suffix}"
+        "#{display_hour(hour)}:#{m} #{suffix}"
 
       _ ->
         time
     end
   end
+
+  defp display_hour(hour) when hour > 12, do: hour - 12
+  defp display_hour(0), do: 12
+  defp display_hour(hour), do: hour
 
   def format_day(nil), do: nil
 
@@ -153,54 +155,7 @@ defmodule MykonosBiennaleWeb.BiennaleHTML do
 
   def render_content(nil, _assigns), do: Phoenix.HTML.raw("")
 
-  def render_content(content, assigns) when is_binary(content) and is_map(assigns) do
-    ast =
-      EEx.compile_string(content,
-        engine: Phoenix.LiveView.TagEngine,
-        line: 1,
-        file: "biennale_content",
-        trim: true,
-        caller: caller_env(),
-        source: content,
-        tag_handler: Phoenix.LiveView.HTMLEngine
-      )
-
-    {rendered, _} = Code.eval_quoted(ast, [assigns: assigns], caller_env())
-
-    html =
-      rendered
-      |> render_to_iodata()
-      |> IO.iodata_to_binary()
-
-    Phoenix.HTML.raw(strip_debug_annotations(html))
-  rescue
-    _ ->
-      Phoenix.HTML.raw(content)
-  end
-
-  defp caller_env do
-    env = __ENV__
-    %{env | file: "biennale_content", line: 1}
-  end
-
-  defp render_to_iodata(%Phoenix.LiveView.Rendered{static: static, dynamic: dynamic})
-       when is_function(dynamic, 1) do
-    parts = dynamic.(nil)
-    interleave(static, parts)
-  end
-
-  defp render_to_iodata(%Phoenix.LiveView.Rendered{static: static, dynamic: nil}), do: static
-  defp render_to_iodata(iodata) when is_list(iodata), do: iodata
-  defp render_to_iodata(binary) when is_binary(binary), do: binary
-
-  defp interleave([static_part | rest_static], [dynamic_part | rest_dynamic]) do
-    [static_part | [render_to_iodata(dynamic_part) | interleave(rest_static, rest_dynamic)]]
-  end
-
-  defp interleave([static_part], []), do: [static_part]
-  defp interleave([], []), do: []
-
-  defp strip_debug_annotations(html) do
-    Regex.replace(~r/<!--\s*<\/?[\w.]+>\s*[^-]*?-->/, html, "")
-  end
+  # Page content is stored HTML written by admins. It is output as-is and is
+  # never evaluated as a template.
+  def render_content(content, _assigns) when is_binary(content), do: Phoenix.HTML.raw(content)
 end
