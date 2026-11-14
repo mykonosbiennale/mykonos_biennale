@@ -121,6 +121,7 @@ defmodule MykonosBiennaleWeb.BiennaleController do
           :page_title,
           "#{biennale.fields["theme"]} — Mykonos Biennale #{biennale.fields["year"]}"
         )
+        |> assign(:seo, MykonosBiennaleWeb.Metadata.for_biennale(biennale, conn.request_path))
         |> render_template(biennale)
 
       %{visible: false} ->

@@ -69,7 +69,8 @@ defmodule MykonosBiennale.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:oratos, "~> 0.3.2", only: [:dev, :test], runtime: false},
-      {:phoenix_prerender, "~> 0.2.0"}
+      {:phoenix_prerender, "~> 0.2.0"},
+      {:phoenix_seo, "~> 0.3.3"}
     ]
   end
 

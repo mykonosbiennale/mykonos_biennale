@@ -72,6 +72,9 @@ if config_env() == :prod do
   host = System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
+  # Absolute URLs in sitemap.xml written by phoenix_prerender.
+  config :phoenix_prerender, base_url: "https://#{host}"
+
   config :mykonos_biennale, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :mykonos_biennale, MykonosBiennaleWeb.Endpoint,

@@ -8,6 +8,7 @@ defmodule MykonosBiennaleWeb.PublicSearchLive do
     {:ok,
      socket
      |> assign(:page_title, "Search")
+     |> assign(:seo, MykonosBiennaleWeb.Metadata.noindex())
      |> assign(:q, "")
      |> assign(:results, empty_results())}
   end
