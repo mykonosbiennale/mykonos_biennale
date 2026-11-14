@@ -63,6 +63,7 @@ defmodule MykonosBiennaleWeb.FilmController do
         film,
         director_name(crew),
         Metadata.biennale_year(biennale),
+        Metadata.image_url(poster),
         conn.request_path
       )
     )

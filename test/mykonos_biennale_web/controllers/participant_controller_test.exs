@@ -106,7 +106,8 @@ defmodule MykonosBiennaleWeb.ParticipantControllerTest do
       assert html =~ ~s(href="/film/#{film.id}")
       refute html =~ ~s(href="/art/#{film.id}")
 
-      matches = Regex.scan(~r/Corrosion/, html)
+      # Count visible title text only; aria-label attributes repeat the title.
+      matches = Regex.scan(~r/>\s*Corrosion\s*</, html)
       assert length(matches) == 1, "film should appear once, not #{length(matches)} times"
     end
 

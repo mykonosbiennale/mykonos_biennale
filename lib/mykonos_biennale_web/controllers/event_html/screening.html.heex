@@ -51,7 +51,7 @@
                 <%!-- Poster --%>
                 <div :if={item.media != []} class="md:col-span-1">
                   <div class="overflow-hidden rounded-lg bg-neutral-900">
-                    <a href={"/film/#{film.id}"} class="block">
+                    <a href={"/film/#{film.id}"} class="block" aria-label={entity_title(film)}>
                       <img
                         src={media_url(List.first(item.media), size: "card")}
                         alt={entity_title(film)}

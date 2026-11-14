@@ -36,8 +36,10 @@
     <div class="w-full md:w-5/6 mx-auto">
       <header class="w-full relative z-10 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-3">
         <form action={~p"/search"} method="get" class="w-full max-w-xl">
+          <label for="site-search" class="sr-only">Search</label>
           <input
             type="text"
+            id="site-search"
             name="q"
             placeholder="Search…"
             autocomplete="off"
@@ -45,7 +47,9 @@
           />
         </form>
       </header>
-      {@inner_content}
+      <main>
+        {@inner_content}
+      </main>
     </div>
   </body>
 </html>

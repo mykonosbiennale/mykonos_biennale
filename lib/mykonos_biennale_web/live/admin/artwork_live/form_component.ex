@@ -3,6 +3,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
 
   alias Ecto.Changeset
   alias MykonosBiennale.Content
+  alias MykonosBiennaleWeb.Admin.SEOSection
 
   @artwork_types [
     {"Video", "video"},
@@ -177,6 +178,10 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
               <p class="text-sm text-red-600">{error_to_string(err)}</p>
             <% end %>
           </div>
+        </div>
+
+        <div class="mt-6">
+          <SEOSection.fields entity={assigns[:artwork]} />
         </div>
 
         <div class="mt-6 flex items-center justify-end gap-x-6">
@@ -648,6 +653,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
   end
 
   def handle_event("save", params, socket) do
+    socket = assign(socket, :seo_params, params["seo"])
     artwork_params = extract_artwork_params(params)
     save_artwork(socket, socket.assigns.action, artwork_params)
   end
@@ -660,6 +666,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
 
       case Content.update_artwork(socket.assigns.artwork, attrs) do
         {:ok, artwork} ->
+          SEOSection.persist(socket.assigns.artwork, artwork, socket.assigns.seo_params)
           maybe_upload_images(socket, artwork)
           notify_parent({:saved, artwork})
 
@@ -690,6 +697,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
 
       case Content.create_artwork(attrs) do
         {:ok, artwork} ->
+          SEOSection.persist(nil, artwork, socket.assigns.seo_params)
           maybe_upload_images(socket, artwork)
           notify_parent({:saved, artwork})
 

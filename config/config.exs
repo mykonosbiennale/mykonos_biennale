@@ -7,6 +7,9 @@
 # General application configuration
 import Config
 
+# How long the generated sitemap.xml and llms.txt stay in memory.
+config :mykonos_biennale, :discovery_cache_ttl_ms, :timer.hours(1)
+
 config :mykonos_biennale, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.PG,

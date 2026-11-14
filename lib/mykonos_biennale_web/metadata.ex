@@ -19,6 +19,7 @@ defmodule MykonosBiennaleWeb.Metadata do
   @default_description "Mykonos Biennale is an arts and film festival on Mykonos, Greece, " <>
                          "bringing together artists, filmmakers and performers."
   @location "Mykonos, Greece"
+  @default_image_path "/images/og-default.png"
 
   # --- Page assigns ---------------------------------------------------------
 
@@ -29,12 +30,21 @@ defmodule MykonosBiennaleWeb.Metadata do
   Builds the `:seo` assign. `path` is the request path (for example `/biennale/2025`),
   which becomes the canonical URL.
   """
+  @max_description 155
+
   def page(attrs) do
+    overrides = MykonosBiennale.SEO.overrides(attrs[:entity])
+
     %{
-      title: attrs[:title],
-      description: attrs[:description] |> plain_text() |> blank_to_nil(),
+      title: overrides["title"] || attrs[:title],
+      description:
+        (overrides["description"] || attrs[:description])
+        |> plain_text()
+        |> blank_to_nil()
+        |> truncate_description(),
       canonical_url: attrs[:path] && Endpoint.url() <> attrs[:path],
-      robots: attrs[:robots],
+      robots: if(overrides["noindex"], do: "noindex, nofollow", else: attrs[:robots]),
+      image: attrs[:image],
       jsonld: attrs[:jsonld]
     }
   end
@@ -45,6 +55,7 @@ defmodule MykonosBiennaleWeb.Metadata do
     name = "#{@site_name} #{f["year"]}"
 
     page(
+      entity: biennale,
       path: path,
       description: f["description"] || f["statement"] || f["theme"],
       jsonld:
@@ -61,20 +72,23 @@ defmodule MykonosBiennaleWeb.Metadata do
   end
 
   @doc "Metadata for an artwork page. `artist` is the artist's name or nil."
-  def for_artwork(artwork, artist, path) do
+  def for_artwork(artwork, artist, image, path) do
     f = artwork.fields
 
     page(
+      entity: artwork,
       path: path,
       title: f["title"],
       description: f["description"],
+      image: image,
       jsonld:
         compact(%{
           "@type" => "VisualArtwork",
           "name" => f["title"],
           "description" => plain_text(f["description"]),
           "artMedium" => f["medium"],
-          "creator" => person(artist)
+          "creator" => person(artist),
+          "image" => image_object(image, f["title"])
         })
     )
   end
@@ -84,13 +98,15 @@ defmodule MykonosBiennaleWeb.Metadata do
   def biennale_year(_), do: nil
 
   @doc "Metadata for a film or video page. `director` is the director's name or nil."
-  def for_film(film, director, biennale_year, path) do
+  def for_film(film, director, biennale_year, image, path) do
     f = film.fields
 
     page(
+      entity: film,
       path: path,
       title: film.identity,
       description: f["synopsis"] || f["log_line"],
+      image: image,
       jsonld:
         compact(%{
           "@type" => "Movie",
@@ -98,15 +114,18 @@ defmodule MykonosBiennaleWeb.Metadata do
           "description" => plain_text(f["synopsis"] || f["log_line"]),
           "director" => person(director),
           "dateCreated" => year_string(biennale_year),
-          "isPartOf" => biennale_node(biennale_year)
+          "isPartOf" => biennale_node(biennale_year),
+          "image" => image_object(image, film.identity)
         })
     )
   end
 
   @doc "Metadata for a participant page."
-  def for_participant(name, participant, path) do
+  def for_participant(name, participant, image, path) do
     page(
+      entity: participant,
       path: path,
+      image: image,
       title: name,
       description: participant.fields["bio"],
       jsonld:
@@ -124,6 +143,7 @@ defmodule MykonosBiennaleWeb.Metadata do
     f = event.fields
 
     page(
+      entity: event,
       path: path,
       title: f["title"],
       description: f["description"] || f["statement"],
@@ -155,18 +175,36 @@ defmodule MykonosBiennaleWeb.Metadata do
     assigns =
       assigns
       |> assign(:site, site_item(seo))
+      |> assign(:head_title, seo[:title] || assigns[:page_title])
       |> assign(:site_config, @site_config)
       |> assign(:og, og_item(seo))
       |> assign(:og_config, @og_config)
       |> assign(:twitter, twitter_item(seo))
-      |> assign(:jsonld, seo[:jsonld])
+      |> assign(:jsonld, json_ld_nodes(seo, seo[:title] || assigns[:page_title]))
 
     ~H"""
-    <SEO.Site.meta item={@site} page_title={@page_title} config={@site_config} />
+    <SEO.Site.meta item={@site} page_title={@head_title} config={@site_config} />
     <SEO.OpenGraph.meta item={@og} config={@og_config} />
     <SEO.Twitter.meta item={@twitter} />
     <SEO.JSONLD.meta :if={@jsonld} item={@jsonld} json_library={Jason} />
     """
+  end
+
+  # Every public page gets a WebPage node. Pages without their own JSON-LD also
+  # get the Organization node.
+  defp json_ld_nodes(seo, title) do
+    webpage =
+      compact(%{
+        "@type" => "WebPage",
+        "name" => title || @site_name,
+        "url" => seo[:canonical_url],
+        "description" => seo[:description]
+      })
+
+    case seo[:jsonld] do
+      nil -> [webpage, organization()]
+      node -> [webpage, node]
+    end
   end
 
   defp site_item(seo) do
@@ -185,16 +223,46 @@ defmodule MykonosBiennaleWeb.Metadata do
     SEO.OpenGraph.build(%{
       title: seo[:title] || @site_name,
       description: seo[:description] || @default_description,
-      url: seo[:canonical_url]
+      url: seo[:canonical_url],
+      image: seo[:image] || default_image()
     })
   end
 
   defp twitter_item(seo) do
     SEO.Twitter.build(%{
+      card: :summary_large_image,
       title: seo[:title] || @site_name,
-      description: seo[:description] || @default_description
+      description: seo[:description] || @default_description,
+      image: seo[:image] || default_image()
     })
   end
+
+  @doc """
+  Absolute URL of a media record's JPEG (card size) for social previews, or nil.
+  Accepts a media struct or nil.
+  """
+  def image_url(nil), do: nil
+
+  def image_url(media) do
+    case MykonosBiennale.Uploads.media_url(media, size: "card", format: "jpg") do
+      nil -> nil
+      "http" <> _ = url -> url
+      path -> Endpoint.url() <> path
+    end
+  end
+
+  @doc "Absolute URL of the first image in a list of media, or nil."
+  def first_image_url(media_list) when is_list(media_list) do
+    media_list
+    |> Enum.find(&image?/1)
+    |> image_url()
+  end
+
+  defp image?(%{mime_type: "image/" <> _}), do: true
+  defp image?(_), do: false
+
+  @doc "Absolute URL of the default Open Graph and Twitter image."
+  def default_image, do: Endpoint.url() <> @default_image_path
 
   # --- JSON-LD helpers ----------------------------------------------------
 
@@ -205,6 +273,13 @@ defmodule MykonosBiennaleWeb.Metadata do
   defp place(nil), do: nil
   defp place(""), do: nil
   defp place(name), do: %{"@type" => "Place", "name" => name}
+
+  # An ImageObject for a key image on the page. `url` is an absolute image URL.
+  defp image_object(nil, _name), do: nil
+
+  defp image_object(url, name) do
+    compact(%{"@type" => "ImageObject", "contentUrl" => url, "url" => url, "name" => name})
+  end
 
   defp person(nil), do: nil
   defp person(""), do: nil
@@ -262,6 +337,26 @@ defmodule MykonosBiennaleWeb.Metadata do
     |> String.replace(~r/\s+/, " ")
     |> String.trim()
     |> blank_to_nil()
+  end
+
+  # Search engines show about 155 characters. Cut at a word boundary and add an
+  # ellipsis when the text is longer.
+  defp truncate_description(nil), do: nil
+
+  defp truncate_description(text) do
+    if String.length(text) <= @max_description do
+      text
+    else
+      head = String.slice(text, 0, @max_description - 1)
+
+      cut =
+        case Regex.run(~r/^(.*)\s\S*$/su, head) do
+          [_, before] when byte_size(before) > 0 -> before
+          _ -> head
+        end
+
+      String.trim_trailing(cut, ",;:.") <> "…"
+    end
   end
 
   defp blank_to_nil(nil), do: nil

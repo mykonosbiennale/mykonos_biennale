@@ -140,6 +140,7 @@ defmodule MykonosBiennaleWeb.PageController do
 
     conn
     |> assign(:page_title, page_title(current_biennale))
+    |> assign(:seo, MykonosBiennaleWeb.Metadata.page(path: conn.request_path))
     |> assign(:biennale, current_biennale)
     |> assign(:projects, projects)
     |> assign(:events, events)

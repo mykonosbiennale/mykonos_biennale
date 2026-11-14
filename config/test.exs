@@ -6,6 +6,9 @@ config :mykonos_biennale, :media_host, ""
 
 config :mykonos_biennale, Oban, testing: :manual
 
+# Tests create data and expect the next request to show it, so do not cache.
+config :mykonos_biennale, :discovery_cache_ttl_ms, 0
+
 # Only in tests, remove the complexity from the password hashing algorithm
 config :bcrypt_elixir, :log_rounds, 1
 

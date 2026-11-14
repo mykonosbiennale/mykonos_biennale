@@ -4,6 +4,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
   alias Ecto.Changeset
   alias MykonosBiennale.Content
   alias MykonosBiennale.Content.Media
+  alias MykonosBiennaleWeb.Admin.SEOSection
 
   @social_platforms [
     "Instagram",
@@ -233,6 +234,10 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
           <.input field={@form[:statement]} type="textarea" label="Statement" rows="3" />
         </div>
 
+        <div class="mt-6">
+          <SEOSection.fields entity={assigns[:participant]} />
+        </div>
+
         <div class="mt-6 flex items-center justify-end gap-x-6">
           <.link patch={@patch} class="text-sm font-semibold text-gray-500 hover:text-gray-700">
             Cancel
@@ -312,6 +317,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
   end
 
   def handle_event("save", params, socket) do
+    socket = assign(socket, :seo_params, params["seo"])
     participant_params = extract_participant_params(params)
     save_participant(socket, socket.assigns.action, participant_params)
   end
@@ -324,6 +330,7 @@ defmodule MykonosBiennaleWeb.Admin.ParticipantLive.FormComponent do
 
       case Content.create_participant(attrs) do
         {:ok, participant} ->
+          SEOSection.persist(nil, participant, socket.assigns.seo_params)
           maybe_upload_headshot(socket, participant)
           notify_parent({:saved, participant})
 

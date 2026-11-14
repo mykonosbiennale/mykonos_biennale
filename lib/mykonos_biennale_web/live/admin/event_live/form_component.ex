@@ -8,6 +8,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
   alias MykonosBiennale.Content.Entity
   alias MykonosBiennale.Content.Media
   alias MykonosBiennale.Content.Relationship
+  alias MykonosBiennaleWeb.Admin.SEOSection
 
   defmodule EventForm do
     @moduledoc false
@@ -121,6 +122,10 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
             type="checkbox"
             label="Show all artworks/films from this project"
           />
+        </div>
+
+        <div class="mt-6">
+          <SEOSection.fields entity={assigns[:event]} />
         </div>
 
         <div class="mt-6 flex items-center justify-end gap-x-6">
@@ -814,6 +819,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
   end
 
   def handle_event("save", params, socket) do
+    socket = assign(socket, :seo_params, params["seo"])
     event_params = extract_event_params(params)
     save_event(socket, socket.assigns.action, event_params)
   end
@@ -1014,6 +1020,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
       case Content.update_event(socket.assigns.event, attrs) do
         {:ok, event} ->
+          SEOSection.persist(socket.assigns.event, event, socket.assigns.seo_params)
           notify_parent({:saved, event})
 
           {:noreply,
@@ -1044,6 +1051,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
 
       case Content.create_event(attrs) do
         {:ok, event} ->
+          SEOSection.persist(nil, event, socket.assigns.seo_params)
           notify_parent({:saved, event})
 
           {:noreply,

@@ -234,6 +234,13 @@ defmodule MykonosBiennale.Content do
     |> tap_ok(&SearchReindex.enqueue_entity(&1.id))
   end
 
+  @doc "Stores the SEO overrides for an entity. Pass the overrides map, or %{} to clear them."
+  def put_seo(%Entity{} = entity, seo) when is_map(seo) do
+    entity
+    |> Ecto.Changeset.change(seo: seo)
+    |> Repo.update()
+  end
+
   @doc """
   Updates an entity.
   """
