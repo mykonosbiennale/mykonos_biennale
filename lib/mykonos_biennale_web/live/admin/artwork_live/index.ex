@@ -112,13 +112,17 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.Index do
   end
 
   defp do_batch_load_events(rt_id, artwork_ids) do
-    Repo.all(
-      from r in Relationship,
-        where: r.relationship_type_id == ^rt_id and r.subject_id in ^artwork_ids,
-        preload: [:object]
-    )
-    |> Enum.group_by(& &1.subject_id, fn r ->
-      title = if r.object, do: r.object.fields["title"], else: "Unknown"
+    rels =
+      Repo.all(
+        from r in Relationship,
+          where: r.relationship_type_id == ^rt_id and r.subject_id in ^artwork_ids,
+          preload: [:object]
+      )
+
+    years = rels |> Enum.map(& &1.object_id) |> Content.event_years()
+
+    Enum.group_by(rels, & &1.subject_id, fn r ->
+      title = if r.object, do: Content.event_label(r.object, years), else: "Unknown"
       %{id: r.object_id, title: title}
     end)
   end

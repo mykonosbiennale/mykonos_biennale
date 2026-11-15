@@ -55,7 +55,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     ~H"""
     <div data-theme="light" class="bg-white rounded-xl [&_.label]:text-gray-900 [&_h1]:text-gray-900">
       <.header>
-        {@title}
+        {event_heading(@event, @title)}
         <:actions>
           <.link
             :if={@event.id}
@@ -725,6 +725,14 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     title = event.fields["title"] || "Untitled"
 
     String.trim("#{title}#{biennale_year_suffix(event)}")
+  end
+
+  defp event_heading(event, fallback) do
+    case {event.fields["title"], event_biennale_year(event)} do
+      {title, _year} when title in [nil, ""] -> fallback
+      {title, nil} -> title
+      {title, year} -> "#{year} - #{title}"
+    end
   end
 
   defp biennale_year_suffix(event) do

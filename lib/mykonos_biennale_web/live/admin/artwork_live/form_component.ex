@@ -212,7 +212,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
               <div>
                 <div class="text-sm font-medium text-gray-900">
                   <.link navigate={"/admin/events/#{rel.object_id}"} class="hover:text-blue-600">
-                    {field(rel.object, "title")}
+                    {Content.event_label(rel.object, @event_years)}
                   </.link>
                 </div>
                 <div class="text-xs text-gray-500">
@@ -246,7 +246,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
               <option value="">Select an event to link...</option>
               <%= for event <- @available_events do %>
                 <option value={event.id}>
-                  {field(event, "title")} ({field(event, "type") || "untyped"})
+                  {Content.event_label(event, @event_years)} ({field(event, "type") || "untyped"})
                 </option>
               <% end %>
             </select>
@@ -380,9 +380,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
         []
       end
 
-    all_events = Content.list_events()
-    linked_event_ids = Enum.map(linked_events, & &1.object_id)
-    available_events = Enum.reject(all_events, fn e -> e.id in linked_event_ids end)
+    {available_events, event_years} = event_options(linked_events)
 
     linked_participants =
       if artwork.id do
@@ -405,6 +403,7 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
      |> assign(:available_media, available_media)
      |> assign(:linked_events, linked_events)
      |> assign(:available_events, available_events)
+     |> assign(:event_years, event_years)
      |> assign(:linked_participants, linked_participants)
      |> assign(:available_participants, available_participants)
      |> assign(:participant_search, "")
@@ -423,10 +422,17 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
 
   defp event_link_lists(artwork) do
     linked_events = Content.list_artwork_linked_events(artwork)
+    {available_events, event_years} = event_options(linked_events)
+    {linked_events, available_events, event_years}
+  end
+
+  # Events not yet linked to the artwork, plus the year map used to label every event.
+  defp event_options(linked_events) do
     all_events = Content.list_events()
     linked_event_ids = Enum.map(linked_events, & &1.object_id)
     available_events = Enum.reject(all_events, fn e -> e.id in linked_event_ids end)
-    {linked_events, available_events}
+    event_years = all_events |> Enum.map(& &1.id) |> Content.event_years()
+    {available_events, event_years}
   end
 
   defp participant_link_lists(artwork) do
@@ -495,12 +501,13 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
 
       case Content.attach_event_to_artwork(artwork, event) do
         {:ok, _} ->
-          {linked_events, available_events} = event_link_lists(artwork)
+          {linked_events, available_events, event_years} = event_link_lists(artwork)
 
           {:noreply,
            socket
            |> assign(:linked_events, linked_events)
            |> assign(:available_events, available_events)
+           |> assign(:event_years, event_years)
            |> notify_flash(:info, "Event linked successfully")}
 
         {:error, reason} ->
@@ -517,15 +524,13 @@ defmodule MykonosBiennaleWeb.Admin.ArtworkLive.FormComponent do
 
     {:ok, _} = Content.detach_event_from_artwork(artwork, event_id)
 
-    linked_events = Content.list_artwork_linked_events(artwork)
-    all_events = Content.list_events()
-    linked_event_ids = Enum.map(linked_events, & &1.object_id)
-    available_events = Enum.reject(all_events, fn e -> e.id in linked_event_ids end)
+    {linked_events, available_events, event_years} = event_link_lists(artwork)
 
     {:noreply,
      socket
      |> assign(:linked_events, linked_events)
      |> assign(:available_events, available_events)
+     |> assign(:event_years, event_years)
      |> notify_flash(:info, "Event unlinked successfully")}
   end
 

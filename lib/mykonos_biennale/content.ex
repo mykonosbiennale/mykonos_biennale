@@ -1027,6 +1027,46 @@ defmodule MykonosBiennale.Content do
   end
 
   @doc """
+  Returns a map of event id to the year of the biennale it belongs to.
+  Events without a linked biennale, or whose biennale has no year, are left out.
+  """
+  def event_years([]), do: %{}
+
+  def event_years(event_ids) do
+    case Repo.get_by(RelationshipType, slug: "biennale_event") do
+      nil ->
+        %{}
+
+      rt ->
+        from(r in Relationship,
+          join: b in assoc(r, :object),
+          where: r.relationship_type_id == ^rt.id and r.subject_id in ^event_ids,
+          select: {r.subject_id, b.fields}
+        )
+        |> Repo.all()
+        |> Enum.reduce(%{}, fn {id, fields}, acc ->
+          case fields["year"] do
+            nil -> acc
+            year -> Map.put(acc, id, year)
+          end
+        end)
+    end
+  end
+
+  @doc """
+  Label for an event as "year - title", or just the title when its year is unknown.
+  `years` is a map from `event_years/1`.
+  """
+  def event_label(%Entity{id: id, fields: fields}, years) do
+    title = fields["title"] || "Untitled"
+
+    case Map.get(years, id) do
+      nil -> title
+      year -> "#{year} - #{title}"
+    end
+  end
+
+  @doc """
   Slugifies a string for use in URLs/slugs.
   """
   def slugify(text) when is_binary(text) do
