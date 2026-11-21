@@ -10,6 +10,14 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
   alias MykonosBiennale.Content.Relationship
   alias MykonosBiennaleWeb.Admin.SEOSection
 
+  @template_options [
+    {"Automatic (by event type)", ""},
+    {"Standard slideshow", "default"},
+    {"Mosaic (packed grid)", "mosaic"},
+    {"Exhibition", "exhibition"},
+    {"Screening", "screening"}
+  ]
+
   defmodule EventForm do
     @moduledoc false
     use Ecto.Schema
@@ -29,6 +37,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
       field :description, :string
       field :show_project, :boolean, default: true
       field :visible, :boolean, default: true
+      field :template, :string, default: ""
     end
 
     def changeset(%__MODULE__{} = form, attrs) when is_map(attrs) do
@@ -44,7 +53,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
         :tickets,
         :description,
         :show_project,
-        :visible
+        :visible,
+        :template
       ])
       |> validate_required([:title, :type, :biennale_id])
     end
@@ -55,7 +65,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     ~H"""
     <div data-theme="light" class="bg-white rounded-xl [&_.label]:text-gray-900 [&_h1]:text-gray-900">
       <.header>
-        {@title}
+        {event_heading(@event, @title)}
         <:actions>
           <.link
             :if={@event.id}
@@ -110,6 +120,13 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
               {"Event", "event"}
             ]}
             required
+          />
+
+          <.input
+            field={@form[:template]}
+            type="select"
+            label="Page template"
+            options={@template_options}
           />
 
           <.input field={@form[:date]} type="date" label="Date" />
@@ -611,6 +628,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
      |> assign(:available_media, available_media)
      |> assign(:is_screening, is_screening)
      |> assign(:is_exhibition, is_exhibition)
+     |> assign(:template_options, @template_options)
      |> assign(:poster_link, poster_link)
      |> assign(:artboard_pool, artboard_pool)
      |> assign(:artboard_artwork_map, artboard_artwork_map)
@@ -725,6 +743,14 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
     title = event.fields["title"] || "Untitled"
 
     String.trim("#{title}#{biennale_year_suffix(event)}")
+  end
+
+  defp event_heading(event, fallback) do
+    case {event.fields["title"], event_biennale_year(event)} do
+      {title, _year} when title in [nil, ""] -> fallback
+      {title, nil} -> title
+      {title, year} -> "#{year} - #{title}"
+    end
   end
 
   defp biennale_year_suffix(event) do
@@ -1101,7 +1127,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
       tickets: Map.get(fields, "tickets"),
       description: Map.get(fields, "description"),
       show_project: Map.get(fields, "show_project", true),
-      visible: true
+      visible: true,
+      template: Map.get(fields, "template") || ""
     }
   end
 
@@ -1115,7 +1142,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
       tickets: Map.get(fields, "tickets"),
       description: Map.get(fields, "description"),
       show_project: Map.get(fields, "show_project", true),
-      visible: true
+      visible: true,
+      template: Map.get(fields, "template") || ""
     }
   end
 
@@ -1161,7 +1189,8 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.FormComponent do
       tickets: form.tickets,
       description: form.description,
       show_project: form.show_project,
-      visible: form.visible
+      visible: form.visible,
+      template: form.template || ""
     }
     |> Enum.reject(fn {_k, v} -> is_nil(v) end)
     |> Enum.into(%{})

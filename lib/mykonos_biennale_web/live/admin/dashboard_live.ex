@@ -465,6 +465,13 @@ defmodule MykonosBiennaleWeb.Admin.DashboardLive do
               <span class="text-xs text-gray-400">Add Antidote</span>
               <.icon name="hero-plus" class="size-3.5 text-purple-400" />
             </.link>
+            <.link
+              navigate={~p"/admin/events/quick/new"}
+              class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900/50 border border-gray-800 rounded-full hover:border-purple-700/50 transition-colors"
+            >
+              <span class="text-xs text-gray-400">Quick Event</span>
+              <.icon name="hero-plus" class="size-3.5 text-purple-400" />
+            </.link>
           </div>
         </div>
 
