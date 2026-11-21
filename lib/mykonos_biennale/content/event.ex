@@ -70,7 +70,8 @@ defmodule MykonosBiennale.Content.Event do
       "time" => attr(attrs, :time),
       "location" => attr(attrs, :location),
       "tickets" => attr(attrs, :tickets),
-      "show_project" => Map.get(attrs, :show_project, Map.get(attrs, "show_project", true))
+      "show_project" => Map.get(attrs, :show_project, Map.get(attrs, "show_project", true)),
+      "template" => attr(attrs, :template)
     }
 
     slug = "#{slugify(title || "event")}-#{System.monotonic_time()}"
@@ -113,7 +114,8 @@ defmodule MykonosBiennale.Content.Event do
           :location,
           :tickets,
           :show_project,
-          :artboard_media_ids
+          :artboard_media_ids,
+          :template
         ],
         current_fields,
         fn key, acc ->
@@ -178,7 +180,8 @@ defmodule MykonosBiennale.Content.Event do
       :location,
       :tickets,
       :show_project,
-      :artboard_media_ids
+      :artboard_media_ids,
+      :template
     ]
 
     fields_map =

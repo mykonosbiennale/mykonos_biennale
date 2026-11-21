@@ -13,10 +13,29 @@ defmodule MykonosBiennaleWeb.EventController do
   alias MykonosBiennaleWeb.EventHTML
   alias MykonosBiennaleWeb.Metadata
 
+  @chosen_templates %{
+    "default" => :default,
+    "mosaic" => :mosaic,
+    "exhibition" => :exhibition,
+    "screening" => :screening
+  }
+
   def show(conn, %{"id" => id}) do
     case Repo.get(Entity, id) do
       %Entity{type: "event", visible: true} = event ->
-        render_event(conn, event)
+        render_event(conn, event, event.fields["template"])
+
+      _ ->
+        not_found(conn)
+    end
+  end
+
+  # Renders an event in a given layout without changing its stored template. Used to
+  # compare layouts side by side.
+  def show_layout(conn, %{"id" => id, "template" => template}) do
+    case {Repo.get(Entity, id), template in Map.keys(@chosen_templates)} do
+      {%Entity{type: "event", visible: true} = event, true} ->
+        render_event(conn, event, template)
 
       _ ->
         not_found(conn)
@@ -26,14 +45,14 @@ defmodule MykonosBiennaleWeb.EventController do
   def show_by_slug(conn, %{"slug" => slug}) do
     case Repo.get_by(Entity, slug: slug, type: "event") do
       %Entity{visible: true} = event ->
-        render_event(conn, event)
+        render_event(conn, event, event.fields["template"])
 
       _ ->
         not_found(conn)
     end
   end
 
-  defp render_event(conn, event) do
+  defp render_event(conn, event, chosen_template) do
     event_type = event.fields["type"] || "event"
     show_project = Map.get(event.fields, "show_project", true)
 
@@ -58,7 +77,10 @@ defmodule MykonosBiennaleWeb.EventController do
     media = get_event_media(event, event_type, artboard_media_ids)
     participants = get_event_participants(event, rt)
 
+    template = template_for(chosen_template, event_type)
+
     conn
+    |> put_full_document_layout(template)
     |> assign(:event, event)
     |> assign(:event_type, event_type)
     |> assign(:biennale, biennale)
@@ -73,7 +95,7 @@ defmodule MykonosBiennaleWeb.EventController do
       Metadata.for_event(event, Metadata.biennale_year(biennale), conn.request_path)
     )
     |> put_view(EventHTML)
-    |> render(template_for(event_type))
+    |> render(template)
   end
 
   defp get_parent_entities(biennale_id, project_id) do
@@ -111,9 +133,18 @@ defmodule MykonosBiennaleWeb.EventController do
     end
   end
 
-  defp template_for("exhibition"), do: :exhibition
-  defp template_for("screening"), do: :screening
-  defp template_for(_event_type), do: :default
+  # A template chosen on the event wins. Otherwise the template follows the event type.
+  # The mosaic is a full HTML document, so it skips the app's root layout. That layout
+  # narrows the page and leaves black margins around it.
+  defp put_full_document_layout(conn, :mosaic), do: put_root_layout(conn, false)
+  defp put_full_document_layout(conn, _template), do: conn
+
+  defp template_for(chosen, _event_type) when is_map_key(@chosen_templates, chosen),
+    do: Map.fetch!(@chosen_templates, chosen)
+
+  defp template_for(_chosen, "exhibition"), do: :exhibition
+  defp template_for(_chosen, "screening"), do: :screening
+  defp template_for(_chosen, _event_type), do: :default
 
   defp preload_relationship_types do
     slugs = [

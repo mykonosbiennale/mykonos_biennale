@@ -55,3 +55,7 @@ Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web
 Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/participant_live/form_component.ex:364,6187D94
 Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/project_live/form_component.ex:271,6AE777F
 Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/event_live/form_component.ex:713,72B16AE
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/event_live/quick.ex:228,27F27F6
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/artwork_live/form_component.ex:737,52CD112
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/event_live/quick.ex:250,2555AE1
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/event_live/form_component.ex:731,33A6881

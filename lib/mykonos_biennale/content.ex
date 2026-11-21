@@ -839,6 +839,10 @@ defmodule MykonosBiennale.Content do
   """
   def get_media!(id), do: Repo.get!(Media, id)
 
+  def get_media_by_ids(ids) when is_list(ids) do
+    Repo.all(from m in Media, where: m.id in ^ids)
+  end
+
   def get_media_by_slug(slug) do
     Repo.get_by(Media, slug: slug)
   end
@@ -1044,14 +1048,13 @@ defmodule MykonosBiennale.Content do
           select: {r.subject_id, b.fields}
         )
         |> Repo.all()
-        |> Enum.reduce(%{}, fn {id, fields}, acc ->
-          case fields["year"] do
-            nil -> acc
-            year -> Map.put(acc, id, year)
-          end
-        end)
+        |> Enum.flat_map(fn {id, fields} -> year_entry(id, fields["year"]) end)
+        |> Map.new()
     end
   end
+
+  defp year_entry(_id, nil), do: []
+  defp year_entry(id, year), do: [{id, year}]
 
   @doc """
   Label for an event as "year - title", or just the title when its year is unknown.
