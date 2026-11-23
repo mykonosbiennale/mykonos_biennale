@@ -11,6 +11,7 @@ defmodule MykonosBiennale.Content do
   alias MykonosBiennale.Content.Entity
   alias MykonosBiennale.Content.EntityMedia
   alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.MediaFingerprint
   alias MykonosBiennale.Content.Relationship
   alias MykonosBiennale.Content.RelationshipType
   alias MykonosBiennale.Repo
@@ -284,6 +285,11 @@ defmodule MykonosBiennale.Content do
     |> Enum.uniq()
   end
 
+  # Uploads from the quick page defer their reindex to one batch insert at the end.
+  defp reindex_media(media_id, opts) do
+    unless Keyword.get(opts, :defer_reindex, false), do: SearchReindex.enqueue_media(media_id)
+  end
+
   defp tap_ok({:ok, value} = result, fun) do
     _ = fun.(value)
     result
@@ -428,7 +434,7 @@ defmodule MykonosBiennale.Content do
   Returns the list of media.
   """
   def list_media do
-    Repo.all(from m in Media, order_by: [desc: m.inserted_at])
+    Repo.all(from m in Media, where: m.visible, order_by: [desc: m.inserted_at])
   end
 
   @doc """
@@ -848,15 +854,99 @@ defmodule MykonosBiennale.Content do
   end
 
   @doc """
-  Creates a media.
+  Creates a media, or reuses the existing one for the same file, URL or embed code.
+
+  By default a duplicate returns `{:ok, existing}` with `reused: true`, so entities link
+  to the one record. With `on_duplicate: :error` it returns `{:error, {:duplicate, existing}}`
+  and creates nothing.
   """
-  def create_media(attrs \\ %{}) do
-    %Media{}
-    |> Media.changeset(attrs)
-    |> Repo.insert()
-    |> set_slug_if_needed()
-    |> tap_ok(&SearchReindex.enqueue_media(&1.id))
-    |> tap_ok(&enqueue_media_process(&1))
+  def create_media(attrs \\ %{}, opts \\ []) do
+    changeset = Media.changeset(%Media{}, attrs)
+    fingerprint = MediaFingerprint.for_changeset(changeset)
+
+    case fingerprint && find_media_by_fingerprint(fingerprint) do
+      nil -> insert_media(changeset, fingerprint, opts)
+      existing -> duplicate_media(existing, changeset, opts)
+    end
+  end
+
+  @doc """
+  Retires a media record (hides it from pickers, pages and new uploads) or restores it.
+
+  Restoring fails with `{:error, :duplicate}` when another visible record already has the
+  same file, URL or embed code. Retire that record first. Restoring clears the
+  `merged_into` pointer left by the duplicate merge.
+  """
+  def set_media_visible(%Media{} = media, visible?) when is_boolean(visible?) do
+    metadata =
+      if visible?,
+        do: Map.delete(media.metadata || %{}, "merged_into"),
+        else: media.metadata
+
+    changeset = Media.changeset(media, %{visible: visible?, metadata: metadata})
+
+    case Repo.update(changeset) do
+      {:ok, updated} ->
+        SearchReindex.enqueue_media(updated.id)
+        {:ok, updated}
+
+      {:error, %Ecto.Changeset{errors: [{:fingerprint, _} | _]}} ->
+        {:error, :duplicate}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
+
+  @doc "Finds the visible media record with this fingerprint, if any."
+  def find_media_by_fingerprint(fingerprint) do
+    Repo.one(
+      from m in Media,
+        where: m.fingerprint == ^fingerprint and m.visible,
+        order_by: m.id,
+        limit: 1
+    )
+  end
+
+  defp insert_media(changeset, fingerprint, opts) do
+    case changeset |> Ecto.Changeset.put_change(:fingerprint, fingerprint) |> Repo.insert() do
+      {:ok, media} ->
+        {:ok, media}
+        |> set_slug_if_needed()
+        |> tap_ok(&reindex_media(&1.id, opts))
+        |> tap_ok(&enqueue_media_process(&1))
+
+      {:error, %Ecto.Changeset{} = failed} = error ->
+        # Another request stored the same file between the lookup and the insert.
+        case Keyword.has_key?(failed.errors, :fingerprint) &&
+               find_media_by_fingerprint(fingerprint) do
+          %Media{} = existing -> duplicate_media(existing, changeset, opts)
+          _ -> error
+        end
+    end
+  end
+
+  defp duplicate_media(existing, changeset, opts) do
+    discard_new_upload(changeset)
+
+    case Keyword.get(opts, :on_duplicate, :reuse) do
+      :error -> {:error, {:duplicate, existing}}
+      _reuse -> {:ok, %{existing | reused: true}}
+    end
+  end
+
+  # The caller has already copied the file to the uploads folder under a fresh name.
+  # When it turns out to be a duplicate, that copy is removed, unless another record
+  # uses the same path.
+  defp discard_new_upload(changeset) do
+    path = Ecto.Changeset.get_field(changeset, :source_path)
+
+    if Ecto.Changeset.get_field(changeset, :source_type) == "upload" and is_binary(path) and
+         not Repo.exists?(from m in Media, where: m.source_path == ^path) do
+      File.rm(MykonosBiennale.Uploads.uploads_path(path))
+    end
+
+    :ok
   end
 
   defp set_slug_if_needed({:ok, %Media{slug: nil, id: id} = media}) when not is_nil(id) do
@@ -952,7 +1042,7 @@ defmodule MykonosBiennale.Content do
       |> Repo.insert()
       |> case do
         {:ok, _} ->
-          SearchReindex.enqueue_media(media.id)
+          reindex_media(media.id, opts)
           {:ok, :attached}
 
         {:error, cs} ->
@@ -960,6 +1050,9 @@ defmodule MykonosBiennale.Content do
       end
     end
   end
+
+  @doc "Enqueues one search reindex job per media id, in a single insert."
+  def enqueue_media_reindex(ids), do: SearchReindex.enqueue_media_batch(ids)
 
   @doc """
   Detaches media from an entity.
@@ -981,7 +1074,7 @@ defmodule MykonosBiennale.Content do
       from m in Media,
         join: em in "entity_media",
         on: em.media_id == m.id,
-        where: em.entity_id == ^entity_id,
+        where: em.entity_id == ^entity_id and m.visible,
         order_by: em.position,
         select: m
     )

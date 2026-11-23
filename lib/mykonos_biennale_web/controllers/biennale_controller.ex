@@ -305,6 +305,8 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     records =
       Repo.all(
         from em in EntityMedia,
+          join: m in assoc(em, :media),
+          where: m.visible,
           where: em.entity_id in ^entity_ids,
           order_by: [asc: em.entity_id, asc: em.position],
           preload: [:media]
@@ -403,6 +405,8 @@ defmodule MykonosBiennaleWeb.BiennaleController do
     links =
       Repo.all(
         from em in EntityMedia,
+          join: m in assoc(em, :media),
+          where: m.visible,
           where:
             em.entity_id in ^participant_ids and
               fragment("? ->> 'role'", em.metadata) == "headshot",

@@ -59,3 +59,15 @@ Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web
 Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/artwork_live/form_component.ex:737,52CD112
 Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/event_live/quick.ex:250,2555AE1
 Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/event_live/form_component.ex:731,33A6881
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/content.ex:913,1696F9
+Traversal.FileModule: Directory Traversal in `File.open`,lib/mykonos_biennale/content/media_fingerprint.ex:58,1BAB37B
+CI.System: Command Injection via `System` function,lib/mykonos_biennale/workers/media_process.ex:232,3B44C4B
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/workers/media_process.ex:139,3FAD46D
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/workers/media_process.ex:181,3FC39C3
+CI.System: Command Injection via `System` function,lib/mykonos_biennale/workers/media_process.ex:132,3FFC020
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/content/media_dedupe.ex:181,44ED65A
+CI.System: Command Injection via `System` function,lib/mykonos_biennale/workers/media_process.ex:174,47AF23E
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/media_live/form_component.ex:313,73B952E
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/content.ex:941,576573A
+Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/content.ex:946,375FFEE
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/event_live/quick.ex:268,5F37892

@@ -20,6 +20,7 @@ defmodule MykonosBiennale.Workers.MediaProcess do
   import Ecto.Query, warn: false
 
   alias MykonosBiennale.Content.Media
+  alias MykonosBiennale.Content.MediaFingerprint
   alias MykonosBiennale.MediaDir
   alias MykonosBiennale.Repo
   alias MykonosBiennale.Thumbnail
@@ -234,12 +235,29 @@ defmodule MykonosBiennale.Workers.MediaProcess do
         generate_webp_sizes(%Media{slug: slug, source_type: "upload", source_path: path})
         enqueue_avif_and_press(id_for_slug(slug))
         record_rotation(id, metadata, degrees)
+        refresh_fingerprint(id)
         {:ok, :rotated}
 
       {error, _code} ->
         require Logger
         Logger.warning("Rotation failed for #{original_path}: #{error}")
         {:error, :rotate_failed}
+    end
+  end
+
+  # The file's bytes changed, so its fingerprint must follow. If the rotated file now
+  # matches another media item, this record's fingerprint is cleared rather than
+  # violating the unique index.
+  defp refresh_fingerprint(id) do
+    media = Repo.get!(Media, id)
+    fingerprint = MediaFingerprint.for_media(media)
+
+    case media |> Ecto.Changeset.change(fingerprint: fingerprint) |> Repo.update() do
+      {:ok, _} ->
+        :ok
+
+      {:error, _changeset} ->
+        Repo.update_all(from(m in Media, where: m.id == ^id), set: [fingerprint: nil])
     end
   end
 

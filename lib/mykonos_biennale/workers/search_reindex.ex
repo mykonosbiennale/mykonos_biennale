@@ -75,6 +75,14 @@ defmodule MykonosBiennale.Workers.SearchReindex do
     %{kind: "media", id: id} |> __MODULE__.new() |> Oban.insert()
   end
 
+  @doc "Enqueue a reindex of several media in one insert."
+  def enqueue_media_batch(ids) when is_list(ids) do
+    ids
+    |> Enum.uniq()
+    |> Enum.map(&__MODULE__.new(%{kind: "media", id: &1}))
+    |> Oban.insert_all()
+  end
+
   @doc "Enqueue a 1-hop cascade reindex starting from an entity."
   def enqueue_entity_cascade(id) when is_integer(id) do
     %{kind: "entity_cascade", id: id} |> __MODULE__.new() |> Oban.insert()

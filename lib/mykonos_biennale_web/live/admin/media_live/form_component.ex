@@ -278,7 +278,7 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
   end
 
   defp save_media(socket, :new, media_params) do
-    case Content.create_media(media_params) do
+    case Content.create_media(media_params, on_duplicate: :error) do
       {:ok, media} ->
         notify_parent({:saved, media})
 
@@ -286,6 +286,14 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.FormComponent do
          socket
          |> notify_flash(:info, "Media created successfully")
          |> push_patch(to: socket.assigns.patch)}
+
+      {:error, {:duplicate, existing}} ->
+        {:noreply,
+         notify_flash(
+           socket,
+           :error,
+           "This file already exists as media ##{existing.id} (#{existing.caption || existing.original_name || existing.source_type}). Nothing was created."
+         )}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
