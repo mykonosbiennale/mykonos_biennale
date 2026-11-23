@@ -16,6 +16,15 @@ defmodule MykonosBiennale.Content.Media do
     field :metadata, :map
     field :search_index, :string
     field :search_indexed_at, :naive_datetime
+    field :fingerprint, :string
+
+    # A retired (tombstoned) duplicate stays in the table so old links resolve, but it is
+    # hidden and never matched by new uploads. metadata["merged_into"] names the record
+    # that replaced it.
+    field :visible, :boolean, default: true
+
+    # Set on the record returned when an upload or URL matched an existing media item.
+    field :reused, :boolean, virtual: true, default: false
 
     many_to_many(:entities, MykonosBiennale.Content.Entity,
       join_through: "entity_media",
@@ -40,12 +49,14 @@ defmodule MykonosBiennale.Content.Media do
       :alt_text,
       :metadata,
       :search_index,
-      :search_indexed_at
+      :search_indexed_at,
+      :visible
     ])
     |> validate_required([:source_type])
     |> validate_inclusion(:source_type, ["upload", "url", "embed"])
     |> maybe_generate_slug()
     |> validate_source_fields()
+    |> unique_constraint(:fingerprint, name: :media_fingerprint_index)
   end
 
   # For new records, id is nil — slug will be set after insert.

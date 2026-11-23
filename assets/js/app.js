@@ -88,8 +88,8 @@ const hooks = {
 }
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+// No long-poll fallback: uploads of many files stall on long-poll, so stay on the WebSocket.
 const liveSocket = new LiveSocket("/live", Socket, {
-  longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
   hooks,
 })

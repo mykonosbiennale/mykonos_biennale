@@ -346,6 +346,8 @@ defmodule MykonosBiennaleWeb.EventController do
     records =
       Repo.all(
         from em in EntityMedia,
+          join: m in assoc(em, :media),
+          where: m.visible,
           where: em.entity_id in ^entity_ids,
           order_by: [
             asc:

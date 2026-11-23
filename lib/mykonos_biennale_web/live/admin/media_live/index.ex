@@ -93,6 +93,30 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Index do
   end
 
   @impl true
+  def handle_event("toggle_visible", %{"id" => id}, socket) do
+    media = Content.get_media!(id)
+
+    case Content.set_media_visible(media, !media.visible) do
+      {:ok, updated} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, if(updated.visible, do: "Media restored", else: "Media retired"))
+         |> stream_insert(:media_collection, updated)}
+
+      {:error, :duplicate} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           "Cannot restore: another visible media has the same file, URL or embed code. Retire that one first."
+         )}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, "Could not change this media")}
+    end
+  end
+
+  @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     media = Content.get_media!(id)
     {:ok, _} = Content.delete_media(media)
@@ -161,5 +185,13 @@ defmodule MykonosBiennaleWeb.Admin.MediaLive.Index do
 
   defp patch_path(base, page, sort_by, sort_dir) do
     "#{base}?#{URI.encode_query(%{page: page, sort_by: sort_by, sort_dir: sort_dir})}"
+  end
+
+  @doc false
+  def retired_label(%{metadata: metadata}) do
+    case (metadata || %{})["merged_into"] do
+      nil -> "Retired"
+      id -> "Retired duplicate of media ##{id}"
+    end
   end
 end
