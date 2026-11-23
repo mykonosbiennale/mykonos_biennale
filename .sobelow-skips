@@ -71,3 +71,4 @@ Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web
 Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/content.ex:941,576573A
 Traversal.FileModule: Directory Traversal in `File.rm`,lib/mykonos_biennale/content.ex:946,375FFEE
 Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/event_live/quick.ex:268,5F37892
+Traversal.FileModule: Directory Traversal in `File.cp!`,lib/mykonos_biennale_web/live/admin/event_live/quick.ex:280,7657B1A
