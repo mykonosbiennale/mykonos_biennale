@@ -38,7 +38,7 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Quick do
      |> assign(:pending_reindex, [])
      |> allow_upload(:media,
        accept: ~w(.jpg .jpeg .png .gif .webp),
-       max_entries: 200,
+       max_entries: 50,
        max_file_size: 20_000_000,
        auto_upload: true,
        progress: &handle_upload_progress/3
@@ -226,14 +226,26 @@ defmodule MykonosBiennaleWeb.Admin.EventLive.Quick do
     end
   end
 
+  # The upload channel for a file can close before its progress message is handled
+  # (the browser closes it once the file has sent). Consuming then exits; catch that
+  # so only this file fails and the rest of the batch and the view carry on.
   defp save_uploaded_media(socket, entry) do
     caption = socket.assigns.event.fields["title"]
 
-    case consume_uploaded_entry(socket, entry, fn %{path: path} ->
-           {:ok, store_upload(path, entry, caption)}
-         end) do
-      {:ok, media} -> attach_uploaded(socket, media)
-      {:error, _changeset} -> put_flash(socket, :error, "Could not save #{entry.client_name}")
+    try do
+      case consume_uploaded_entry(socket, entry, fn %{path: path} ->
+             {:ok, store_upload(path, entry, caption)}
+           end) do
+        {:ok, media} -> attach_uploaded(socket, media)
+        {:error, _changeset} -> put_flash(socket, :error, "Could not save #{entry.client_name}")
+      end
+    catch
+      :exit, _reason ->
+        put_flash(
+          socket,
+          :error,
+          "#{entry.client_name} did not finish uploading. Add it again."
+        )
     end
   end
 
